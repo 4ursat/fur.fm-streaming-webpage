@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fur FM</title>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js"></script>
+  <script src="supabase-config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      font-family: 'Courier New', Courier, monospace;
+    }
+
+    .bg {
+      position: fixed;
+      inset: 0;
+      background: url('background.jpeg') center center / cover no-repeat;
+      filter: grayscale(100%) brightness(0.82);
+      z-index: 0;
+    }
+
+    /* Warm glow that bleeds through when door opens */
+    .door-backlight {
+      position: fixed;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 244px;
+      height: 460px;
+      z-index: 2;
+      pointer-events: none;
+      background: transparent;
+      transition: background 0.7s ease, box-shadow 0.7s ease;
+    }
+    .door-backlight.glowing {
+      background: radial-gradient(
+        ellipse 90% 100% at 18% 50%,
+        rgba(255,215,100,0.85) 0%,
+        rgba(255,190,60,0.4) 45%,
+        transparent 75%
+      );
+      box-shadow: -20px 0 60px 10px rgba(255,210,80,0.3);
+    }
+
+    /* Outer door frame — stays fixed while panel swings */
+    .door-frame {
+      position: fixed;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 244px;
+      height: 460px;
+      z-index: 5;
+      cursor: pointer;
+      opacity: 0;
+    }
+
+    .door-frame-ring {
+      position: absolute;
+      inset: 0;
+      border: 2px solid #1c1c1c;
+      pointer-events: none;
+      z-index: 20;
+    }
+
+    /* 3-D perspective wrapper */
+    .door-panel-wrap {
+      position: absolute;
+      inset: 0;
+      perspective: 700px;
+      perspective-origin: 0% 50%;
+    }
+
+    /* Swinging panel */
+    .door-panel {
+      position: absolute;
+      inset: 0;
+      transform-origin: left center;
+      transform: rotateY(0deg);
+      transition: transform 0.9s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      will-change: transform;
+      background: #fff;
+      border: 2px solid #1c1c1c;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .door-frame.open .door-panel {
+      transform: rotateY(-78deg);
+    }
+
+    /* Subtle inset decoration */
+    .door-panel::before {
+      content: '';
+      position: absolute;
+      top: 7%; left: 7%; right: 7%; bottom: 28%;
+      border: 1px solid rgba(0,0,0,0.07);
+      pointer-events: none;
+    }
+
+    /* Form content */
+    .door-content {
+      flex: 1;
+      padding: 1.5rem 1.5rem 0.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.9rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.28rem;
+    }
+
+    .field label {
+      font-size: 0.68rem;
+      letter-spacing: 0.04em;
+      color: #333;
+    }
+
+    .field input {
+      background: #d8d8d8;
+      border: none;
+      padding: 0.42rem 0.5rem;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.76rem;
+      color: #111;
+      outline: none;
+      width: 100%;
+      transition: background 0.15s;
+    }
+
+    .field input:focus { background: #c8c8c8; }
+
+    .status {
+      font-size: 0.58rem;
+      color: #888;
+      letter-spacing: 0.03em;
+      min-height: 0.8em;
+      margin-top: -0.25rem;
+    }
+    .status.error { color: #b03020; }
+
+    .enter-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .enter-word {
+      font-size: 1.9rem;
+      letter-spacing: 0.03em;
+      color: #111;
+      font-weight: normal;
+      line-height: 1;
+    }
+
+    .enter-circle {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      border: 2px solid #222;
+      flex-shrink: 0;
+      transition: background 0.15s;
+    }
+
+    .enter-row:hover .enter-circle { background: #222; }
+
+    .enter-circle.loading {
+      border-color: transparent;
+      border-top-color: #222;
+      background: transparent !important;
+      animation: spin 0.75s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Door knob */
+    .door-knob {
+      position: absolute;
+      right: 13%; top: 50%;
+      transform: translateY(-50%);
+      width: 9px; height: 9px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #c8a860, #6a5228);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.55);
+      z-index: 25;
+      pointer-events: none;
+      transition: opacity 0.35s;
+    }
+
+    .door-frame.open .door-knob { opacity: 0; }
+
+    /* Stamp */
+    .stamp {
+      background: #ccc;
+      padding: 1.1rem 1rem;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+      flex-shrink: 0;
+    }
+
+    .stamp-name { font-size: 0.72rem; letter-spacing: 0.1em; color: #444; }
+    .stamp-sub  { font-size: 0.6rem; letter-spacing: 0.07em; color: #666; }
+
+    /* Transition flash */
+    .flash {
+      position: fixed;
+      inset: 0;
+      background: #fff;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 200;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg" id="bg"></div>
+  <div class="door-backlight" id="door-backlight"></div>
+  <div class="flash" id="flash"></div>
+
+  <div class="door-frame" id="door-frame">
+    <div class="door-frame-ring"></div>
+
+    <div class="door-panel-wrap">
+      <div class="door-panel">
+
+        <div class="door-content">
+          <div class="field" id="field-name">
+            <label for="inp-name">name</label>
+            <input type="text" id="inp-name" autocomplete="name" required />
+          </div>
+
+          <div class="field" id="field-email">
+            <label for="inp-email">email</label>
+            <input type="email" id="inp-email" autocomplete="email" required />
+          </div>
+
+          <div class="field" id="field-otp" style="display:none">
+            <label for="inp-otp">verification code</label>
+            <input type="text" id="inp-otp" maxlength="6"
+                   inputmode="numeric" autocomplete="one-time-code" placeholder="6-digit code" />
+          </div>
+
+          <p class="status" id="form-status"></p>
+
+          <div class="enter-row" id="enter-row">
+            <span class="enter-word" id="enter-word">enter</span>
+            <div class="enter-circle" id="enter-circle"></div>
+          </div>
+        </div>
+
+        <div class="stamp">
+          <span class="stamp-name">Fur FM</span>
+          <span class="stamp-sub">Listening Portal</span>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="door-knob"></div>
+  </div>
+
+  <script>
+  (() => {
+    const { createClient } = window.supabase;
+    const db = createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+
+    let formState    = 'email';
+    let pendingEmail = '';
+    let pendingName  = '';
+
+    const doorFrame = document.getElementById('door-frame');
+    const circle    = document.getElementById('enter-circle');
+    const enterWord = document.getElementById('enter-word');
+    const backlight = document.getElementById('door-backlight');
+    const flash     = document.getElementById('flash');
+    const bg        = document.getElementById('bg');
+
+    gsap.set(doorFrame, { y: 18 });
+    gsap.to(doorFrame, { opacity: 1, y: 0, duration: 0.9, ease: 'power2.out', delay: 0.2 });
+
+    function setStatus(msg, isError = false) {
+      const el = document.getElementById('form-status');
+      el.textContent = msg;
+      el.className   = 'status' + (isError ? ' error' : '');
+    }
+
+    function setLoading(on) { circle.classList.toggle('loading', on); }
+
+    function showOTPStep() {
+      document.getElementById('field-name').style.display  = 'none';
+      document.getElementById('field-email').style.display = 'none';
+      document.getElementById('field-otp').style.display   = '';
+      enterWord.textContent = 'verify';
+      document.getElementById('inp-otp').focus();
+    }
+
+    async function sendOTP() {
+      pendingName  = document.getElementById('inp-name').value.trim();
+      pendingEmail = document.getElementById('inp-email').value.trim();
+
+      if (!pendingName || !pendingEmail) {
+        setStatus('please fill in both fields', true);
+        return;
+      }
+
+      formState = 'loading';
+      setLoading(true);
+      setStatus('sending code…');
+
+      const { error } = await db.auth.signInWithOtp({
+        email: pendingEmail,
+        options: { data: { username: pendingName }, shouldCreateUser: true },
+      });
+
+      setLoading(false);
+      if (error) { formState = 'email'; setStatus(error.message, true); return; }
+
+      formState = 'otp';
+      showOTPStep();
+      setStatus('check your email for the code');
+    }
+
+    async function verifyOTP() {
+      const token = document.getElementById('inp-otp').value.trim();
+      if (token.length < 6) { setStatus('enter the full 6-digit code', true); return; }
+
+      formState = 'loading';
+      setLoading(true);
+      setStatus('verifying…');
+
+      const { data, error } = await db.auth.verifyOtp({
+        email: pendingEmail, token, type: 'email',
+      });
+
+      setLoading(false);
+      if (error) { formState = 'otp'; setStatus(error.message || 'invalid code', true); return; }
+
+      const user = data.user;
+      await db.from('users').upsert(
+        { auth_id: user.id, email: user.email, username: pendingName, verified: true },
+        { onConflict: 'auth_id' }
+      );
+
+      formState = 'done';
+      setStatus('');
+      openDoor();
+    }
+
+    function openDoor() {
+      backlight.classList.add('glowing');
+      doorFrame.classList.add('open');
+      setTimeout(navigateToStream, 820);
+    }
+
+    function navigateToStream() {
+      gsap.timeline()
+        .to(bg,    { scale: 5, duration: 1.05, ease: 'power2.in', transformOrigin: '50% 50%' })
+        .to(flash, { opacity: 1, duration: 0.5, ease: 'power1.in' }, 0.6)
+        .add(() => { window.location.href = 'stream.html'; });
+    }
+
+    async function handleSubmit() {
+      if (formState === 'loading' || formState === 'done') return;
+      if (formState === 'email') await sendOTP();
+      else if (formState === 'otp') await verifyOTP();
+    }
+
+    document.getElementById('enter-row').addEventListener('click', handleSubmit);
+    document.querySelectorAll('.field input').forEach(inp => {
+      inp.addEventListener('keydown', e => {
+        if (e.key === 'Enter') { e.preventDefault(); handleSubmit(); }
+      });
+    });
+  })();
+  </script>
+
+</body>
+</html>

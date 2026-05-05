@@ -1,0 +1,16 @@
+{
+  "name": "fursatfm-server",
+  "version": "2.0.0",
+  "description": "Mux live stream server for Fur FM",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "@mux/mux-node": "^14.0.0",
+    "@supabase/supabase-js": "^2.45.0",
+    "dotenv": "^16.4.0",
+    "express": "^4.21.0"
+  }
+}
