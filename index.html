@@ -19,8 +19,10 @@
     .bg {
       position: fixed;
       inset: 0;
-      background: url('background.jpeg') center center / cover no-repeat;
+      background: url('background.jpeg') center 85% / cover no-repeat;
       filter: grayscale(100%) brightness(0.82);
+      transform: translateX(12%) scale(1.32);
+      transform-origin: center 80%;
       z-index: 0;
     }
 
@@ -156,9 +158,9 @@
     }
 
     .enter-word {
-      font-size: 1.9rem;
-      letter-spacing: 0.03em;
-      color: #111;
+      font-size: 1.15rem;
+      letter-spacing: 0.1em;
+      color: rgba(0,0,0,0.42);
       font-weight: normal;
       line-height: 1;
     }
@@ -215,7 +217,7 @@
     /* Drone Room link — public, no login */
     .drone-link {
       position: fixed;
-      bottom: 2rem;
+      top: 1.6rem;
       left: 50%;
       transform: translateX(-50%);
       z-index: 50;
@@ -249,26 +251,6 @@
       color: rgba(255,255,255,0.35);
     }
 
-    /* Post-registration confirmation overlay */
-    .confirm-msg {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 15;
-      text-align: center;
-      width: 280px;
-      opacity: 0;
-      pointer-events: none;
-    }
-    .confirm-msg p {
-      font-family: 'Courier New', Courier, monospace;
-      font-size: 0.64rem;
-      letter-spacing: 0.06em;
-      line-height: 2;
-      color: rgba(255,255,255,0.82);
-    }
-
     /* Transition flash */
     .flash {
       position: fixed;
@@ -279,116 +261,6 @@
       z-index: 200;
     }
 
-    /* Support toggle */
-    .support-toggle {
-      position: fixed;
-      bottom: 2rem;
-      right: 2rem;
-      z-index: 50;
-      font-family: 'Courier New', Courier, monospace;
-      font-size: 0.58rem;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: rgba(255,255,255,0.32);
-      background: rgba(0,0,0,0.45);
-      border: 1px solid rgba(255,255,255,0.22);
-      padding: 0.45rem 0.9rem;
-      cursor: pointer;
-      white-space: nowrap;
-      transition: color 0.2s, border-color 0.2s;
-    }
-    .support-toggle:hover {
-      color: rgba(255,255,255,0.7);
-      border-color: rgba(255,255,255,0.5);
-    }
-
-    /* Support panel */
-    .support-panel {
-      position: fixed;
-      bottom: 5.2rem;
-      right: 2rem;
-      width: 230px;
-      z-index: 60;
-      background: rgba(8,8,8,0.88);
-      border: 1px solid rgba(255,255,255,0.1);
-      padding: 1.4rem 1.3rem 1.3rem;
-      font-family: 'Courier New', Courier, monospace;
-      opacity: 0;
-      pointer-events: none;
-      transform: translateY(6px);
-      transition: opacity 0.28s ease, transform 0.28s ease;
-    }
-    .support-panel.open {
-      opacity: 1;
-      pointer-events: all;
-      transform: translateY(0);
-    }
-
-    .support-title {
-      font-size: 0.6rem;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: rgba(255,255,255,0.45);
-      margin-bottom: 0.65rem;
-    }
-
-    .support-desc {
-      font-size: 0.56rem;
-      line-height: 1.7;
-      color: rgba(255,255,255,0.25);
-      margin-bottom: 1.1rem;
-    }
-
-    .bmc-btn {
-      display: block;
-      width: 100%;
-      padding: 0.5rem;
-      text-align: center;
-      font-family: 'Courier New', Courier, monospace;
-      font-size: 0.56rem;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      color: rgba(255,255,255,0.55);
-      text-decoration: none;
-      border: 1px solid rgba(255,255,255,0.18);
-      background: none;
-      transition: color 0.2s, border-color 0.2s;
-    }
-    .bmc-btn:hover {
-      color: rgba(255,255,255,0.88);
-      border-color: rgba(255,255,255,0.45);
-    }
-
-    .support-divider {
-      border: none;
-      border-top: 1px solid rgba(255,255,255,0.07);
-      margin: 1rem 0 0.9rem;
-    }
-
-    .upi-label {
-      font-size: 0.48rem;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      color: rgba(255,255,255,0.2);
-      margin-bottom: 0.7rem;
-    }
-
-    .upi-qr {
-      display: block;
-      width: 100px;
-      height: 100px;
-      margin: 0 auto;
-      opacity: 0.72;
-      image-rendering: pixelated;
-    }
-
-    .upi-id {
-      text-align: center;
-      font-size: 0.48rem;
-      letter-spacing: 0.08em;
-      color: rgba(255,255,255,0.2);
-      margin-top: 0.5rem;
-    }
   </style>
 </head>
 <body>
@@ -399,42 +271,7 @@
 
   <a href="drone.html" class="drone-link">
     <span class="drone-link-label">Drone Room</span>
-    <span class="drone-link-sub">no account needed</span>
   </a>
-
-  <div class="confirm-msg" id="confirm-msg">
-    <p>Thanks for registering —<br>you'll be notified when the<br>first listening session goes live.</p>
-  </div>
-
-  <!-- Support panel — bottom right -->
-  <button class="support-toggle" id="support-toggle" aria-expanded="false">support</button>
-
-  <div class="support-panel" id="support-panel" aria-hidden="true">
-    <p class="support-title">Support Fur FM</p>
-    <p class="support-desc">
-      Fur FM is self-funded. Donations go directly toward hosting,
-      research, and the quiet work of keeping this platform alive.
-    </p>
-
-    <!-- Update this URL once your Buy Me a Coffee page is live -->
-    <a class="bmc-btn" href="https://buymeacoffee.com/fursatfm" target="_blank" rel="noopener">
-      buy me a coffee ↗
-    </a>
-
-    <hr class="support-divider" />
-
-    <p class="upi-label">India · UPI</p>
-    <!--
-      Replace the UPI ID below (both in the img src and the upi-id text).
-      The QR encodes: upi://pay?pa=YOUR_UPI_ID&pn=Fur+FM&cu=INR
-    -->
-    <img
-      class="upi-qr"
-      src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=6&data=upi%3A%2F%2Fpay%3Fpa%3Dfursatfm%40upi%26pn%3DFur%2BFM%26cu%3DINR"
-      alt="UPI QR code"
-    />
-    <p class="upi-id">fursatfm@upi</p>
-  </div>
 
   <div class="door-frame" id="door-frame">
     <div class="door-frame-ring"></div>
@@ -462,16 +299,14 @@
           <p class="status" id="form-status"></p>
 
           <div class="enter-row" id="enter-row">
-            <span class="enter-word" id="enter-word">register</span>
+            <span class="enter-word" id="enter-word">enter</span>
             <div class="door-knob"></div>
           </div>
-          <p class="notify-hint" id="notify-hint">Get notified for the first listening session.</p>
         </div>
 
         <div class="stamp">
           <span class="stamp-name">Fur FM</span>
           <span class="stamp-sub">Listening Portal</span>
-          <span class="stamp-coming">Coming Soon</span>
         </div>
 
       </div>
@@ -487,15 +322,15 @@
     let pendingEmail = '';
     let pendingName  = '';
 
-    const doorFrame = document.getElementById('door-frame');
-    const knob      = document.querySelector('.door-knob');
-    const enterWord = document.getElementById('enter-word');
-    const backlight = document.getElementById('door-backlight');
-    const flash     = document.getElementById('flash');
-    const bg        = document.getElementById('bg');
+    const doorFrame  = document.getElementById('door-frame');
+    const knob       = document.querySelector('.door-knob');
+    const enterWord  = document.getElementById('enter-word');
+    const backlight  = document.getElementById('door-backlight');
+    const flash      = document.getElementById('flash');
+    const bg         = document.getElementById('bg');
 
     gsap.set(doorFrame, { y: 18 });
-    gsap.to(doorFrame, { opacity: 1, y: 0, duration: 0.9, ease: 'power2.out', delay: 0.2 });
+    gsap.to(doorFrame,  { opacity: 1, y: 0, duration: 0.9, ease: 'power2.out', delay: 0.2 });
 
     function setStatus(msg, isError = false) {
       const el = document.getElementById('form-status');
@@ -509,7 +344,6 @@
       document.getElementById('field-name').style.display  = 'none';
       document.getElementById('field-email').style.display = 'none';
       document.getElementById('field-otp').style.display   = '';
-      document.getElementById('notify-hint').style.display = 'none';
       enterWord.textContent = 'verify';
       document.getElementById('inp-otp').focus();
     }
@@ -562,22 +396,9 @@
       );
 
       formState = 'done';
-      setStatus('');
-      openDoor();
-    }
-
-    function openDoor() {
       backlight.classList.add('glowing');
       doorFrame.classList.add('open');
-      setTimeout(showConfirmation, 900);
-    }
-
-    function showConfirmation() {
-      const msg = document.getElementById('confirm-msg');
-      gsap.fromTo(msg,
-        { opacity: 0, y: 10 },
-        { opacity: 1, y: 0, duration: 0.7, ease: 'power2.out' }
-      );
+      setTimeout(() => { window.location.href = 'stream.html'; }, 950);
     }
 
     async function handleSubmit() {
@@ -593,21 +414,6 @@
       });
     });
 
-    /* Support panel toggle */
-    const supportToggle = document.getElementById('support-toggle');
-    const supportPanel  = document.getElementById('support-panel');
-    supportToggle.addEventListener('click', () => {
-      const open = supportPanel.classList.toggle('open');
-      supportToggle.setAttribute('aria-expanded', open);
-      supportPanel.setAttribute('aria-hidden', !open);
-    });
-    document.addEventListener('click', e => {
-      if (!supportPanel.contains(e.target) && e.target !== supportToggle) {
-        supportPanel.classList.remove('open');
-        supportToggle.setAttribute('aria-expanded', 'false');
-        supportPanel.setAttribute('aria-hidden', 'true');
-      }
-    });
   })();
   </script>
 
