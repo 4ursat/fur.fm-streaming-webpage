@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Fur FM</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet">
   <script src="supabase-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js"></script>
@@ -13,420 +14,959 @@
     html, body {
       width: 100%; height: 100%;
       overflow: hidden;
-      background: #000;
+      background: #ffffff;
+      font-family: 'Courier New', Courier, monospace;
+      color: rgba(0,0,0,0.82);
+      transition: background 3s ease;
+    }
+    body.lights-dim { background: #e8e8e8; }
+
+    /* ── Column dividers ── */
+    .divider { position: fixed; top: 0; bottom: 0; width: 1px; z-index: 8; pointer-events: none; }
+    .divider-l { left: 214px;  background: rgba(0,0,0,0.07); }
+    .divider-r { right: 294px; background: rgba(0,0,0,0.06); }
+
+    /* ── Layout ── */
+    .layout {
+      display: grid;
+      grid-template-columns: 214px 1fr 294px;
+      height: 100vh;
+      position: relative; z-index: 10;
+    }
+
+    /* ════════════════════════════════
+       LEFT SIDEBAR
+    ════════════════════════════════ */
+    .sidebar {
+      display: flex; flex-direction: column;
+      padding: 1.8rem 1.4rem 1.5rem;
+      background: rgba(0,0,0,0.018);
+      overflow: hidden;
+    }
+
+    .brand-block { margin-bottom: 1.8rem; }
+    .brand-logo {
+      display: flex; align-items: flex-start; gap: 0.65rem;
+      margin-bottom: 0.7rem;
+    }
+    .brand-rings { flex-shrink: 0; }
+    .brand-name {
+      font-size: 1.42rem; font-weight: bold;
+      letter-spacing: 0.07em;
+      color: #1a1a1a;
+      line-height: 1;
       font-family: 'Courier New', Courier, monospace;
     }
-
-    /* ── Full-screen stream player ── */
-    #live-player {
-      position: fixed;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      border: none;
+    .brand-dot {
+      display: inline-block; width: 5px; height: 5px;
+      background: #1a1a1a; border-radius: 50%;
+      vertical-align: middle; margin: 0 0.22em;
+      position: relative; top: -2px;
+    }
+    .brand-sub {
       display: block;
-      z-index: 1;
+      font-size: 0.43rem; letter-spacing: 0.19em; text-transform: uppercase;
+      color: rgba(0,0,0,0.37); margin-top: 0.25rem;
     }
 
-    /* ── Chat + volume overlay — bottom right ── */
-    .overlay {
-      position: fixed;
-      bottom: 1.5rem;
-      right: 1.5rem;
-      z-index: 10;
-      width: 272px;
-      display: flex;
-      flex-direction: column;
-      gap: 0;
+    /* ── Live rings animation ── */
+    #ring-inner  { opacity: 0.65; }
+    #ring-mid    { opacity: 0.44; }
+    #ring-outer  { opacity: 0.26; }
+
+    .brand-logo.is-live #ring-inner {
+      animation: ring-broadcast 2.4s ease-in-out infinite;
+    }
+    .brand-logo.is-live #ring-mid {
+      animation: ring-broadcast 2.4s ease-in-out 0.5s infinite;
+    }
+    .brand-logo.is-live #ring-outer {
+      animation: ring-broadcast 2.4s ease-in-out 1s infinite;
+    }
+    @keyframes ring-broadcast {
+      0%, 100% { opacity: 0.08; }
+      40%      { opacity: 0.9; }
     }
 
-    /* Volume bar */
-    .volume-bar {
-      background: rgba(12, 12, 12, 0.72);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-bottom: none;
-      padding: 0.5rem 0.75rem;
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
+    .squiggle { width: 100%; height: 14px; margin: 1.1rem 0; display: block; }
+
+    .s-label {
+      font-size: 0.6rem; letter-spacing: 0.22em; text-transform: uppercase;
+      color: rgba(0,0,0,0.55); margin-bottom: 0.55rem;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .s-label::after { content:''; flex:1; height:1px; background:rgba(0,0,0,0.12); }
+
+    .sidebar-section { margin-bottom: 1.4rem; }
+
+    .session-title {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 0.95rem; font-weight: 300; font-style: italic;
+      color: rgba(26,26,26,0.82); line-height: 1.42;
+    }
+    .session-date {
+      font-size: 0.62rem; letter-spacing: 0.06em;
+      color: rgba(0,0,0,0.55); margin-top: 0.28rem;
     }
 
-    .vol-label {
-      font-size: 0.55rem;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: rgba(255,255,255,0.4);
-      flex-shrink: 0;
+    .listener-count {
+      font-size: 0.62rem; letter-spacing: 0.06em;
+      color: rgba(0,0,0,0.55); font-style: italic;
+    }
+
+    .quiet-note {
+      font-size: 0.72rem; font-style: italic;
+      color: rgba(26,26,26,0.55); line-height: 1.9;
+      padding-left: 0.9rem; position: relative;
+    }
+    .quiet-note::before {
+      content: '//'; position: absolute; left: 0;
+      color: rgba(0,0,0,0.3); font-style: normal;
+    }
+
+
+    /* ── Programme card ── */
+    .programme-toggle {
+      cursor: pointer; user-select: none;
+      display: flex; align-items: center; gap: 0.5rem;
+      font-size: 0.6rem; letter-spacing: 0.22em; text-transform: uppercase;
+      color: rgba(0,0,0,0.4); margin-bottom: 0;
+    }
+    .programme-toggle::after { content:''; flex:1; height:1px; background:rgba(0,0,0,0.08); }
+    .prog-arrow {
+      font-size: 0.48rem; color: rgba(0,0,0,0.28);
+      transition: transform 0.2s; flex-shrink: 0;
+    }
+    .prog-arrow.open { transform: rotate(90deg); }
+    .programme-body {
+      display: none;
+      padding-top: 0.6rem;
+    }
+    .prog-title {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 0.95rem; font-weight: 300; font-style: italic;
+      color: rgba(0,0,0,0.78); line-height: 1.4;
+    }
+    .prog-date {
+      font-size: 0.58rem; letter-spacing: 0.06em;
+      color: rgba(0,0,0,0.52); margin-top: 0.2rem;
+    }
+    .prog-notes {
+      font-size: 0.68rem; font-style: italic;
+      color: rgba(0,0,0,0.65); line-height: 1.75;
+      margin-top: 0.45rem; white-space: pre-line;
+    }
+
+    /* ── Join toast ── */
+    .join-toast {
+      position: fixed; bottom: 2rem; left: 50%;
+      transform: translateX(-50%) translateY(10px);
+      z-index: 100; pointer-events: none;
+      font-size: 0.6rem; letter-spacing: 0.14em; text-transform: lowercase;
+      color: rgba(0,0,0,0.55);
+      background: rgba(248,248,248,0.97);
+      border: 1px solid rgba(0,0,0,0.1);
+      padding: 0.42rem 1rem;
+      opacity: 0; white-space: nowrap;
+      transition: opacity 0.35s ease, transform 0.35s ease;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+    .join-toast.visible {
+      opacity: 1; transform: translateX(-50%) translateY(0);
+    }
+
+    .session-notice {
+      font-size: 0.68rem; letter-spacing: 0.03em;
+      color: rgba(0,0,0,0.58);
+      line-height: 1.7; margin-top: auto; margin-bottom: 2rem;
+    }
+
+    .sidebar-nav { margin-top: 0; }
+    .nav-item {
+      font-size: 0.64rem; letter-spacing: 0.12em; text-transform: uppercase;
+      color: rgba(0,0,0,0.52); display: block;
+      padding: 0.35rem 0; text-decoration: none;
+      cursor: pointer; transition: color 0.2s;
+      border: none; background: none; font-family: inherit; text-align: left;
+    }
+    .nav-item:hover { color: rgba(0,0,0,0.85); }
+
+    /* ════════════════════════════════
+       CENTRE STAGE
+    ════════════════════════════════ */
+    .stage {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      position: relative; overflow: hidden; padding: 1.5rem;
+      background: #ffffff;
+    }
+
+    /* Player */
+    .player-wrap { position: relative; }
+
+    .player-screen {
+      width: 496px; height: 278px;
+      background: #111816;
+      position: relative; overflow: hidden;
+      box-shadow: 0 4px 24px rgba(26,26,26,0.18), 0 1px 4px rgba(26,26,26,0.12);
+      border: 1px solid rgba(0,0,0,0.15);
+    }
+
+    .player-screen iframe {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      border: none; display: block;
+    }
+
+    .player-inner {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: radial-gradient(ellipse at 50% 65%, rgba(18,26,24,1) 0%, rgba(8,12,10,1) 100%);
+      z-index: 0;
+    }
+    .player-placeholder {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 0.7rem; font-style: italic;
+      color: rgba(122,184,176,0.22); letter-spacing: 0.12em;
+      text-align: center; line-height: 1.6;
+    }
+
+    .player-screen::after {
+      content: ''; position: absolute; inset: 0; z-index: 3;
+      background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.02) 2px, rgba(0,0,0,0.02) 4px);
+      pointer-events: none;
+    }
+
+    .controls {
+      display: flex; align-items: center; gap: 1.2rem;
+      margin-top: 1.2rem; position: relative; z-index: 3;
     }
 
     .vol-icon {
-      flex-shrink: 0;
-      cursor: pointer;
-      opacity: 0.45;
-      transition: opacity 0.15s;
+      cursor: pointer; opacity: 0.5;
+      transition: opacity 0.15s; flex-shrink: 0;
     }
-    .vol-icon:hover { opacity: 0.9; }
+    .vol-icon:hover { opacity: 0.85; }
 
     #volume-slider {
-      flex: 1;
-      -webkit-appearance: none;
-      appearance: none;
-      height: 2px;
-      background: rgba(255,255,255,0.2);
-      outline: none;
-      cursor: pointer;
+      width: 80px;
+      -webkit-appearance: none; appearance: none;
+      height: 1px; background: rgba(0,0,0,0.15);
+      outline: none; cursor: pointer;
     }
-
     #volume-slider::-webkit-slider-thumb {
       -webkit-appearance: none;
-      width: 10px; height: 10px;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.75);
-      cursor: pointer;
+      width: 9px; height: 9px; border-radius: 50%;
+      background: rgba(0,0,0,0.5); cursor: pointer;
     }
-
     #volume-slider::-moz-range-thumb {
-      width: 10px; height: 10px;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.75);
-      border: none;
-      cursor: pointer;
+      width: 9px; height: 9px; border-radius: 50%;
+      background: rgba(0,0,0,0.5); border: none; cursor: pointer;
     }
 
-    /* Chat panel */
+    .fullscreen-btn {
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.6rem; letter-spacing: 0.14em; text-transform: uppercase;
+      color: rgba(0,0,0,0.38); background: none; border: none;
+      cursor: pointer; padding: 0; transition: color 0.2s;
+    }
+    .fullscreen-btn:hover { color: rgba(0,0,0,0.78); }
+
+    /* ════════════════════════════════
+       RIGHT CHAT
+    ════════════════════════════════ */
     .chat-panel {
-      background: rgba(12, 12, 12, 0.72);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(255,255,255,0.1);
-      display: flex;
-      flex-direction: column;
+      display: flex; flex-direction: column;
+      background: rgba(0,0,0,0.018);
     }
 
-    .chat-header {
-      padding: 0.5rem 0.8rem;
-      border-bottom: 1px solid rgba(255,255,255,0.07);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      cursor: pointer;
-      user-select: none;
+    .chat-head { padding: 1.6rem 1.3rem 0.9rem; border-bottom: 1px solid rgba(0,0,0,0.08); }
+    .chat-head-eyebrow {
+      font-size: 0.58rem; letter-spacing: 0.2em; text-transform: uppercase;
+      color: rgba(0,0,0,0.52); margin-bottom: 0.2rem;
     }
-
-    .chat-header-left {
-      display: flex;
-      align-items: center;
-      gap: 0.45rem;
+    .chat-head-title {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 1.05rem; font-weight: 300; font-style: italic;
+      color: rgba(26,26,26,0.75);
     }
-
+    .chat-alive {
+      display: inline-flex; align-items: center; gap: 0.4rem; margin-top: 0.38rem;
+    }
     .chat-dot {
-      width: 5px; height: 5px;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.5);
-      animation: pulse 2s ease-in-out infinite;
+      width: 4px; height: 4px; border-radius: 50%;
+      background: rgba(139,107,74,0.7);
+      animation: c-pulse 2.3s ease-in-out infinite;
+    }
+    @keyframes c-pulse { 0%,100%{opacity:0.9} 50%{opacity:0.25} }
+    .chat-alive-text {
+      font-size: 0.58rem; letter-spacing: 0.1em;
+      color: rgba(0,0,0,0.5); font-style: italic;
     }
 
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.25; }
+    /* Messages */
+    .messages {
+      flex: 1; overflow-y: auto;
+      padding: 0.9rem 1.3rem 0.4rem;
+      display: flex; flex-direction: column; gap: 1rem;
+      scrollbar-width: thin; scrollbar-color: rgba(0,0,0,0.1) transparent;
+    }
+    .messages::-webkit-scrollbar { width: 2px; }
+    .messages::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); }
+
+    .msg { display: flex; flex-direction: column; gap: 0.1rem; }
+    .msg-sender {
+      font-size: 0.62rem; letter-spacing: 0.06em;
+      color: rgba(0,0,0,0.55);
+    }
+    .msg-text {
+      font-size: 0.82rem; color: rgba(0,0,0,0.82); line-height: 1.5; word-break: break-word;
+    }
+    .msg.system {
+      padding-left: 0.7rem;
+      border-left: 1px solid rgba(0,0,0,0.12);
+    }
+    .msg.system .msg-sender { color: rgba(0,0,0,0.42); }
+    .msg.system .msg-text {
+      font-style: italic; color: rgba(0,0,0,0.52); font-size: 0.76rem;
     }
 
-    .chat-label {
-      font-size: 0.6rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: rgba(255,255,255,0.45);
-    }
-
-    .chat-toggle {
-      font-size: 0.65rem;
-      color: rgba(255,255,255,0.25);
-      line-height: 1;
-      transition: color 0.15s;
-    }
-
-    .chat-header:hover .chat-toggle { color: rgba(255,255,255,0.6); }
-
-    .chat-body {
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      transition: max-height 0.35s ease, opacity 0.25s ease;
-      max-height: 400px;
-      opacity: 1;
-    }
-
-    .chat-body.collapsed {
-      max-height: 0;
-      opacity: 0;
-    }
-
-    .chat-messages {
-      height: 240px;
-      overflow-y: auto;
-      padding: 0.7rem 0.8rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.55rem;
-      scroll-behavior: smooth;
-    }
-
-    .chat-messages::-webkit-scrollbar { width: 2px; }
-    .chat-messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); }
-
-    .message { display: flex; flex-direction: column; gap: 0.08rem; }
-
-    .message .sender {
-      font-size: 0.56rem;
-      color: rgba(255,255,255,0.38);
-      letter-spacing: 0.06em;
-    }
-
-    .message .text {
-      font-size: 0.78rem;
-      color: rgba(255,255,255,0.85);
-      line-height: 1.4;
-      word-break: break-word;
-    }
-
-    .message.system .sender { color: rgba(255,255,255,0.22); }
-    .message.system .text   { color: rgba(255,255,255,0.35); font-style: italic; font-size: 0.73rem; }
-
+    /* Chat input */
     .chat-input-area {
-      border-top: 1px solid rgba(255,255,255,0.07);
-      display: flex;
-      align-items: center;
+      padding: 0.7rem 1.3rem 1rem; position: relative;
     }
-
+    .chat-input-area::before {
+      content: ''; position: absolute; top: 0; left: 1rem; right: 1rem;
+      height: 1px; background: rgba(0,0,0,0.07);
+    }
     .chat-input-area input {
-      flex: 1;
-      background: transparent;
-      border: none;
-      outline: none;
-      padding: 0.52rem 0.75rem;
+      width: 100%; background: transparent; border: none;
+      border-bottom: 1px solid rgba(0,0,0,0.15);
+      outline: none; padding: 0.3rem 0;
       font-family: 'Courier New', Courier, monospace;
-      font-size: 0.76rem;
-      color: rgba(255,255,255,0.85);
+      font-size: 0.82rem; font-style: italic;
+      color: rgba(0,0,0,0.82);
+    }
+    .chat-input-area input::placeholder { color: rgba(0,0,0,0.38); font-style: italic; }
+    .send-row { display: flex; justify-content: flex-end; margin-top: 0.45rem; }
+    .send-btn {
+      background: none; border: none; padding: 0;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.6rem; letter-spacing: 0.16em; text-transform: uppercase;
+      color: rgba(0,0,0,0.52); cursor: pointer;
+      transition: color 0.2s;
+    }
+    .send-btn:hover { color: rgba(0,0,0,0.72); }
+
+    /* ── Media trigger ── */
+    .media-trigger {
+      background: none; border: none; padding: 0;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.72rem; color: rgba(0,0,0,0.48);
+      cursor: pointer; transition: color 0.15s; line-height: 1;
+    }
+    .media-trigger:hover { color: rgba(0,0,0,0.65); }
+
+    /* ── Media panel ── */
+    .media-panel {
+      display: none;
+      position: absolute;
+      bottom: calc(100% + 6px);
+      left: 0; right: 0;
+      background: #f7f7f7;
+      border: 1px solid rgba(0,0,0,0.1);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      z-index: 50;
+    }
+    .media-panel.open { display: block; }
+
+    .media-tabs {
+      display: flex;
+      border-bottom: 1px solid rgba(0,0,0,0.08);
+      padding: 0 0.8rem;
+    }
+    .media-tab {
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.56rem; letter-spacing: 0.14em; text-transform: lowercase;
+      color: rgba(0,0,0,0.32); background: none; border: none;
+      padding: 0.45rem 0.55rem; cursor: pointer; transition: color 0.15s;
+      border-bottom: 1.5px solid transparent; margin-bottom: -1px;
+    }
+    .media-tab.active { color: rgba(0,0,0,0.72); border-bottom-color: rgba(0,0,0,0.5); }
+
+    .media-content {
+      padding: 0.55rem;
+      height: 190px;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(0,0,0,0.1) transparent;
     }
 
-    .chat-input-area input::placeholder { color: rgba(255,255,255,0.2); }
+    /* Emoji */
+    .emoji-grid {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 1px;
+    }
+    .emoji-btn {
+      background: none; border: none;
+      font-size: 1.1rem; cursor: pointer;
+      padding: 0.22rem; border-radius: 2px;
+      transition: background 0.1s; line-height: 1;
+    }
+    .emoji-btn:hover { background: rgba(0,0,0,0.07); }
 
-    .chat-input-area button {
-      background: none;
-      border: none;
-      border-left: 1px solid rgba(255,255,255,0.07);
-      padding: 0.52rem 0.8rem;
+    /* GIF */
+    .gif-search-input {
+      width: 100%;
+      background: rgba(0,0,0,0.05);
+      border: 1px solid rgba(0,0,0,0.1);
+      padding: 0.3rem 0.5rem;
       font-family: 'Courier New', Courier, monospace;
-      font-size: 0.58rem;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: rgba(255,255,255,0.3);
-      cursor: pointer;
-      transition: color 0.15s;
-      flex-shrink: 0;
+      font-size: 0.72rem; color: rgba(0,0,0,0.7);
+      outline: none; margin-bottom: 0.45rem;
+    }
+    .gif-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 4px;
+    }
+    .gif-item {
+      cursor: pointer; overflow: hidden;
+      aspect-ratio: 4/3;
+      background: rgba(0,0,0,0.06);
+    }
+    .gif-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .gif-item:hover { opacity: 0.82; }
+    .gif-loading {
+      font-size: 0.56rem; color: rgba(0,0,0,0.28);
+      letter-spacing: 0.1em; padding: 0.4rem 0;
     }
 
-    .chat-input-area button:hover { color: rgba(255,255,255,0.8); }
+    /* Stickers */
+    .sticker-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 5px;
+    }
+    .sticker-btn {
+      background: rgba(0,0,0,0.03);
+      border: 1px solid rgba(0,0,0,0.08);
+      padding: 0.55rem 0.4rem;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.65rem; color: rgba(0,0,0,0.52);
+      cursor: pointer; text-align: center; line-height: 1.5;
+      transition: background 0.1s, border-color 0.1s;
+    }
+    .sticker-btn:hover { background: rgba(0,0,0,0.07); border-color: rgba(0,0,0,0.18); }
+
+    /* GIF in chat */
+    .msg-gif {
+      max-width: 160px; display: block;
+      margin-top: 0.25rem; border-radius: 1px;
+    }
   </style>
 </head>
 <body>
 
-  <!-- Full-screen VDO.ninja player -->
-  <iframe
-    id="live-player"
-    src=""
-    allow="autoplay;camera;microphone;fullscreen;picture-in-picture;display-capture;midi;encrypted-media"
-    title="Fur FM live stream"
-  ></iframe>
+<div class="divider divider-l"></div>
+<div class="divider divider-r"></div>
 
-  <!-- Bottom-right overlay -->
-  <div class="overlay" id="overlay" style="opacity:0">
+<div class="layout">
 
-    <!-- Volume -->
-    <div class="volume-bar">
-      <span class="vol-label">vol</span>
-      <svg class="vol-icon" id="mute-btn" width="14" height="14" viewBox="0 0 24 24"
-           fill="none" stroke="white" stroke-width="2" stroke-linecap="round">
+  <!-- ── LEFT SIDEBAR ── -->
+  <aside class="sidebar">
+
+    <div class="brand-block">
+      <div class="brand-logo" id="live-badge">
+        <div class="brand-rings">
+          <svg viewBox="0 0 36 20" width="36" height="20" fill="none">
+            <defs>
+              <clipPath id="sidebar-rings-clip">
+                <rect x="-500" y="-1000" width="1000" height="1014"/>
+              </clipPath>
+            </defs>
+            <g clip-path="url(#sidebar-rings-clip)">
+              <circle id="ring-inner" cx="18" cy="11" r="6"  stroke="#1a1a1a" stroke-width="1.3"/>
+              <circle id="ring-mid"   cx="18" cy="11" r="11" stroke="#1a1a1a" stroke-width="1.0"/>
+              <circle id="ring-outer" cx="18" cy="11" r="16" stroke="#1a1a1a" stroke-width="0.75"/>
+            </g>
+            <circle cx="18" cy="11" r="2.2" fill="#1a1a1a"/>
+          </svg>
+        </div>
+        <div>
+          <div class="brand-name">FUR<span class="brand-dot"></span>FM</div>
+          <div class="brand-sub">Listening Portal</div>
+        </div>
+      </div>
+    </div>
+
+    <svg class="squiggle" viewBox="0 0 160 14" preserveAspectRatio="none" fill="none">
+      <path d="M0,7 C18,3 36,11 54,7 S90,3 108,7 S144,11 160,7" stroke="rgba(0,0,0,0.1)" stroke-width="0.9"/>
+    </svg>
+
+    <div class="sidebar-section">
+      <div class="programme-toggle" id="programme-toggle">
+        programme <span class="prog-arrow" id="prog-arrow">▶</span>
+      </div>
+      <div class="programme-body" id="programme-body">
+        <div class="prog-title" id="prog-title">Live Session</div>
+        <div class="prog-date" id="prog-date"></div>
+        <div class="prog-notes" id="prog-notes"></div>
+      </div>
+    </div>
+
+    <svg class="squiggle" viewBox="0 0 160 14" preserveAspectRatio="none" fill="none">
+      <path d="M0,7 C22,4 44,10 66,6 S100,4 122,8 S148,11 160,7" stroke="rgba(0,0,0,0.07)" stroke-width="0.8"/>
+    </svg>
+
+    <div class="sidebar-section">
+      <div class="s-label">in the room</div>
+      <div class="listener-count" id="listener-count">—</div>
+    </div>
+
+    <p class="session-notice">Live listening only. This session will not be recorded or saved.</p>
+
+    <nav class="sidebar-nav">
+      <a href="drone.html" class="nav-item">→ drone room</a>
+      <button class="nav-item nav-leave">leave quietly</button>
+    </nav>
+
+  </aside>
+
+  <!-- ── CENTRE STAGE ── -->
+  <main class="stage">
+
+    <div class="player-wrap">
+      <div class="player-screen">
+        <div class="player-inner">
+          <div class="player-placeholder">
+            the sound will find you<br>when it's ready
+          </div>
+        </div>
+        <iframe
+          id="live-player"
+          src=""
+          allow="autoplay;camera;microphone;fullscreen;picture-in-picture;display-capture;midi;encrypted-media"
+          title="Fur FM live stream"
+        ></iframe>
+      </div>
+    </div>
+
+    <div class="controls">
+      <svg id="mute-btn" class="vol-icon" width="14" height="14" viewBox="0 0 24 24"
+           fill="none" stroke="rgba(0,0,0,0.7)" stroke-width="2" stroke-linecap="round">
         <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
         <path id="vol-wave" d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
       </svg>
       <input type="range" id="volume-slider" min="0" max="100" value="100" />
+      <button class="fullscreen-btn" id="fullscreen-btn">fullscreen</button>
     </div>
 
-    <!-- Chat -->
-    <div class="chat-panel">
-      <div class="chat-header" id="chat-header">
-        <div class="chat-header-left">
-          <div class="chat-dot"></div>
-          <span class="chat-label">chat</span>
-        </div>
-        <span class="chat-toggle" id="chat-toggle">▼</span>
-      </div>
+  </main>
 
-      <div class="chat-body" id="chat-body">
-        <div class="chat-messages" id="chat-messages" role="log" aria-live="polite">
-          <div class="message system">
-            <span class="sender">fur fm</span>
-            <span class="text">welcome. say hello.</span>
-          </div>
-        </div>
-        <div class="chat-input-area">
-          <input type="text" id="chat-input" placeholder="say something…"
-                 maxlength="200" autocomplete="off" />
-          <button id="send-btn">send</button>
-        </div>
+  <!-- ── RIGHT CHAT ── -->
+  <aside class="chat-panel">
+
+    <div class="chat-head">
+      <div class="chat-head-eyebrow">the audience</div>
+      <div class="chat-head-title">leave traces</div>
+      <div class="chat-alive">
+        <div class="chat-dot"></div>
+        <span class="chat-alive-text">the room is awake</span>
       </div>
     </div>
 
-  </div>
+    <div class="messages" id="chat-messages" role="log" aria-live="polite">
+      <div class="msg system">
+        <span class="msg-sender">fur fm</span>
+        <span class="msg-text">welcome. say hello.</span>
+      </div>
+    </div>
 
-  <script>
-  (async () => {
-    const { createClient } = window.supabase;
-    const db = createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+    <div class="chat-input-area">
+      <input type="text" id="chat-input" placeholder="whisper something into the room…"
+             maxlength="200" autocomplete="off" />
+      <div class="send-row">
+        <button class="media-trigger" id="media-trigger">◎</button>
+        <button class="send-btn" id="send-btn">send →</button>
+      </div>
 
-    /* ── Auth gate ── */
-    const { data: { session } } = await db.auth.getSession();
-    if (!session) { window.location.replace('index.html'); return; }
+      <div class="media-panel" id="media-panel">
+        <div class="media-tabs">
+          <button class="media-tab active" data-tab="emoji">emoji</button>
+          <button class="media-tab" data-tab="gif">gif</button>
+          <button class="media-tab" data-tab="sticker">sticker</button>
+        </div>
+        <div class="media-content" id="tab-emoji">
+          <div class="emoji-grid" id="emoji-grid"></div>
+        </div>
+        <div class="media-content" id="tab-gif" style="display:none">
+          <input class="gif-search-input" id="gif-search" placeholder="search gifs…" />
+          <div class="gif-grid" id="gif-grid"></div>
+        </div>
+        <div class="media-content" id="tab-sticker" style="display:none">
+          <div class="sticker-grid" id="sticker-grid"></div>
+        </div>
+      </div>
+    </div>
 
-    const user     = session.user;
-    const userName = user.user_metadata?.username || user.email?.split('@')[0] || 'Listener';
+  </aside>
 
-    let myUserId = null;
-    const { data: profile } = await db.from('users').select('id').eq('auth_id', user.id).single();
-    if (profile) myUserId = profile.id;
+</div>
 
-    const sessionId = new Date().toISOString().slice(0, 10);
+<script>
+(async () => {
+  const { createClient } = window.supabase;
+  const db = createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
 
-    /* ── VDO.ninja player ── */
-    const VDO_STREAM_ID = 'fursatfm';
-    document.getElementById('live-player').src =
-      `https://vdo.ninja/?view=${VDO_STREAM_ID}&cleanoutput&autoplay&label=0`;
+  /* ── Auth gate ── */
+  const { data: { session } } = await db.auth.getSession();
+  if (!session) { window.location.replace('index.html'); return; }
 
-    /* ── Entrance animation ── */
-    gsap.to('#overlay', { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out', delay: 0.3 });
-    gsap.set('#overlay', { y: 12 });
+  const user     = session.user;
+  const userName = user.user_metadata?.username || user.email?.split('@')[0] || 'Listener';
 
-    /* ── Volume control via VDO.ninja postMessage ── */
-    const player    = document.getElementById('live-player');
-    const slider    = document.getElementById('volume-slider');
-    const muteBtn   = document.getElementById('mute-btn');
-    const volWave   = document.getElementById('vol-wave');
-    let muted       = false;
-    let lastVol     = 100;
+  let myUserId = null;
+  const { data: profile } = await db.from('users').select('id').eq('auth_id', user.id).single();
+  if (profile) myUserId = profile.id;
 
-    function sendVolume(vol) {
-      try {
-        player.contentWindow.postMessage({ volume: vol / 100 }, '*');
-      } catch (_) {}
+  const sessionId = new Date().toISOString().slice(0, 10);
+
+  /* ── Session date label ── */
+  const dateEl = document.getElementById('session-date');
+  if (dateEl) {
+    const d = new Date();
+    dateEl.textContent = d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long' });
+  }
+
+  const countEl = document.getElementById('listener-count');
+
+  /* ── VDO.ninja player ── */
+  const VDO_STREAM_ID = 'fursatfm';
+  document.getElementById('live-player').src =
+    `https://vdo.ninja/?view=${VDO_STREAM_ID}&cleanoutput&autoplay&label=0`;
+
+  /* ── Volume control ── */
+  const player  = document.getElementById('live-player');
+  const slider  = document.getElementById('volume-slider');
+  const muteBtn = document.getElementById('mute-btn');
+  const volWave = document.getElementById('vol-wave');
+  let muted   = false;
+  let lastVol = 100;
+
+  function sendVolume(vol) {
+    try { player.contentWindow.postMessage({ volume: vol / 100 }, '*'); } catch (_) {}
+  }
+
+  slider.addEventListener('input', () => {
+    const v = parseInt(slider.value, 10);
+    sendVolume(v);
+    muted = v === 0;
+    volWave.style.opacity = muted ? '0' : '1';
+    if (v > 0) lastVol = v;
+  });
+
+  muteBtn.addEventListener('click', () => {
+    if (muted) {
+      slider.value = lastVol; sendVolume(lastVol);
+      muted = false; volWave.style.opacity = '1';
+    } else {
+      lastVol = parseInt(slider.value, 10) || 100;
+      slider.value = 0; sendVolume(0);
+      muted = true; volWave.style.opacity = '0';
     }
+  });
 
-    slider.addEventListener('input', () => {
-      const v = parseInt(slider.value, 10);
-      sendVolume(v);
-      muted = v === 0;
-      volWave.style.opacity = muted ? '0' : '1';
-      if (v > 0) lastVol = v;
+  /* ── Fullscreen ── */
+  document.getElementById('fullscreen-btn').addEventListener('click', () => {
+    const el = document.querySelector('.player-screen');
+    (el.requestFullscreen || el.webkitRequestFullscreen)?.call(el);
+  });
+
+  /* ── Live badge ── */
+  const liveBadge = document.getElementById('live-badge');
+
+  function setLive(isLive) {
+    liveBadge.classList.toggle('is-live', isLive);
+  }
+
+  window.addEventListener('message', e => {
+    if (!String(e.origin).includes('vdo.ninja')) return;
+    const msg = e.data;
+    if (!msg) return;
+    const action = msg.action || msg.type || '';
+    if (/view|join|connect|stream/i.test(action)) setLive(true);
+    if (/hangup|disconnect|leave/i.test(action)) setLive(false);
+  });
+
+  /* ── Leave quietly ── */
+  document.querySelector('.nav-leave').addEventListener('click', async () => {
+    await db.auth.signOut();
+    window.location.href = 'index.html';
+  });
+
+  /* ── Chat helpers ── */
+  function esc(s) {
+    return String(s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  const log   = document.getElementById('chat-messages');
+  const input = document.getElementById('chat-input');
+  const btn   = document.getElementById('send-btn');
+
+  function appendMessage(sender, text, type = 'user') {
+    const msg = document.createElement('div');
+    msg.className = `msg${type === 'system' ? ' system' : ''}`;
+    let body;
+    if (text.startsWith('__gif__:')) {
+      const url = text.slice(8);
+      body = url.startsWith('https://media.giphy.com/')
+        ? `<img src="${esc(url)}" class="msg-gif" alt="gif" loading="lazy"/>`
+        : esc(text);
+    } else {
+      body = esc(text);
+    }
+    msg.innerHTML = `<span class="msg-sender">${esc(sender)}</span><span class="msg-text">${body}</span>`;
+    gsap.set(msg, { opacity: 0 });
+    log.appendChild(msg);
+    gsap.to(msg, { opacity: 1, duration: 0.2, ease: 'power2.out' });
+    log.scrollTop = log.scrollHeight;
+  }
+
+  /* ── Load history ── */
+  const { data: history } = await db
+    .from('chat_messages')
+    .select('user_id, username, content')
+    .eq('session_id', sessionId)
+    .order('created_at', { ascending: true })
+    .limit(100);
+
+  if (history && history.length > 0) {
+    log.innerHTML = '';
+    history.forEach(m => appendMessage(m.username || 'Listener', m.content));
+  }
+
+  /* ── Real-time subscription ── */
+  db.channel(`chat:${sessionId}`)
+    .on('postgres_changes', {
+      event: 'INSERT', schema: 'public', table: 'chat_messages',
+      filter: `session_id=eq.${sessionId}`,
+    }, payload => {
+      if (payload.new.user_id !== myUserId) {
+        appendMessage(payload.new.username || 'Listener', payload.new.content);
+      }
+    })
+    .subscribe();
+
+  /* ── Send message ── */
+  async function send() {
+    const text = input.value.trim();
+    if (!text) return;
+    appendMessage(userName, text);
+    input.value = '';
+    input.focus();
+    await db.from('chat_messages').insert({
+      user_id:    myUserId,
+      username:   userName,
+      content:    text,
+      session_id: sessionId,
     });
+  }
 
-    muteBtn.addEventListener('click', () => {
-      if (muted) {
-        slider.value = lastVol;
-        sendVolume(lastVol);
-        muted = false;
-        volWave.style.opacity = '1';
-      } else {
-        lastVol = parseInt(slider.value, 10) || 100;
-        slider.value = 0;
-        sendVolume(0);
-        muted = true;
-        volWave.style.opacity = '0';
+  btn.addEventListener('click', send);
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+  });
+
+  /* ── House lights dim ── */
+  setTimeout(() => document.body.classList.add('lights-dim'), 2000);
+
+  /* ── 3. Programme card ── */
+  (async () => {
+    const dateEl  = document.getElementById('prog-date');
+    const titleEl = document.getElementById('prog-title');
+    const notesEl = document.getElementById('prog-notes');
+
+    const d = new Date();
+    dateEl.textContent = d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+
+    try {
+      const { data } = await db
+        .from('sessions')
+        .select('title, notes, date')
+        .order('date', { ascending: false })
+        .limit(1)
+        .single();
+      if (data) {
+        if (data.title) titleEl.textContent = data.title;
+        if (data.notes) notesEl.textContent = data.notes;
+        if (data.date) {
+          const sd = new Date(data.date);
+          dateEl.textContent = sd.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+        }
+      }
+    } catch { /* sessions table not set up — placeholder text stays */ }
+  })();
+
+  document.getElementById('programme-toggle').addEventListener('click', () => {
+    const body  = document.getElementById('programme-body');
+    const arrow = document.getElementById('prog-arrow');
+    const open  = body.style.display === 'block';
+    body.style.display = open ? 'none' : 'block';
+    arrow.classList.toggle('open', !open);
+  });
+
+  /* ── 5. Entry toasts via Presence ── */
+  function showJoinToast(name) {
+    const el = document.createElement('div');
+    el.className = 'join-toast';
+    el.textContent = `→ ${name} found their way in`;
+    document.body.appendChild(el);
+    requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('visible')));
+    setTimeout(() => {
+      el.classList.remove('visible');
+      setTimeout(() => el.remove(), 400);
+    }, 3200);
+  }
+
+  const presenceChannel = db.channel('fur-fm:room');
+  presenceChannel
+    .on('presence', { event: 'sync' }, () => {
+      const count = Object.keys(presenceChannel.presenceState()).length;
+      countEl.textContent = count === 1 ? '1 listening' : `${count} listening`;
+    })
+    .on('presence', { event: 'join' }, ({ newPresences }) => {
+      newPresences.forEach(p => {
+        if (p.username && p.username !== userName) showJoinToast(p.username);
+      });
+    })
+    .subscribe(async status => {
+      if (status === 'SUBSCRIBED') {
+        await presenceChannel.track({ username: userName });
       }
     });
 
-    /* ── Chat collapse toggle ── */
-    const chatBody   = document.getElementById('chat-body');
-    const chatToggle = document.getElementById('chat-toggle');
-    let collapsed    = false;
+  /* ── Media panel ── */
+  const EMOJIS = [
+    '🎵','🎶','🎷','🎸','🎹','🎺','🎻','🪕',
+    '🥁','🪘','🎙️','📻','🔊','🎼','✨','⭐',
+    '💫','🌟','🕯️','🌙','🌃','☕','🫖','🍵',
+    '🍷','🌿','🌱','🌸','🌊','❤️','🧡','💛',
+    '💚','💙','💜','🤍','🖤','😌','🥹','🫶',
+    '👋','👏','🙏','😊','😮','🤫','💭','🌬️',
+  ];
 
-    document.getElementById('chat-header').addEventListener('click', () => {
-      collapsed = !collapsed;
-      chatBody.classList.toggle('collapsed', collapsed);
-      chatToggle.textContent = collapsed ? '▲' : '▼';
+  const STICKERS = [
+    { label: '♩♪\nvibing',       text: '♩♪ vibing'            },
+    { label: '∿∿\nwaves',        text: '∿∿∿'                  },
+    { label: '✦\nmoved',         text: '✦ this is moving'     },
+    { label: '⌇\nbreathing',     text: '⌇ breathing'          },
+    { label: '( ˘³˘)\nheart',    text: '( ˘³˘)♥'              },
+    { label: '→\nstill here',    text: '→ still here'          },
+    { label: ':\')\ntears',      text: ":')"                   },
+    { label: '~\nfloating',      text: '~ floating'            },
+  ];
+
+  const mediaPanel   = document.getElementById('media-panel');
+  const mediaTrigger = document.getElementById('media-trigger');
+
+  mediaTrigger.addEventListener('click', e => {
+    e.stopPropagation();
+    mediaPanel.classList.toggle('open');
+    if (mediaPanel.classList.contains('open') && !gifGrid.children.length) loadGifs();
+  });
+  document.addEventListener('click', () => mediaPanel.classList.remove('open'));
+  mediaPanel.addEventListener('click', e => e.stopPropagation());
+
+  document.querySelectorAll('.media-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.media-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      const name = tab.dataset.tab;
+      document.getElementById('tab-emoji').style.display  = name === 'emoji'   ? '' : 'none';
+      document.getElementById('tab-gif').style.display    = name === 'gif'     ? '' : 'none';
+      document.getElementById('tab-sticker').style.display = name === 'sticker' ? '' : 'none';
+      if (name === 'gif' && !gifGrid.children.length) loadGifs();
     });
+  });
 
-    /* ── Chat helpers ── */
-    function esc(s) {
-      return String(s)
-        .replace(/&/g, '&amp;').replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-    }
-
-    const log   = document.getElementById('chat-messages');
-    const input = document.getElementById('chat-input');
-    const btn   = document.getElementById('send-btn');
-
-    function appendMessage(sender, text, type = 'user') {
-      const msg = document.createElement('div');
-      msg.className = `message${type === 'system' ? ' system' : ''}`;
-      msg.innerHTML =
-        `<span class="sender">${esc(sender)}</span>` +
-        `<span class="text">${esc(text)}</span>`;
-      gsap.set(msg, { opacity: 0 });
-      log.appendChild(msg);
-      gsap.to(msg, { opacity: 1, duration: 0.2, ease: 'power2.out' });
-      log.scrollTop = log.scrollHeight;
-    }
-
-    /* ── Load history ── */
-    const { data: history } = await db
-      .from('chat_messages')
-      .select('user_id, username, content')
-      .eq('session_id', sessionId)
-      .order('created_at', { ascending: true })
-      .limit(100);
-
-    if (history && history.length > 0) {
-      log.innerHTML = '';
-      history.forEach(m => appendMessage(m.username || 'Listener', m.content));
-    }
-
-    /* ── Real-time subscription ── */
-    db.channel(`chat:${sessionId}`)
-      .on('postgres_changes', {
-        event: 'INSERT', schema: 'public', table: 'chat_messages',
-        filter: `session_id=eq.${sessionId}`,
-      }, payload => {
-        if (payload.new.user_id !== myUserId) {
-          appendMessage(payload.new.username || 'Listener', payload.new.content);
-        }
-      })
-      .subscribe();
-
-    /* ── Send message ── */
-    async function send() {
-      const text = input.value.trim();
-      if (!text) return;
-      appendMessage(userName, text);
-      input.value = '';
+  /* Emoji grid */
+  const emojiGrid = document.getElementById('emoji-grid');
+  EMOJIS.forEach(em => {
+    const b = document.createElement('button');
+    b.className = 'emoji-btn';
+    b.textContent = em;
+    b.addEventListener('click', () => {
+      input.value += em;
       input.focus();
-      await db.from('chat_messages').insert({
-        user_id:    myUserId,
-        username:   userName,
-        content:    text,
-        session_id: sessionId,
-      });
-    }
-
-    btn.addEventListener('click', send);
-    input.addEventListener('keydown', e => {
-      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+      mediaPanel.classList.remove('open');
     });
+    emojiGrid.appendChild(b);
+  });
 
-  })();
-  </script>
+  /* Sticker grid */
+  const stickerGrid = document.getElementById('sticker-grid');
+  STICKERS.forEach(s => {
+    const b = document.createElement('button');
+    b.className = 'sticker-btn';
+    b.innerHTML = s.label.replace('\n', '<br>');
+    b.addEventListener('click', async () => {
+      mediaPanel.classList.remove('open');
+      appendMessage(userName, s.text);
+      await db.from('chat_messages').insert({
+        user_id: myUserId, username: userName,
+        content: s.text, session_id: sessionId,
+      });
+    });
+    stickerGrid.appendChild(b);
+  });
+
+  /* GIF via Giphy */
+  const GIPHY_KEY = 'dc6zaTOxFJmzC';
+  const gifGrid   = document.getElementById('gif-grid');
+  const gifSearch = document.getElementById('gif-search');
+
+  async function loadGifs(q = '') {
+    gifGrid.innerHTML = '<div class="gif-loading">loading…</div>';
+    try {
+      const endpoint = q
+        ? `https://api.giphy.com/v1/gifs/search?api_key=${GIPHY_KEY}&q=${encodeURIComponent(q)}&limit=12&rating=g`
+        : `https://api.giphy.com/v1/gifs/trending?api_key=${GIPHY_KEY}&limit=12&rating=g`;
+      const { data } = await fetch(endpoint).then(r => r.json());
+      gifGrid.innerHTML = '';
+      data.forEach(gif => {
+        const preview = gif.images.fixed_height_small?.url || gif.images.downsized.url;
+        const full    = gif.images.downsized.url;
+        const item    = document.createElement('div');
+        item.className = 'gif-item';
+        item.innerHTML = `<img src="${esc(preview)}" loading="lazy" alt="gif"/>`;
+        item.addEventListener('click', async () => {
+          mediaPanel.classList.remove('open');
+          appendMessage(userName, `__gif__:${full}`);
+          await db.from('chat_messages').insert({
+            user_id: myUserId, username: userName,
+            content: `__gif__:${full}`, session_id: sessionId,
+          });
+        });
+        gifGrid.appendChild(item);
+      });
+    } catch {
+      gifGrid.innerHTML = '<div class="gif-loading">could not load gifs</div>';
+    }
+  }
+
+  let gifTimer;
+  gifSearch.addEventListener('input', () => {
+    clearTimeout(gifTimer);
+    gifTimer = setTimeout(() => loadGifs(gifSearch.value.trim()), 500);
+  });
+
+
+})();
+</script>
 
 </body>
 </html>
