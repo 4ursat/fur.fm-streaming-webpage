@@ -212,6 +212,54 @@
     .join-toast.visible {
       opacity: 1; transform: translateX(-50%) translateY(0);
     }
+
+    /* ── Responsive ── */
+
+    /* Tablet (portrait iPad etc.) */
+    @media (max-width: 768px) {
+      .content-col { width: 94vw; }
+      .page-wrap { padding: 1.4rem 1.2rem; }
+    }
+
+    /* Phone */
+    @media (max-width: 600px) {
+      .content-col { width: 98vw; }
+      .page-wrap { padding: 0.9rem 0.6rem; }
+
+      /* tighter overlay insets */
+      .ov-tl { top: 0.6rem; left: 0.7rem; }
+      .ov-tr { top: 0.6rem; right: 0.7rem; max-width: 56%; }
+      .ov-bl { bottom: 0.65rem; left: 0.7rem; }
+      .ov-br { bottom: 0.65rem; right: 0.7rem;
+               width: min(190px, calc(55% - 0.7rem)); }
+
+      /* overlay text */
+      .logo-name    { font-size: 0.78rem; }
+      .session-title { font-size: 0.72rem; }
+      .session-timer { font-size: 0.7rem; letter-spacing: 0.08em; }
+      .listener-count { font-size: 0.62rem; }
+
+      /* shorter chat so it doesn't dominate the small video */
+      .messages { max-height: 100px; }
+      .msg-text { font-size: 0.65rem; }
+      .msg-sender { font-size: 0.52rem; }
+      .chat-input-area { padding: 0.3rem 0.55rem 0.35rem; }
+      .chat-input-area input { font-size: 0.6rem; }
+      .send-btn { font-size: 0.55rem; }
+
+      /* strips outside video */
+      .session-notice { font-size: 0.62rem; }
+      .nav-link { font-size: 0.68rem; }
+      .content-col { gap: 0.6rem; }
+    }
+
+    /* Landscape phone — maximize video height */
+    @media (max-height: 480px) and (orientation: landscape) {
+      .page-wrap { padding: 0.5rem; }
+      .content-col { gap: 0.45rem; }
+      .above, .below { display: none; }  /* hide strips, give video full space */
+      .content-col { max-width: calc(100vh * 1.7778); width: 100vw; }
+    }
   </style>
 </head>
 <body>
@@ -221,7 +269,7 @@
 
     <!-- Above video: notice right-aligned -->
     <div class="above">
-      <div class="session-notice">This session will not be recorded or saved.</div>
+      <div class="session-notice">This session will not be recorded.</div>
     </div>
 
     <!-- Video stage with overlays inside -->
@@ -268,12 +316,7 @@
 
       <!-- Bottom-right: Chat overlay -->
       <div class="ov ov-br">
-        <div class="messages" id="chat-messages" role="log" aria-live="polite">
-          <div class="msg system">
-            <span class="msg-sender">fur fm</span>
-            <span class="msg-text">welcome. say hello.</span>
-          </div>
-        </div>
+        <div class="messages" id="chat-messages" role="log" aria-live="polite"></div>
         <div class="chat-input-area">
           <input type="text" id="chat-input" placeholder="whisper something into the room…"
                  maxlength="200" autocomplete="off" />
