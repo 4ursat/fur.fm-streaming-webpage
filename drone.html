@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fur FM — Drone Room</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      background: #fff;
+      font-family: 'Courier New', Courier, monospace;
+    }
+
+    header {
+      position: fixed;
+      top: 0; left: 0;
+      z-index: 10;
+      padding: 1.4rem 1.8rem;
+      display: flex;
+      align-items: center;
+      gap: 0.9rem;
+    }
+
+    .brand {
+      font-size: 0.75rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: rgba(0,0,0,0.35);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .brand:hover { color: #000; }
+
+    .sep { color: rgba(0,0,0,0.18); }
+
+    .page-lbl {
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(0,0,0,0.30);
+    }
+
+    /* ── Bottom panel ── */
+    .panel {
+      position: fixed;
+      bottom: 0;
+      left: 0; right: 0;
+      z-index: 10;
+      padding: 2.4rem 3rem 2.8rem;
+      background: #fff;
+      border-top: 1px solid rgba(0,0,0,0.10);
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    /* ── Layer toggle row ── */
+    .layers-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .layers-label {
+      font-size: 0.58rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: rgba(0,0,0,0.35);
+      margin-right: 0.4rem;
+    }
+
+    .layer-btn {
+      font-family: Georgia, 'Times New Roman', serif;
+      font-style: italic;
+      font-size: 1.1rem;
+      letter-spacing: 0.04em;
+      background: none;
+      border: 1px solid rgba(0,0,0,0.22);
+      color: rgba(0,0,0,0.38);
+      cursor: pointer;
+      padding: 0.45rem 1.6rem;
+      transition: border-color 0.25s, color 0.25s, background 0.25s;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .layer-btn:hover {
+      border-color: rgba(0,0,0,0.55);
+      color: rgba(0,0,0,0.70);
+    }
+
+    .layer-btn.on {
+      border-color: #000;
+      color: #000;
+      background: rgba(0,0,0,0.05);
+    }
+
+    .layer-sub {
+      font-size: 0.48rem;
+      display: block;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      margin-top: 0.18rem;
+      font-family: 'Courier New', Courier, monospace;
+      font-style: normal;
+      color: inherit;
+      opacity: 0.55;
+    }
+
+    /* ── Controls row ── */
+    .ctrls-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 0;
+    }
+
+    .ctrl {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.6rem;
+      padding-right: 2.4rem;
+      border-right: 1px solid rgba(0,0,0,0.08);
+      margin-right: 2.4rem;
+    }
+
+    .ctrl:last-child {
+      border-right: none;
+      margin-right: 0;
+      padding-right: 0;
+    }
+
+    .ctrl label {
+      font-size: 0.58rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: rgba(0,0,0,0.40);
+      white-space: nowrap;
+    }
+
+    .ctrl select {
+      background: #fff;
+      border: 1px solid rgba(0,0,0,0.22);
+      color: rgba(0,0,0,0.82);
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.06em;
+      padding: 0.38rem 0.7rem;
+      cursor: pointer;
+      outline: none;
+      appearance: none;
+      -webkit-appearance: none;
+      min-width: 5rem;
+      transition: border-color 0.2s;
+    }
+
+    .ctrl select:hover,
+    .ctrl select:focus {
+      border-color: #000;
+    }
+
+    .ctrl input[type=range] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 110px;
+      height: 1px;
+      background: rgba(0,0,0,0.18);
+      outline: none;
+      cursor: pointer;
+      margin-top: 0.3rem;
+    }
+
+    .ctrl input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.65);
+      cursor: pointer;
+      transition: background 0.15s, transform 0.14s;
+    }
+
+    .ctrl input[type=range]::-webkit-slider-thumb:hover {
+      background: #000;
+      transform: scale(1.3);
+    }
+
+    .ctrl input[type=range]::-moz-range-thumb {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.65);
+      border: none;
+      cursor: pointer;
+    }
+
+    .val {
+      font-size: 0.58rem;
+      letter-spacing: 0.08em;
+      color: rgba(0,0,0,0.32);
+    }
+
+    footer {
+      position: fixed;
+      top: 1.4rem;
+      right: 1.8rem;
+      font-size: 0.48rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(0,0,0,0.18);
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .room-svg {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    @keyframes windSway {
+      0%   { transform: translateX(0px)  translateY(0px)   scale(1.000); filter: brightness(1.00); }
+      18%  { transform: translateX(-4px) translateY(1.5px) scale(1.005); filter: brightness(0.96); }
+      42%  { transform: translateX(3px)  translateY(-1px)  scale(1.008); filter: brightness(1.04); }
+      67%  { transform: translateX(-2px) translateY(1px)   scale(1.004); filter: brightness(0.97); }
+      85%  { transform: translateX(2px)  translateY(-0.5px) scale(1.003); filter: brightness(1.02); }
+      100% { transform: translateX(0px)  translateY(0px)   scale(1.000); filter: brightness(1.00); }
+    }
+
+    .win-img {
+      transform-box: fill-box;
+      transform-origin: center center;
+    }
+    .win-img-l { animation: windSway 10s ease-in-out infinite; }
+    .win-img-r { animation: windSway 10s ease-in-out infinite; animation-delay: -4.3s; }
+  </style>
+</head>
+<body>
+
+  <!-- One-point perspective room -->
+  <svg class="room-svg" viewBox="0 0 1000 700" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <!-- Floor gradient: lighter near back wall, darker near viewer -->
+      <linearGradient id="floorGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#f2f2f2"/>
+        <stop offset="100%" stop-color="#e4e4e4"/>
+      </linearGradient>
+      <!-- Ceiling gradient -->
+      <linearGradient id="ceilGrad" x1="0" y1="1" x2="0" y2="0">
+        <stop offset="0%" stop-color="#f8f8f8"/>
+        <stop offset="100%" stop-color="#ececec"/>
+      </linearGradient>
+      <!-- Left wall gradient -->
+      <linearGradient id="leftGrad" x1="1" y1="0" x2="0" y2="0">
+        <stop offset="0%" stop-color="#f5f5f5"/>
+        <stop offset="100%" stop-color="#e8e8e8"/>
+      </linearGradient>
+      <!-- Right wall gradient -->
+      <linearGradient id="rightGrad" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="#f5f5f5"/>
+        <stop offset="100%" stop-color="#e8e8e8"/>
+      </linearGradient>
+      <!-- Clip paths — one per window inner pane -->
+      <clipPath id="winL">
+        <rect x="338" y="158" width="94" height="124"/>
+      </clipPath>
+      <clipPath id="winR">
+        <rect x="568" y="158" width="94" height="124"/>
+      </clipPath>
+    </defs>
+
+    <!-- Vanishing point: 500, 290 -->
+
+    <!-- Back wall -->
+    <rect x="310" y="120" width="380" height="310" fill="#fafafa" stroke="#d8d8d8" stroke-width="0.5"/>
+
+    <!-- Ceiling -->
+    <polygon points="0,0 1000,0 690,120 310,120" fill="url(#ceilGrad)" stroke="#d8d8d8" stroke-width="0.5"/>
+
+    <!-- Floor -->
+    <polygon points="0,700 1000,700 690,430 310,430" fill="url(#floorGrad)" stroke="#d8d8d8" stroke-width="0.5"/>
+
+    <!-- Left wall -->
+    <polygon points="0,0 310,120 310,430 0,700" fill="url(#leftGrad)" stroke="#d8d8d8" stroke-width="0.5"/>
+
+    <!-- Right wall -->
+    <polygon points="1000,0 690,120 690,430 1000,700" fill="url(#rightGrad)" stroke="#d8d8d8" stroke-width="0.5"/>
+
+    <!-- Skirting on back wall -->
+    <rect x="310" y="400" width="380" height="30" fill="#f0f0f0" stroke="#d0d0d0" stroke-width="0.5"/>
+
+    <!-- Skirting on left wall (perspective) -->
+    <polygon points="0,668 310,430 310,400 0,636" fill="#ebebeb" stroke="#d0d0d0" stroke-width="0.5"/>
+
+    <!-- Skirting on right wall (perspective) -->
+    <polygon points="1000,668 690,430 690,400 1000,636" fill="#ebebeb" stroke="#d0d0d0" stroke-width="0.5"/>
+
+    <!-- Back wall window left -->
+    <rect x="335" y="155" width="100" height="130" fill="none" stroke="#cacaca" stroke-width="1"/>
+    <!-- Left window: photo of outdoor scene -->
+    <g clip-path="url(#winL)">
+      <image href="background.jpeg" x="300" y="110" width="400" height="330" preserveAspectRatio="xMidYMax slice" class="win-img win-img-l"/>
+    </g>
+    <!-- Window pane dividers (over scene) -->
+    <line x1="385" y1="158" x2="385" y2="282" stroke="rgba(190,190,190,0.65)" stroke-width="0.9"/>
+    <line x1="338" y1="220" x2="432" y2="220" stroke="rgba(190,190,190,0.65)" stroke-width="0.9"/>
+    <!-- Window frame border -->
+    <rect x="338" y="158" width="94" height="124" fill="none" stroke="#c0c0c0" stroke-width="1.2"/>
+    <!-- Window sill -->
+    <rect x="332" y="282" width="106" height="5" fill="#e8e8e8" stroke="#cccccc" stroke-width="0.5"/>
+
+    <!-- Back wall window right -->
+    <rect x="565" y="155" width="100" height="130" fill="none" stroke="#cacaca" stroke-width="1"/>
+    <!-- Right window: photo of outdoor scene -->
+    <g clip-path="url(#winR)">
+      <image href="background.jpeg" x="300" y="110" width="400" height="330" preserveAspectRatio="xMidYMax slice" class="win-img win-img-r"/>
+    </g>
+    <!-- Window pane dividers -->
+    <line x1="615" y1="158" x2="615" y2="282" stroke="rgba(190,190,190,0.65)" stroke-width="0.9"/>
+    <line x1="568" y1="220" x2="662" y2="220" stroke="rgba(190,190,190,0.65)" stroke-width="0.9"/>
+    <!-- Window frame border -->
+    <rect x="568" y="158" width="94" height="124" fill="none" stroke="#c0c0c0" stroke-width="1.2"/>
+    <rect x="562" y="282" width="106" height="5" fill="#e8e8e8" stroke="#cccccc" stroke-width="0.5"/>
+
+    <!-- Ceiling cornice line (back wall top) -->
+    <line x1="0" y1="0" x2="310" y2="120" stroke="#d0d0d0" stroke-width="0.8"/>
+    <line x1="1000" y1="0" x2="690" y2="120" stroke="#d0d0d0" stroke-width="0.8"/>
+    <line x1="310" y1="120" x2="690" y2="120" stroke="#d2d2d2" stroke-width="0.8"/>
+
+    <!-- Floor grid lines (converging to vanishing point) -->
+    <!-- Horizontal grid lines on floor -->
+    <line x1="218" y1="560" x2="782" y2="560" stroke="#dddddd" stroke-width="0.6"/>
+    <line x1="143" y1="620" x2="857" y2="620" stroke="#dddddd" stroke-width="0.6"/>
+    <!-- Convergent grid lines on floor -->
+    <line x1="500" y1="290" x2="0"    y2="700" stroke="#dddddd" stroke-width="0.5"/>
+    <line x1="500" y1="290" x2="200"  y2="700" stroke="#dddddd" stroke-width="0.5"/>
+    <line x1="500" y1="290" x2="400"  y2="700" stroke="#dddddd" stroke-width="0.5"/>
+    <line x1="500" y1="290" x2="600"  y2="700" stroke="#dddddd" stroke-width="0.5"/>
+    <line x1="500" y1="290" x2="800"  y2="700" stroke="#dddddd" stroke-width="0.5"/>
+    <line x1="500" y1="290" x2="1000" y2="700" stroke="#dddddd" stroke-width="0.5"/>
+
+    <!-- Ceiling grid lines (converging) -->
+    <line x1="500" y1="290" x2="0"    y2="0"   stroke="#ebebeb" stroke-width="0.4"/>
+    <line x1="500" y1="290" x2="250"  y2="0"   stroke="#ebebeb" stroke-width="0.4"/>
+    <line x1="500" y1="290" x2="750"  y2="0"   stroke="#ebebeb" stroke-width="0.4"/>
+    <line x1="500" y1="290" x2="1000" y2="0"   stroke="#ebebeb" stroke-width="0.4"/>
+    <line x1="500" y1="290" x2="0"    y2="150" stroke="#ebebeb" stroke-width="0.4"/>
+    <line x1="500" y1="290" x2="1000" y2="150" stroke="#ebebeb" stroke-width="0.4"/>
+  </svg>
+
+  <header>
+    <a href="index.html" class="brand">Fur FM</a>
+    <span class="sep">/</span>
+    <span class="page-lbl">Drone Room</span>
+  </header>
+
+  <footer>surpeti</footer>
+
+  <div class="panel">
+
+    <div class="layers-row">
+      <span class="layers-label">layers</span>
+      <button class="layer-btn" id="c0">sa<span class="layer-sub">foundation</span></button>
+      <button class="layer-btn" id="c1">pa<span class="layer-sub">fifth</span></button>
+      <button class="layer-btn" id="c2">ma<span class="layer-sub">colour</span></button>
+    </div>
+
+    <div class="ctrls-row">
+
+      <div class="ctrl">
+        <label>root</label>
+        <select id="root-sel">
+          <option value="65.406">C</option>
+          <option value="69.296">C♯</option>
+          <option value="73.416">D</option>
+          <option value="77.782">D♯</option>
+          <option value="82.407">E</option>
+          <option value="87.307">F</option>
+          <option value="92.499">F♯</option>
+          <option value="97.999" selected>G</option>
+          <option value="103.826">G♯</option>
+          <option value="110.000">A</option>
+          <option value="116.541">A♯</option>
+          <option value="123.471">B</option>
+        </select>
+      </div>
+
+      <div class="ctrl">
+        <label>octave</label>
+        <select id="oct-sel">
+          <option value="0.5">−1</option>
+          <option value="1" selected>0</option>
+          <option value="2">+1</option>
+        </select>
+      </div>
+
+      <div class="ctrl">
+        <label>timbre</label>
+        <input type="range" id="timbre" min="0" max="1" step="0.01" value="0.42" />
+        <span class="val" id="timbre-val">42</span>
+      </div>
+
+      <div class="ctrl">
+        <label>noise</label>
+        <input type="range" id="noise-vol" min="0" max="1" step="0.01" value="0.30" />
+        <span class="val" id="noise-val">30</span>
+      </div>
+
+      <div class="ctrl">
+        <label>sway</label>
+        <input type="range" id="lfo-rate" min="0" max="1" step="0.01" value="0.35" />
+        <span class="val" id="lfo-val">35</span>
+      </div>
+
+      <div class="ctrl">
+        <label>volume</label>
+        <input type="range" id="vol" min="0" max="1" step="0.01" value="0.72" />
+        <span class="val" id="vol-val">72</span>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+  (() => {
+
+    /* ═══════════════════════════════════════════════════════
+       AUDIO ENGINE
+    ═══════════════════════════════════════════════════════ */
+    let ctx          = null;
+    let masterGain   = null;
+    let reverb       = null;
+    let reedWave     = null;  /* custom harmonic waveform */
+    let noiseNode     = null;
+    let noiseGain     = null;
+    let noiseExtras   = [];
+    let noiseFMLFO    = null;   // sweeps filter bank
+    let noisePRLFOs   = [];    // polyrhythm amplitude LFOs
+    let noiseFilters  = [];    // resonant BPF bank
+
+    const LAYERS       = [null, null, null];
+    const LAYER_ACTIVE = [false, false, false];
+
+    let rootFreq  = 97.999;
+    let octaveMul = 1.0;
+    let timbre    = 0.42;
+    let noiseVol  = 0.30;
+    let lfoRate   = 0.35;
+    let masterVol = 0.72;
+
+    /* ── Boot ── */
+    function boot() {
+      if (ctx) return;
+      ctx = new (window.AudioContext || window.webkitAudioContext)();
+
+      masterGain = ctx.createGain();
+      masterGain.gain.value = masterVol * 0.38;
+
+      const lim = ctx.createDynamicsCompressor();
+      lim.threshold.value = -4;
+      lim.knee.value      = 8;
+      lim.ratio.value     = 10;
+      lim.attack.value    = 0.003;
+      lim.release.value   = 0.22;
+      masterGain.connect(lim);
+      lim.connect(ctx.destination);
+
+      buildReverb();
+      buildNoise();
+      buildReedWave();
+    }
+
+    /* ── Warm convolution reverb ── */
+    function buildReverb() {
+      const len = Math.floor(ctx.sampleRate * 6.5);
+      const buf = ctx.createBuffer(2, len, ctx.sampleRate);
+      for (let c = 0; c < 2; c++) {
+        const d = buf.getChannelData(c);
+        let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0;
+        for (let i = 0; i < len; i++) {
+          const w = Math.random() * 2 - 1;
+          b0=0.99886*b0+w*0.0555179; b1=0.99332*b1+w*0.0750759;
+          b2=0.96900*b2+w*0.1538520; b3=0.86650*b3+w*0.3104856;
+          b4=0.55000*b4+w*0.5329522; b5=-0.7616*b5+w*0.0168980;
+          const pink = (b0+b1+b2+b3+b4+b5) * 0.11;
+          const rise = Math.min(i / (ctx.sampleRate * 0.006), 1.0);
+          const decay = Math.pow(1 - i / len, 1.85);
+          d[i] = pink * rise * decay * (c === 1 ? (0.93 + Math.random()*0.07) : 1);
+        }
+      }
+      reverb = ctx.createConvolver();
+      reverb.buffer = buf;
+      reverb.connect(masterGain);
+    }
+
+    /* ── Custom harmonic waveform — warm reed/harmonium character ──
+       Additive: fundamental strong, harmonics falling off naturally.
+       Much softer than sawtooth but retains richness.            ── */
+    function buildReedWave() {
+      const n = 12;
+      const real = new Float32Array(n);
+      const imag = new Float32Array(n);
+      /* imag[k] = amplitude of k-th harmonic (sine terms) */
+      imag[1] = 1.00;   /* fundamental */
+      imag[2] = 0.50;   /* octave — warm body */
+      imag[3] = 0.22;   /* 3rd — slight reed buzz */
+      imag[4] = 0.10;   /* 4th */
+      imag[5] = 0.05;   /* 5th */
+      imag[6] = 0.025;  /* 6th — barely there */
+      imag[7] = 0.012;  /* 7th — air */
+      reedWave = ctx.createPeriodicWave(real, imag, { disableNormalization: false });
+    }
+
+    /* ── Resonant filter bank on pink noise — modelled after fffb~ + FM ── */
+    function buildNoise() {
+      noiseExtras.forEach(n => { try { n.stop?.(); n.disconnect(); } catch (_) {} });
+      noiseExtras = [];
+      noiseFilters = [];
+      noiseFMLFO = null; noiseAmpLFO = null;
+      if (noiseNode) { try { noiseNode.stop(); } catch (_) {} noiseNode = null; }
+
+      const t = ctx.currentTime;
+      const r = rootFreq * octaveMul;
+
+      /* ── Stereo pink noise buffer ── */
+      const len = ctx.sampleRate * 8;
+      const buf = ctx.createBuffer(2, len, ctx.sampleRate);
+      for (let c = 0; c < 2; c++) {
+        const d = buf.getChannelData(c);
+        let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0;
+        for (let i = 0; i < len; i++) {
+          const w = Math.random() * 2 - 1;
+          b0=0.99886*b0+w*0.0555179; b1=0.99332*b1+w*0.0750759;
+          b2=0.96900*b2+w*0.1538520; b3=0.86650*b3+w*0.3104856;
+          b4=0.55000*b4+w*0.5329522; b5=-0.7616*b5+w*0.0168980;
+          d[i] = (b0+b1+b2+b3+b4+b5) * 0.11;
+        }
+      }
+      noiseNode = ctx.createBufferSource();
+      noiseNode.buffer = buf; noiseNode.loop = true;
+
+      /* ── 8-band resonant filter bank — harmonics of root (fffb~ equivalent) ── */
+      /* Harmonic series: 1×, 2×, 3×, 4×, 5×, 6×, 8×, 10× */
+      const HARMONICS = [1, 2, 3, 4, 5, 6, 8, 10];
+      const bankMix   = ctx.createGain();
+      bankMix.gain.value = 1 / HARMONICS.length;
+
+      const fmGains = [];
+
+      HARMONICS.forEach(h => {
+        const bpf = ctx.createBiquadFilter();
+        bpf.type = 'bandpass';
+        bpf.frequency.value = r * h;
+        bpf.Q.value = timbre * 6 + 1.2;  /* Timbre → resonance: 1.2 (airy) → 7.2 (singing) */
+        bpf._base = r * h;
+        noiseNode.connect(bpf);
+        bpf.connect(bankMix);
+        noiseFilters.push(bpf);
+
+        /* Each filter gets its own FM gain so sweep is proportional to pitch */
+        const fmG = ctx.createGain();
+        fmG.gain.value = r * h * 0.08;   /* FM depth — 8% of each band's center freq */
+        fmG.connect(bpf.frequency);
+        fmGains.push(fmG);
+      });
+
+      /* ── LFO 1: FM sweep — moves the whole filter bank up/down ── */
+      noiseFMLFO = ctx.createOscillator();
+      noiseFMLFO.type = 'sine';
+      noiseFMLFO.frequency.value = swayToHz(0.04, 1.8);
+      fmGains.forEach(g => noiseFMLFO.connect(g));
+      noiseFMLFO.start(t);
+
+      /* ── Small amount of dry noise for air/breathiness ── */
+      const airLPF = ctx.createBiquadFilter();
+      airLPF.type = 'lowpass'; airLPF.frequency.value = r * 1.5;
+      const airGain = ctx.createGain(); airGain.gain.value = 0.12;
+      noiseNode.connect(airLPF); airLPF.connect(airGain);
+
+      /* ── Master noise gain — lighter overall level ── */
+      noiseGain = ctx.createGain();
+      noiseGain.gain.value = noiseVol * 0.52;
+
+      bankMix.connect(noiseGain);
+      airGain.connect(noiseGain);
+      noiseGain.connect(masterGain);
+      noiseGain.connect(reverb);
+
+      /* ── Polyrhythmic amplitude LFOs ──────────────────────────────
+         Four LFOs at ratios 1 : 3/2 : 4/3 : 2  against a base rate.
+         Their interference creates evolving cross-rhythms.
+         Base rate is controlled by sway (0.1 → 3 Hz).           ── */
+      const base       = swayToHz(0.1, 3.0);
+      const PR_RATIOS  = [1, 1.5, 4/3, 2];
+      const PR_DEPTHS  = [0.22, 0.16, 0.14, 0.10]; /* each LFO's amplitude depth */
+      const prGains    = [];
+      noisePRLFOs      = [];
+
+      PR_RATIOS.forEach((ratio, i) => {
+        const prLFO = ctx.createOscillator();
+        const prG   = ctx.createGain();
+        prLFO.type = 'sine';
+        prLFO.frequency.value = base * ratio;
+        prG.gain.value = noiseVol * PR_DEPTHS[i];
+        prLFO.connect(prG); prG.connect(noiseGain.gain);
+        prLFO.start(t);
+        noisePRLFOs.push(prLFO);
+        prGains.push(prG);
+      });
+
+      noiseNode.start(t);
+      noiseExtras = [noiseFMLFO, ...fmGains, ...noisePRLFOs, ...prGains, bankMix, airLPF, airGain];
+    }
+
+    /* ── Timbre: filter cutoff multiplier ── */
+    function timbreCutoff(freq) {
+      return freq * (2 + timbre * 17);
+    }
+
+    /* ── Map lfoRate (0–1) between min and max Hz ── */
+    function swayToHz(min, max) {
+      return min + Math.pow(lfoRate, 1.5) * (max - min);
+    }
+
+    /* ── Oscillator pair: two detuned reed-wave oscillators + gentle LPF ── */
+    function oscPair(dest, freq, detCents, gain) {
+      const o1  = ctx.createOscillator();
+      const o2  = ctx.createOscillator();
+      const lpf = ctx.createBiquadFilter();
+      const g   = ctx.createGain();
+      o1.type = 'sine'; o2.type = 'sine';
+      o1.frequency.value = freq * Math.pow(2, -detCents / 1200);
+      o2.frequency.value = freq * Math.pow(2,  detCents / 1200);
+      lpf.type = 'lowpass';
+      lpf.frequency.value = timbreCutoff(freq);
+      lpf.Q.value = 0.3;
+      g.gain.value = gain * 0.62;  /* lower overall level */
+      o1.connect(lpf); o2.connect(lpf);
+      lpf.connect(g);  g.connect(dest);
+      lpf._baseFreq = freq;
+      return { o1, o2, lpf, g };
+    }
+
+    /* ── LFO attached to an AudioParam — stores min/max for live sway updates ── */
+    function lfo(param, min, max, depthVal) {
+      const lo = ctx.createOscillator();
+      const lg = ctx.createGain();
+      lo.type = 'sine';
+      lo.frequency.value = swayToHz(min, max);
+      lg.gain.value = depthVal;
+      lo.connect(lg); lg.connect(param);
+      lo.start(ctx.currentTime);
+      return { lo, lg, min, max };
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       LAYER BUILDERS
+    ═══════════════════════════════════════════════════════ */
+
+    function buildLayer0(r) {
+      const t = ctx.currentTime;
+      const all = [], lfos = [], filters = [];
+
+      const gate = ctx.createGain();
+      gate.gain.setValueAtTime(0, t);
+      gate.gain.linearRampToValueAtTime(1, t + 2.2);
+      gate.connect(masterGain);
+
+      const rvS = ctx.createGain(); rvS.gain.value = 0.40;
+      gate.connect(rvS); rvS.connect(reverb);
+      all.push(rvS);
+
+      const subO = ctx.createOscillator();
+      const subG = ctx.createGain();
+      subO.type = 'sine';
+      subO.frequency.value = r * 0.5;
+      subG.gain.value = 0.30;
+      subO.connect(subG); subG.connect(gate);
+      subO.start(t);
+      all.push(subO, subG);
+      lfos.push(lfo(subO.frequency, 0.01, 0.6,  r * 0.0018));
+
+      const pair = oscPair(gate, r, 6, 0.46);
+      pair.o1.start(t); pair.o2.start(t);
+      all.push(pair.o1, pair.o2, pair.lpf, pair.g);
+      filters.push(pair.lpf);
+
+      const breathLG = ctx.createGain(); breathLG.gain.value = r * 0.0022;
+      const breathLO = ctx.createOscillator();
+      breathLO.type = 'sine'; breathLO.frequency.value = swayToHz(0.01, 0.5);
+      breathLO.connect(breathLG);
+      breathLG.connect(pair.o1.frequency); breathLG.connect(pair.o2.frequency);
+      breathLO.start(t);
+      all.push(breathLO, breathLG);
+
+      lfos.push(lfo(pair.o1.frequency, 0.01, 1.0,  r * 0.0016));
+      lfos.push(lfo(pair.o2.frequency, 0.01, 1.1,  r * 0.0014));
+      lfos.push(lfo(gate.gain,         0.01, 0.5,  0.065));
+
+      return { gate, all, lfos, filters };
+    }
+
+    function buildLayer1(r) {
+      const t = ctx.currentTime;
+      const all = [], lfos = [], filters = [];
+
+      const gate = ctx.createGain();
+      gate.gain.setValueAtTime(0, t);
+      gate.gain.linearRampToValueAtTime(1, t + 2.4);
+      gate.connect(masterGain);
+
+      const rvS = ctx.createGain(); rvS.gain.value = 0.44;
+      gate.connect(rvS); rvS.connect(reverb);
+      all.push(rvS);
+
+      const pa = oscPair(gate, r * 1.5, 5, 0.36);
+      pa.o1.start(t); pa.o2.start(t);
+      all.push(pa.o1, pa.o2, pa.lpf, pa.g);
+      filters.push(pa.lpf);
+      lfos.push(lfo(pa.o1.frequency, 0.01, 0.9,  r * 0.0024));
+      lfos.push(lfo(pa.o2.frequency, 0.01, 1.0,  r * 0.0022));
+
+      const oc = oscPair(gate, r * 2, 4, 0.18);
+      oc.o1.start(t); oc.o2.start(t);
+      all.push(oc.o1, oc.o2, oc.lpf, oc.g);
+      filters.push(oc.lpf);
+      lfos.push(lfo(oc.o1.frequency, 0.01, 1.1,  r * 0.0030));
+      lfos.push(lfo(oc.o2.frequency, 0.01, 1.2,  r * 0.0028));
+      lfos.push(lfo(gate.gain,       0.01, 0.45, 0.048));
+
+      return { gate, all, lfos, filters };
+    }
+
+    function buildLayer2(r) {
+      const t = ctx.currentTime;
+      const all = [], lfos = [], filters = [];
+
+      const gate = ctx.createGain();
+      gate.gain.setValueAtTime(0, t);
+      gate.gain.linearRampToValueAtTime(1, t + 2.6);
+      gate.connect(masterGain);
+
+      const rvS = ctx.createGain(); rvS.gain.value = 0.48;
+      gate.connect(rvS); rvS.connect(reverb);
+      all.push(rvS);
+
+      const ma = oscPair(gate, r * 4/3, 5, 0.32);
+      ma.o1.start(t); ma.o2.start(t);
+      all.push(ma.o1, ma.o2, ma.lpf, ma.g);
+      filters.push(ma.lpf);
+      lfos.push(lfo(ma.o1.frequency, 0.01, 0.8,  r * 0.0022));
+      lfos.push(lfo(ma.o2.frequency, 0.01, 0.9,  r * 0.0020));
+
+      const mh = oscPair(gate, r * 8/3, 6, 0.13);
+      mh.o1.start(t); mh.o2.start(t);
+      all.push(mh.o1, mh.o2, mh.lpf, mh.g);
+      filters.push(mh.lpf);
+      lfos.push(lfo(gate.gain, 0.01, 0.4, 0.044));
+
+      return { gate, all, lfos, filters };
+    }
+
+    const BUILDERS = [buildLayer0, buildLayer1, buildLayer2];
+
+    /* ═══════════════════════════════════════════════════════
+       LAYER START / STOP
+    ═══════════════════════════════════════════════════════ */
+    function startLayer(i) {
+      if (!ctx) boot();
+      if (ctx.state === 'suspended') ctx.resume();
+      const r = rootFreq * octaveMul;
+      LAYERS[i] = BUILDERS[i](r);
+      LAYER_ACTIVE[i] = true;
+    }
+
+    function stopLayer(i) {
+      LAYER_ACTIVE[i] = false;
+      const L = LAYERS[i];
+      if (!L) return;
+      const t = ctx.currentTime;
+      L.gate.gain.cancelScheduledValues(t);
+      L.gate.gain.setValueAtTime(L.gate.gain.value, t);
+      L.gate.gain.linearRampToValueAtTime(0, t + 1.8);
+      setTimeout(() => {
+        L.all.forEach(n => { try { n.stop?.(); n.disconnect(); } catch (_) {} });
+        L.lfos.forEach(({lo: lo_, lg}) => {
+          try { lo_.stop(); lo_.disconnect(); lg.disconnect(); } catch (_) {}
+        });
+        try { L.gate.disconnect(); } catch (_) {}
+      }, 2000);
+      LAYERS[i] = null;
+    }
+
+    function rebuildActive() {
+      if (!ctx) return;
+      buildNoise();
+      LAYER_ACTIVE.forEach((active, i) => {
+        if (!active || !LAYERS[i]) return;
+        const old = LAYERS[i];
+        const t = ctx.currentTime;
+        old.gate.gain.cancelScheduledValues(t);
+        old.gate.gain.setValueAtTime(old.gate.gain.value, t);
+        old.gate.gain.linearRampToValueAtTime(0, t + 1.4);
+        setTimeout(() => {
+          old.all.forEach(n => { try { n.stop?.(); n.disconnect(); } catch (_) {} });
+          old.lfos.forEach(({lo: lo_, lg}) => {
+            try { lo_.stop(); lo_.disconnect(); lg.disconnect(); } catch (_) {}
+          });
+          try { old.gate.disconnect(); } catch (_) {}
+        }, 1500);
+        LAYERS[i] = null;
+        setTimeout(() => { if (LAYER_ACTIVE[i]) startLayer(i); }, 180);
+      });
+    }
+
+    /* Live-update all LFO rates when sway changes */
+    function applySway() {
+      if (!ctx) return;
+      const now = ctx.currentTime;
+
+      /* Noise FM sweep */
+      if (noiseFMLFO) noiseFMLFO.frequency.setTargetAtTime(swayToHz(0.04, 1.8), now, 0.2);
+
+      /* Noise polyrhythm LFOs — maintain their ratios against new base rate */
+      const base = swayToHz(0.1, 3.0);
+      const PR_RATIOS = [1, 1.5, 4/3, 2];
+      noisePRLFOs.forEach((lo, i) => {
+        lo.frequency.setTargetAtTime(base * PR_RATIOS[i], now, 0.25);
+      });
+
+      /* Oscillator LFOs on all active layers */
+      LAYERS.forEach(L => {
+        if (!L) return;
+        L.lfos.forEach(({ lo, min, max }) => {
+          if (min !== undefined) {
+            lo.frequency.setTargetAtTime(swayToHz(min, max), now, 0.4);
+          }
+        });
+      });
+    }
+
+    function applyTimbre() {
+      if (!ctx) return;
+      const now = ctx.currentTime;
+      /* Update oscillator layer lowpass cutoffs */
+      LAYERS.forEach(L => {
+        if (!L) return;
+        L.filters.forEach(f => {
+          const base = f._baseFreq || f.frequency.value;
+          f.frequency.setTargetAtTime(timbreCutoff(base), now, 0.10);
+        });
+      });
+      /* Update noise filter bank Q — timbre controls resonance */
+      const q = timbre * 6 + 1.2;
+      noiseFilters.forEach(f => {
+        f.Q.setTargetAtTime(q, now, 0.12);
+      });
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       LAYER BUTTON UI
+    ═══════════════════════════════════════════════════════ */
+    document.querySelectorAll('.layer-btn').forEach((btn, i) => {
+      btn.addEventListener('click', () => {
+        if (LAYER_ACTIVE[i]) {
+          stopLayer(i);
+          btn.classList.remove('on');
+        } else {
+          startLayer(i);
+          btn.classList.add('on');
+        }
+      });
+    });
+
+    /* ═══════════════════════════════════════════════════════
+       CONTROL BINDINGS
+    ═══════════════════════════════════════════════════════ */
+    document.getElementById('root-sel').addEventListener('change', e => {
+      rootFreq = parseFloat(e.target.value);
+      rebuildActive();
+    });
+
+    document.getElementById('oct-sel').addEventListener('change', e => {
+      octaveMul = parseFloat(e.target.value);
+      rebuildActive();
+    });
+
+    document.getElementById('timbre').addEventListener('input', e => {
+      timbre = parseFloat(e.target.value);
+      document.getElementById('timbre-val').textContent = Math.round(timbre * 100);
+      applyTimbre();
+    });
+
+    document.getElementById('noise-vol').addEventListener('input', e => {
+      noiseVol = parseFloat(e.target.value);
+      document.getElementById('noise-val').textContent = Math.round(noiseVol * 100);
+      if (noiseGain && ctx) {
+        noiseGain.gain.setTargetAtTime(noiseVol * 0.52, ctx.currentTime, 0.08);
+      }
+    });
+
+    document.getElementById('lfo-rate').addEventListener('input', e => {
+      lfoRate = parseFloat(e.target.value);
+      document.getElementById('lfo-val').textContent = Math.round(lfoRate * 100);
+      applySway();
+    });
+
+    document.getElementById('vol').addEventListener('input', e => {
+      masterVol = parseFloat(e.target.value);
+      document.getElementById('vol-val').textContent = Math.round(masterVol * 100);
+      if (masterGain && ctx) {
+        masterGain.gain.setTargetAtTime(masterVol * 0.38, ctx.currentTime, 0.06);
+      }
+    });
+
+  })();
+  </script>
+
+</body>
+</html>
