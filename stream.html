@@ -341,17 +341,20 @@
   const db = createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
 
   /* ── Auth gate ── */
+  const isBroadcaster = window.location.hash === '#broadcast';
   const { data: { session } } = await db.auth.getSession();
-  if (!session) { window.location.replace('index.html'); return; }
+  if (!session && !isBroadcaster) { window.location.replace('index.html'); return; }
 
-  const user     = session.user;
-  let userName = user.user_metadata?.username || user.email?.split('@')[0] || 'Listener';
+  const user = session?.user || null;
+  let userName = user?.user_metadata?.username || user?.email?.split('@')[0] || (isBroadcaster ? 'Broadcaster' : 'Listener');
 
   let myUserId = null;
-  const { data: profile } = await db.from('users').select('id, name').eq('auth_id', user.id).single();
-  if (profile) {
-    myUserId = profile.id;
-    if (profile.name) userName = profile.name;
+  if (user) {
+    const { data: profile } = await db.from('users').select('id, name').eq('auth_id', user.id).single();
+    if (profile) {
+      myUserId = profile.id;
+      if (profile.name) userName = profile.name;
+    }
   }
 
   const sessionId = new Date().toISOString().slice(0, 10);
