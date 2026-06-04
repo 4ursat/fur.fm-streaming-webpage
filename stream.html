@@ -45,8 +45,8 @@
     }
 
     .session-notice {
-      font-size: 0.72rem; letter-spacing: 0.03em;
-      color: rgba(255,255,255,0.65);
+      font-size: 0.84rem; letter-spacing: 0.03em;
+      color: rgba(255,255,255,0.8);
       line-height: 1.5;
     }
 
@@ -80,8 +80,8 @@
 
     .logo { display: flex; align-items: flex-start; gap: 0.5rem; }
     .logo-name {
-      font-size: 0.95rem; font-weight: bold; letter-spacing: 0.07em;
-      color: rgba(255,255,255,0.85); line-height: 1;
+      font-size: 1.05rem; font-weight: bold; letter-spacing: 0.07em;
+      color: rgba(255,255,255,0.95); line-height: 1;
       text-shadow: 0 1px 12px rgba(0,0,0,0.8);
     }
     .logo-dot {
@@ -107,12 +107,12 @@
     .ov-tr { top: 1.2rem; right: 1.4rem; text-align: right; max-width: 50%; }
     .session-title {
       font-family: 'Cormorant Garamond', Georgia, serif;
-      font-size: 0.9rem; font-weight: 300; font-style: italic;
-      color: rgba(255,255,255,0.88);
+      font-size: 1.05rem; font-weight: 300; font-style: italic;
+      color: rgba(255,255,255,0.95);
     }
     .session-timer {
-      font-size: 0.88rem; letter-spacing: 0.14em;
-      color: rgba(255,255,255,0.85);
+      font-size: 1.0rem; letter-spacing: 0.14em;
+      color: rgba(255,255,255,0.95);
       margin-top: 0.3rem; text-align: right;
       font-variant-numeric: tabular-nums;
     }
@@ -120,8 +120,8 @@
     /* Bottom-left: Listener count */
     .ov-bl { bottom: 1.3rem; left: 1.4rem; }
     .listener-count {
-      font-size: 0.75rem; letter-spacing: 0.06em;
-      color: rgba(255,255,255,0.75); font-style: italic;
+      font-size: 0.86rem; letter-spacing: 0.06em;
+      color: rgba(255,255,255,0.85); font-style: italic;
     }
 
     /* Bottom-right: Chat overlay */
@@ -143,11 +143,11 @@
     .messages::-webkit-scrollbar { display: none; }
     .msg { display: flex; flex-direction: column; gap: 0.04rem; }
     .msg-sender {
-      font-size: 0.62rem; letter-spacing: 0.06em;
-      color: rgba(255,255,255,0.6);
+      font-size: 0.72rem; letter-spacing: 0.06em;
+      color: rgba(255,255,255,0.72);
     }
     .msg-text {
-      font-size: 0.75rem; color: rgba(255,255,255,0.88);
+      font-size: 0.82rem; color: rgba(255,255,255,0.92);
       line-height: 1.45; word-break: break-word;
     }
     .msg.system .msg-sender { color: rgba(255,255,255,0.45); }
@@ -164,18 +164,18 @@
     }
     .chat-input-area input {
       flex: 1; background: transparent; border: none;
-      border-bottom: 1px solid rgba(255,255,255,0.12);
+      border-bottom: 1px solid rgba(255,255,255,0.18);
       outline: none; padding: 0.15rem 0;
       font-family: 'Courier New', Courier, monospace;
-      font-size: 0.68rem; font-style: italic;
-      color: rgba(255,255,255,0.8);
+      font-size: 0.76rem; font-style: italic;
+      color: rgba(255,255,255,0.88);
     }
-    .chat-input-area input::placeholder { color: rgba(255,255,255,0.4); }
+    .chat-input-area input::placeholder { color: rgba(255,255,255,0.5); }
     .send-btn {
       background: none; border: none; padding: 0; flex-shrink: 0;
       font-family: 'Courier New', Courier, monospace;
-      font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase;
-      color: rgba(255,255,255,0.55); cursor: pointer; transition: color 0.2s;
+      font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase;
+      color: rgba(255,255,255,0.65); cursor: pointer; transition: color 0.2s;
     }
     .send-btn:hover { color: rgba(255,255,255,0.9); }
 
@@ -187,21 +187,21 @@
     }
 
     .nav-link {
-      font-size: 0.82rem; letter-spacing: 0.08em; text-transform: uppercase;
-      color: rgba(255,255,255,0.62); text-decoration: none;
+      font-size: 0.9rem; letter-spacing: 0.08em; text-transform: uppercase;
+      color: rgba(255,255,255,0.75); text-decoration: none;
       background: none; border: none; padding: 0;
       font-family: 'Courier New', Courier, monospace;
       cursor: pointer; transition: color 0.2s;
     }
-    .nav-link:hover { color: rgba(255,255,255,0.9); }
+    .nav-link:hover { color: rgba(255,255,255,0.95); }
 
     /* ── Join toast ── */
     .join-toast {
       position: fixed; bottom: 2.2rem; left: 50%;
       transform: translateX(-50%) translateY(8px);
       z-index: 20; pointer-events: none;
-      font-size: 0.55rem; letter-spacing: 0.12em;
-      color: rgba(255,255,255,0.52);
+      font-size: 0.68rem; letter-spacing: 0.12em;
+      color: rgba(255,255,255,0.68);
       background: rgba(0,0,0,0.52);
       backdrop-filter: blur(6px);
       border: 1px solid rgba(255,255,255,0.06);
@@ -234,22 +234,22 @@
                width: min(190px, calc(55% - 0.7rem)); }
 
       /* overlay text */
-      .logo-name    { font-size: 0.78rem; }
-      .session-title { font-size: 0.72rem; }
-      .session-timer { font-size: 0.7rem; letter-spacing: 0.08em; }
-      .listener-count { font-size: 0.62rem; }
+      .logo-name    { font-size: 0.88rem; }
+      .session-title { font-size: 0.82rem; }
+      .session-timer { font-size: 0.8rem; letter-spacing: 0.08em; }
+      .listener-count { font-size: 0.74rem; }
 
       /* shorter chat so it doesn't dominate the small video */
       .messages { max-height: 100px; }
-      .msg-text { font-size: 0.65rem; }
-      .msg-sender { font-size: 0.52rem; }
+      .msg-text { font-size: 0.72rem; }
+      .msg-sender { font-size: 0.62rem; }
       .chat-input-area { padding: 0.3rem 0.55rem 0.35rem; }
-      .chat-input-area input { font-size: 0.6rem; }
-      .send-btn { font-size: 0.55rem; }
+      .chat-input-area input { font-size: 0.68rem; }
+      .send-btn { font-size: 0.65rem; }
 
       /* strips outside video */
-      .session-notice { font-size: 0.62rem; }
-      .nav-link { font-size: 0.68rem; }
+      .session-notice { font-size: 0.74rem; }
+      .nav-link { font-size: 0.78rem; }
       .content-col { gap: 0.6rem; }
     }
 
@@ -356,6 +356,7 @@
 
   const sessionId = new Date().toISOString().slice(0, 10);
   const countEl   = document.getElementById('listener-count');
+  let dbSessionId  = null;
 
   /* ── Live badge ── */
   const liveBadge = document.getElementById('live-badge');
@@ -365,8 +366,25 @@
     if (!String(e.origin).includes('vdo.ninja')) return;
     const msg = e.data; if (!msg) return;
     const action = msg.action || msg.type || '';
-    if (/view|join|connect|stream/i.test(action)) setLive(true);
-    if (/hangup|disconnect|leave/i.test(action)) setLive(false);
+    if (/view|join|connect|stream/i.test(action)) {
+      setLive(true);
+      if (dbSessionId) {
+        db.from('sessions')
+          .update({ stream_started_at: new Date().toISOString() })
+          .eq('id', dbSessionId)
+          .is('stream_started_at', null)
+          .then(() => {});
+      }
+    }
+    if (/hangup|disconnect|leave/i.test(action)) {
+      setLive(false);
+      if (dbSessionId) {
+        db.from('sessions')
+          .update({ stream_started_at: null })
+          .eq('id', dbSessionId)
+          .then(() => {});
+      }
+    }
   });
 
   /* ── Leave quietly ── */
@@ -446,28 +464,52 @@
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
   });
 
-  /* ── Programme info ── */
-  (() => {
-    const titleEl = document.getElementById('prog-title');
-    db.from('sessions').select('title').order('date', { ascending: false }).limit(1).single()
-      .then(({ data }) => { if (data?.title) titleEl.textContent = data.title; })
-      .catch(() => {});
-  })();
+  /* ── Programme info + global timer ── */
+  const timerEl    = document.getElementById('session-timer');
+  const titleEl    = document.getElementById('prog-title');
+  let timerInterval = null;
 
-  /* ── Session timer ── */
-  (() => {
-    const timerEl = document.getElementById('session-timer');
-    const start = Date.now();
+  function startTimerFrom(ts) {
+    if (timerInterval) clearInterval(timerInterval);
+    const startMs = new Date(ts).getTime();
     function tick() {
-      const s = Math.floor((Date.now() - start) / 1000);
-      const h = String(Math.floor(s / 3600)).padStart(2, '0');
-      const m = String(Math.floor((s % 3600) / 60)).padStart(2, '0');
-      const sec = String(s % 60).padStart(2, '0');
-      timerEl.textContent = `${h}:${m}:${sec}`;
+      const s = Math.max(0, Math.floor((Date.now() - startMs) / 1000));
+      timerEl.textContent = [
+        Math.floor(s / 3600),
+        Math.floor((s % 3600) / 60),
+        s % 60,
+      ].map(n => String(n).padStart(2, '0')).join(':');
     }
     tick();
-    setInterval(tick, 1000);
-  })();
+    timerInterval = setInterval(tick, 1000);
+  }
+
+  function stopTimer() {
+    if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+    timerEl.textContent = '00:00:00';
+  }
+
+  const { data: sessionRow } = await db
+    .from('sessions')
+    .select('id, title, stream_started_at')
+    .order('date', { ascending: false })
+    .limit(1)
+    .single()
+    .catch(() => ({ data: null }));
+
+  if (sessionRow) {
+    dbSessionId = sessionRow.id;
+    if (sessionRow.title) titleEl.textContent = sessionRow.title;
+    if (sessionRow.stream_started_at) startTimerFrom(sessionRow.stream_started_at);
+  }
+
+  db.channel('sessions-timer')
+    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'sessions' }, payload => {
+      if (!dbSessionId || payload.new.id !== dbSessionId) return;
+      if (payload.new.stream_started_at) startTimerFrom(payload.new.stream_started_at);
+      else stopTimer();
+    })
+    .subscribe();
 
   /* ── Presence ── */
   function showJoinToast(name) {
