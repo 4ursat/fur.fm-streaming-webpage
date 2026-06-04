@@ -766,15 +766,20 @@
       const email = document.getElementById('inp-ret-email').value.trim();
       if (!email) { setStatus('please enter your email', true); return; }
 
-      formState = 'loading'; setLoading(true); setStatus('sending code…');
+      formState = 'loading'; setLoading(true); setStatus('checking…');
+
+      // If there's already a live session for this email, skip OTP entirely
+      const { data: { session } } = await db.auth.getSession();
+      if (session && session.user.email.toLowerCase() === email.toLowerCase()) {
+        const { data: profile } = await db.from('users').select('id').eq('auth_id', session.user.id).maybeSingle();
+        setLoading(false);
+        if (profile) { showWelcome(); return; }
+      }
+
+      // No live session — send OTP to re-verify
       const { error } = await db.auth.signInWithOtp({ email });
       setLoading(false);
-
-      if (error) {
-        formState = 'returning-email';
-        setStatus(error.message || 'something went wrong', true);
-        return;
-      }
+      if (error) { formState = 'returning-email'; setStatus(error.message || 'something went wrong', true); return; }
 
       pendingEmail = email;
       formState = 'returning-otp';
@@ -782,7 +787,7 @@
       document.getElementById('field-otp').style.display = '';
       pathToggle.style.display = 'none';
       enterWord.textContent = 'verify';
-      setStatus('check your email for the code');
+      setStatus('check your email for a code');
       document.getElementById('inp-otp').focus();
     }
 
@@ -795,14 +800,12 @@
       setLoading(false);
       if (error) { formState = 'returning-otp'; setStatus(error.message || 'invalid code', true); return; }
 
-      // Authenticated now — check users table (no RLS issue with active session)
       const { data: profile } = await db.from('users').select('id').eq('auth_id', data.user.id).maybeSingle();
       if (!profile) {
         await db.auth.signOut();
         formState = 'not-found';
         hideAllFields();
         pathToggle.style.display = 'none';
-        document.getElementById('field-otp').style.display = 'none';
         setStatus('No account found. Please register as a new user.', true);
         enterWord.textContent = '← back';
         return;
