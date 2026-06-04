@@ -484,19 +484,19 @@
   }
 
   /* Load current session */
-  const { data: sessionRow } = await db
-    .from('sessions')
-    .select('id, title, stream_started_at')
-    .order('date', { ascending: false })
-    .limit(1)
-    .single()
-    .catch(() => ({ data: null }));
-
-  if (sessionRow) {
-    dbSessionId = sessionRow.id;
-    if (sessionRow.title) titleEl.textContent = sessionRow.title;
-    if (sessionRow.stream_started_at) startTimerFrom(sessionRow.stream_started_at);
-  }
+  try {
+    const { data: sessionRow } = await db
+      .from('sessions')
+      .select('id, title, stream_started_at')
+      .order('date', { ascending: false })
+      .limit(1)
+      .single();
+    if (sessionRow) {
+      dbSessionId = sessionRow.id;
+      if (sessionRow.title) titleEl.textContent = sessionRow.title;
+      if (sessionRow.stream_started_at) startTimerFrom(sessionRow.stream_started_at);
+    }
+  } catch (_) {}
 
   /* Realtime: sync timer across all viewers */
   db.channel('sessions-timer')
@@ -508,8 +508,9 @@
 
   /* Click the timer to start/stop — only works with #broadcast in URL */
   if (window.location.hash === '#broadcast') {
-    timerEl.style.cursor = 'pointer';
+    timerEl.parentElement.style.pointerEvents = 'all';
     timerEl.style.pointerEvents = 'all';
+    timerEl.style.cursor = 'pointer';
     timerEl.style.outline = '1px solid rgba(255,255,255,0.25)';
     timerEl.style.padding = '0.1rem 0.3rem';
     timerEl.title = 'click to start / stop';
