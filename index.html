@@ -766,19 +766,13 @@
       const email = document.getElementById('inp-ret-email').value.trim();
       if (!email) { setStatus('please enter your email', true); return; }
 
-      formState = 'loading'; setLoading(true); setStatus('checking…');
-      const { error } = await db.auth.signInWithOtp({
-        email,
-        options: { shouldCreateUser: false },
-      });
+      formState = 'loading'; setLoading(true); setStatus('sending code…');
+      const { error } = await db.auth.signInWithOtp({ email });
       setLoading(false);
 
       if (error) {
-        formState = 'not-found';
-        document.getElementById('field-returning-email').style.display = 'none';
-        pathToggle.style.display = 'none';
-        setStatus('Email not found. Please register as a new user.', true);
-        enterWord.textContent = '← back';
+        formState = 'returning-email';
+        setStatus(error.message || 'something went wrong', true);
         return;
       }
 
@@ -797,9 +791,23 @@
       if (token.length < 6) { setStatus('enter the full 6-digit code', true); return; }
 
       formState = 'loading'; setLoading(true); setStatus('verifying…');
-      const { error } = await db.auth.verifyOtp({ email: pendingEmail, token, type: 'email' });
+      const { data, error } = await db.auth.verifyOtp({ email: pendingEmail, token, type: 'email' });
       setLoading(false);
       if (error) { formState = 'returning-otp'; setStatus(error.message || 'invalid code', true); return; }
+
+      // Authenticated now — check users table (no RLS issue with active session)
+      const { data: profile } = await db.from('users').select('id').eq('auth_id', data.user.id).maybeSingle();
+      if (!profile) {
+        await db.auth.signOut();
+        formState = 'not-found';
+        hideAllFields();
+        pathToggle.style.display = 'none';
+        document.getElementById('field-otp').style.display = 'none';
+        setStatus('No account found. Please register as a new user.', true);
+        enterWord.textContent = '← back';
+        return;
+      }
+
       showWelcome();
     }
 
