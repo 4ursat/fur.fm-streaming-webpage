@@ -506,11 +506,13 @@
       else stopTimer();
     }).subscribe();
 
-  /* Double-click the timer to start/stop — only works with #broadcast in URL */
+  /* Click the timer to start/stop — only works with #broadcast in URL */
   if (window.location.hash === '#broadcast') {
     timerEl.style.cursor = 'pointer';
-    timerEl.title = 'double-click to start / stop';
-    timerEl.addEventListener('dblclick', async () => {
+    timerEl.style.outline = '1px solid rgba(255,255,255,0.25)';
+    timerEl.style.padding = '0.1rem 0.3rem';
+    timerEl.title = 'click to start / stop';
+    timerEl.addEventListener('click', async () => {
       if (!dbSessionId) {
         if (timerInterval) stopTimer();
         else startTimerFrom(new Date().toISOString());
