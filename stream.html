@@ -318,7 +318,7 @@
       <div class="ov ov-br">
         <div class="messages" id="chat-messages" role="log" aria-live="polite"></div>
         <div class="chat-input-area">
-          <input type="text" id="chat-input" placeholder="whisper something into the room…"
+          <input type="text" id="chat-input" placeholder=""
                  maxlength="200" autocomplete="off" />
           <button class="send-btn" id="send-btn">send →</button>
         </div>
@@ -356,7 +356,6 @@
 
   const sessionId = new Date().toISOString().slice(0, 10);
   const countEl   = document.getElementById('listener-count');
-  let dbSessionId  = null;
 
   /* ── Live badge ── */
   const liveBadge = document.getElementById('live-badge');
@@ -366,25 +365,8 @@
     if (!String(e.origin).includes('vdo.ninja')) return;
     const msg = e.data; if (!msg) return;
     const action = msg.action || msg.type || '';
-    if (/view|join|connect|stream/i.test(action)) {
-      setLive(true);
-      if (dbSessionId) {
-        db.from('sessions')
-          .update({ stream_started_at: new Date().toISOString() })
-          .eq('id', dbSessionId)
-          .is('stream_started_at', null)
-          .then(() => {});
-      }
-    }
-    if (/hangup|disconnect|leave/i.test(action)) {
-      setLive(false);
-      if (dbSessionId) {
-        db.from('sessions')
-          .update({ stream_started_at: null })
-          .eq('id', dbSessionId)
-          .then(() => {});
-      }
-    }
+    if (/view|join|connect|stream/i.test(action)) setLive(true);
+    if (/hangup|disconnect|leave/i.test(action))  setLive(false);
   });
 
   /* ── Leave quietly ── */
@@ -464,52 +446,19 @@
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
   });
 
-  /* ── Programme info + global timer ── */
+  /* ── Programme info + timer (counts from page load) ── */
   const timerEl    = document.getElementById('session-timer');
   const titleEl    = document.getElementById('prog-title');
-  let timerInterval = null;
 
-  function startTimerFrom(ts) {
-    if (timerInterval) clearInterval(timerInterval);
-    const startMs = new Date(ts).getTime();
-    function tick() {
-      const s = Math.max(0, Math.floor((Date.now() - startMs) / 1000));
-      timerEl.textContent = [
-        Math.floor(s / 3600),
-        Math.floor((s % 3600) / 60),
-        s % 60,
-      ].map(n => String(n).padStart(2, '0')).join(':');
-    }
-    tick();
-    timerInterval = setInterval(tick, 1000);
-  }
-
-  function stopTimer() {
-    if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
-    timerEl.textContent = '00:00:00';
-  }
-
-  const { data: sessionRow } = await db
-    .from('sessions')
-    .select('id, title, stream_started_at')
-    .order('date', { ascending: false })
-    .limit(1)
-    .single()
-    .catch(() => ({ data: null }));
-
-  if (sessionRow) {
-    dbSessionId = sessionRow.id;
-    if (sessionRow.title) titleEl.textContent = sessionRow.title;
-    if (sessionRow.stream_started_at) startTimerFrom(sessionRow.stream_started_at);
-  }
-
-  db.channel('sessions-timer')
-    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'sessions' }, payload => {
-      if (!dbSessionId || payload.new.id !== dbSessionId) return;
-      if (payload.new.stream_started_at) startTimerFrom(payload.new.stream_started_at);
-      else stopTimer();
-    })
-    .subscribe();
+  const pageLoadMs = Date.now();
+  setInterval(() => {
+    const s = Math.floor((Date.now() - pageLoadMs) / 1000);
+    timerEl.textContent = [
+      Math.floor(s / 3600),
+      Math.floor((s % 3600) / 60),
+      s % 60,
+    ].map(n => String(n).padStart(2, '0')).join(':');
+  }, 1000);
 
   /* ── Presence ── */
   function showJoinToast(name) {
