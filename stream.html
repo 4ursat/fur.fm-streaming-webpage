@@ -503,21 +503,23 @@
       else stopTimer();
     }).subscribe();
 
-  /* Double-click the timer to start/stop manually (broadcaster control) */
-  timerEl.style.cursor = 'default';
-  timerEl.addEventListener('dblclick', async () => {
-    if (!dbSessionId) {
-      /* No DB session — run a local-only timer */
-      if (timerInterval) stopTimer();
-      else startTimerFrom(new Date().toISOString());
-      return;
-    }
-    if (timerInterval) {
-      await db.from('sessions').update({ stream_started_at: null }).eq('id', dbSessionId);
-    } else {
-      await db.from('sessions').update({ stream_started_at: new Date().toISOString() }).eq('id', dbSessionId);
-    }
-  });
+  /* Double-click the timer to start/stop — only works with #broadcast in URL */
+  if (window.location.hash === '#broadcast') {
+    timerEl.style.cursor = 'pointer';
+    timerEl.title = 'double-click to start / stop';
+    timerEl.addEventListener('dblclick', async () => {
+      if (!dbSessionId) {
+        if (timerInterval) stopTimer();
+        else startTimerFrom(new Date().toISOString());
+        return;
+      }
+      if (timerInterval) {
+        await db.from('sessions').update({ stream_started_at: null }).eq('id', dbSessionId);
+      } else {
+        await db.from('sessions').update({ stream_started_at: new Date().toISOString() }).eq('id', dbSessionId);
+      }
+    });
+  }
 
   /* ── Presence ── */
   function showJoinToast(name) {
