@@ -115,22 +115,41 @@
     }
 
     .ticket-top-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0.32rem 0.9rem;
+      overflow: hidden;
+      padding: 0.34rem 0;
       border-bottom: 1px solid rgba(0,0,0,0.07);
       background: rgba(0,0,0,0.018);
       flex-shrink: 0;
     }
 
+    /* ── Scrolling ticker ── */
+    .ticker-inner {
+      display: inline-flex;
+      white-space: nowrap;
+      animation: ticker-scroll 22s linear infinite;
+    }
+    .ticker-inner span {
+      font-size: 0.46rem; letter-spacing: 0.14em; text-transform: uppercase;
+      color: rgba(0,0,0,0.58);
+      padding: 0 2.8rem;
+    }
+    @keyframes ticker-scroll {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+
+    /* ── Bottom bar ticket items ── */
+    .tbar-items-row {
+      display: flex; align-items: center; gap: 0.5rem;
+    }
     .tbar-item {
       font-size: 0.46rem;
       letter-spacing: 0.1em;
       text-transform: uppercase;
-      color: rgba(0,0,0,0.6);
+      color: rgba(0,0,0,0.55);
     }
-    .tbar-item.tbar-mid { color: rgba(0,0,0,0.42); }
+    .tbar-item.tbar-mid { color: rgba(0,0,0,0.38); }
+    .tbar-sep { font-size: 0.46rem; color: rgba(0,0,0,0.2); }
 
     .ticket-identity {
       padding: 0.58rem 0.9rem 0.48rem;
@@ -213,21 +232,6 @@
     }
     .status.error { color: #b03020; }
 
-    /* ── New / Returning toggle (bottom bar) ── */
-    .path-toggle {
-      display: flex; align-items: center; gap: 0.7rem;
-    }
-    .choice-btn {
-      font-family: 'Courier New', Courier, monospace;
-      font-size: 0.7rem; font-weight: normal;
-      letter-spacing: 0.18em; text-transform: uppercase;
-      color: rgba(0,0,0,0.52);
-      background: none; border: none; padding: 0;
-      cursor: pointer; transition: color 0.2s;
-    }
-    .choice-btn:hover { color: rgba(0,0,0,0.82); }
-    .choice-btn.active { color: rgba(0,0,0,0.82); }
-    .choice-sep { color: rgba(0,0,0,0.28); font-size: 0.7rem; }
 
     /* ── Welcome / confirmation state ── */
     .ticket-welcome {
@@ -429,9 +433,9 @@
         <div class="ticket-main">
 
           <div class="ticket-top-bar">
-            <span class="tbar-item">FFM-2026-A</span>
-            <span class="tbar-item tbar-mid">LIVE STREAM · SEASON I</span>
-            <span class="tbar-item">OPEN ADMISSION</span>
+            <div class="ticker-inner">
+              <span>Next Session &nbsp;·&nbsp; June 6, 5:30pm</span><span>Next Session &nbsp;·&nbsp; June 6, 5:30pm</span>
+            </div>
           </div>
 
           <div class="ticket-identity">
@@ -468,12 +472,6 @@
               <input type="email" id="inp-email" autocomplete="email" required />
             </div>
 
-            <!-- returning user email (hidden until Returning is chosen) -->
-            <div class="field" id="field-returning-email" style="display:none">
-              <label for="inp-ret-email">email</label>
-              <input type="email" id="inp-ret-email" autocomplete="email" />
-            </div>
-
             <!-- OTP (hidden until sent) -->
             <div class="field" id="field-otp" style="display:none">
               <label for="inp-otp">verification code</label>
@@ -491,13 +489,15 @@
           </div>
 
           <div class="ticket-bottom-bar" id="ticket-bottom-bar">
+            <div class="tbar-items-row">
+              <span class="tbar-item">FFM-2026-A</span>
+              <span class="tbar-sep">·</span>
+              <span class="tbar-item tbar-mid">LIVE STREAM · SEASON I</span>
+              <span class="tbar-sep">·</span>
+              <span class="tbar-item">OPEN ADMISSION</span>
+            </div>
             <div class="enter-row" id="enter-row">
               <span class="enter-word" id="enter-word">register</span>
-            </div>
-            <div class="path-toggle" id="path-toggle">
-              <button class="choice-btn" id="btn-new">New</button>
-              <span class="choice-sep">·</span>
-              <button class="choice-btn" id="btn-returning">Returning</button>
             </div>
           </div>
 
@@ -666,12 +666,9 @@
     let pendingEmail = '';
     let pendingName  = '';
 
-    const doorFrame   = document.getElementById('door-frame');
-    const enterWord   = document.getElementById('enter-word');
-    const bottomBar   = document.getElementById('ticket-bottom-bar');
-    const pathToggle  = document.getElementById('path-toggle');
-    const btnNew      = document.getElementById('btn-new');
-    const btnReturning = document.getElementById('btn-returning');
+    const doorFrame = document.getElementById('door-frame');
+    const enterWord = document.getElementById('enter-word');
+    const bottomBar = document.getElementById('ticket-bottom-bar');
 
     gsap.set(doorFrame, { y: 18 });
     gsap.to(doorFrame,  { opacity: 1, y: 0, duration: 0.9, ease: 'power2.out', delay: 0.2 });
@@ -688,15 +685,11 @@
     }
     function setLoading(on) { enterWord.style.opacity = on ? '0.35' : '1'; }
     function hideAllFields() {
-      ['field-name','field-email','field-returning-email','field-otp'].forEach(id =>
+      ['field-name','field-email','field-otp'].forEach(id =>
         document.getElementById(id).style.display = 'none');
     }
-    function setActiveToggle(which) {
-      btnNew.classList.toggle('active', which === 'new');
-      btnReturning.classList.toggle('active', which === 'returning');
-    }
 
-    /* ── New user path (default) ── */
+    /* ── Reset to default form ── */
     function showNewForm() {
       formState = 'email';
       hideAllFields();
@@ -704,8 +697,6 @@
       document.getElementById('field-email').style.display = '';
       document.getElementById('ticket-welcome').style.display = 'none';
       enterWord.textContent = 'register';
-      pathToggle.style.display = '';
-      setActiveToggle('new');
       clearStatus();
     }
 
@@ -726,7 +717,6 @@
       document.getElementById('field-name').style.display  = 'none';
       document.getElementById('field-email').style.display = 'none';
       document.getElementById('field-otp').style.display   = '';
-      pathToggle.style.display = 'none';
       enterWord.textContent = 'verify';
       setStatus('check your email for the code');
       document.getElementById('inp-otp').focus();
@@ -749,71 +739,6 @@
       showWelcome();
     }
 
-    /* ── Returning user path ── */
-    function showReturningForm() {
-      formState = 'returning-email';
-      hideAllFields();
-      document.getElementById('field-returning-email').style.display = '';
-      document.getElementById('ticket-welcome').style.display = 'none';
-      enterWord.textContent = 'continue';
-      pathToggle.style.display = '';
-      setActiveToggle('returning');
-      clearStatus();
-      document.getElementById('inp-ret-email').focus();
-    }
-
-    async function checkReturning() {
-      const email = document.getElementById('inp-ret-email').value.trim();
-      if (!email) { setStatus('please enter your email', true); return; }
-
-      formState = 'loading'; setLoading(true); setStatus('checking…');
-
-      // If there's already a live session for this email, skip OTP entirely
-      const { data: { session } } = await db.auth.getSession();
-      if (session && session.user.email.toLowerCase() === email.toLowerCase()) {
-        const { data: profile } = await db.from('users').select('id').eq('auth_id', session.user.id).maybeSingle();
-        setLoading(false);
-        if (profile) { showWelcome(); return; }
-      }
-
-      // No live session — send OTP to re-verify
-      const { error } = await db.auth.signInWithOtp({ email });
-      setLoading(false);
-      if (error) { formState = 'returning-email'; setStatus(error.message || 'something went wrong', true); return; }
-
-      pendingEmail = email;
-      formState = 'returning-otp';
-      document.getElementById('field-returning-email').style.display = 'none';
-      document.getElementById('field-otp').style.display = '';
-      pathToggle.style.display = 'none';
-      enterWord.textContent = 'verify';
-      setStatus('check your email for a code');
-      document.getElementById('inp-otp').focus();
-    }
-
-    async function verifyReturningOTP() {
-      const token = document.getElementById('inp-otp').value.trim();
-      if (token.length < 6) { setStatus('enter the full 6-digit code', true); return; }
-
-      formState = 'loading'; setLoading(true); setStatus('verifying…');
-      const { data, error } = await db.auth.verifyOtp({ email: pendingEmail, token, type: 'email' });
-      setLoading(false);
-      if (error) { formState = 'returning-otp'; setStatus(error.message || 'invalid code', true); return; }
-
-      const { data: profile } = await db.from('users').select('id').eq('auth_id', data.user.id).maybeSingle();
-      if (!profile) {
-        await db.auth.signOut();
-        formState = 'not-found';
-        hideAllFields();
-        pathToggle.style.display = 'none';
-        setStatus('No account found. Please register as a new user.', true);
-        enterWord.textContent = '← back';
-        return;
-      }
-
-      showWelcome();
-    }
-
     /* ── Welcome screen ── */
     function showWelcome() {
       formState = 'welcome';
@@ -829,16 +754,11 @@
     /* ── Submit router ── */
     async function handleSubmit() {
       if (formState === 'loading' || formState === 'welcome') return;
-      if (formState === 'email')                await sendOTP();
-      else if (formState === 'otp')             await verifyOTP();
-      else if (formState === 'returning-email') await checkReturning();
-      else if (formState === 'returning-otp')   await verifyReturningOTP();
-      else if (formState === 'not-found')       showNewForm();
+      if (formState === 'email')     await sendOTP();
+      else if (formState === 'otp') await verifyOTP();
     }
 
     /* ── Wire up ── */
-    btnNew.addEventListener('click', showNewForm);
-    btnReturning.addEventListener('click', showReturningForm);
     document.getElementById('enter-row').addEventListener('click', handleSubmit);
     document.querySelectorAll('.field input').forEach(inp => {
       inp.addEventListener('keydown', e => {
