@@ -465,6 +465,7 @@
 
   function startTimerFrom(ts) {
     if (timerInterval) clearInterval(timerInterval);
+    setLive(true);
     const startMs = new Date(ts).getTime();
     function tick() {
       const s = Math.max(0, Math.floor((Date.now() - startMs) / 1000));
@@ -480,6 +481,7 @@
 
   function stopTimer() {
     if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+    setLive(false);
     timerEl.textContent = '00:00:00';
   }
 
