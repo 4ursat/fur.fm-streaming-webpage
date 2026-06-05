@@ -529,25 +529,34 @@
     let masterVol = 0.72;
 
     /* ── Boot ── */
-    function boot() {
-      if (ctx) return;
-      ctx = new (window.AudioContext || window.webkitAudioContext)();
+    let _bootPromise = null;
+    async function boot() {
+      if (_bootPromise) return _bootPromise;
+      _bootPromise = (async () => {
+        if (!ctx) {
+          ctx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        await ctx.resume(); /* iOS requires awaiting this before nodes start */
 
-      masterGain = ctx.createGain();
-      masterGain.gain.value = masterVol * 0.38;
+        if (masterGain) return; /* already built */
 
-      const lim = ctx.createDynamicsCompressor();
-      lim.threshold.value = -4;
-      lim.knee.value      = 8;
-      lim.ratio.value     = 10;
-      lim.attack.value    = 0.003;
-      lim.release.value   = 0.22;
-      masterGain.connect(lim);
-      lim.connect(ctx.destination);
+        masterGain = ctx.createGain();
+        masterGain.gain.value = masterVol * 0.38;
 
-      buildReverb();
-      buildNoise();
-      buildReedWave();
+        const lim = ctx.createDynamicsCompressor();
+        lim.threshold.value = -4;
+        lim.knee.value      = 8;
+        lim.ratio.value     = 10;
+        lim.attack.value    = 0.003;
+        lim.release.value   = 0.22;
+        masterGain.connect(lim);
+        lim.connect(ctx.destination);
+
+        buildReverb();
+        buildNoise();
+        buildReedWave();
+      })();
+      return _bootPromise;
     }
 
     /* ── Warm convolution reverb ── */
@@ -846,8 +855,6 @@
        LAYER START / STOP
     ═══════════════════════════════════════════════════════ */
     function startLayer(i) {
-      if (!ctx) boot();
-      if (ctx.state === 'suspended') ctx.resume();
       const r = rootFreq * octaveMul;
       LAYERS[i] = BUILDERS[i](r);
       LAYER_ACTIVE[i] = true;
@@ -941,11 +948,12 @@
        LAYER BUTTON UI
     ═══════════════════════════════════════════════════════ */
     document.querySelectorAll('.layer-btn').forEach((btn, i) => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', async () => {
         if (LAYER_ACTIVE[i]) {
           stopLayer(i);
           btn.classList.remove('on');
         } else {
+          await boot();
           startLayer(i);
           btn.classList.add('on');
         }
