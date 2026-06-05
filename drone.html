@@ -530,15 +530,27 @@
 
     /* ── Boot ── */
     let _bootPromise = null;
+
+    /* iOS: ctx must be created synchronously in the gesture handler.
+       Call iosUnlock() at the top of every click/touch handler,
+       then await boot() to finish building the graph. */
+    function iosUnlock() {
+      if (!ctx) {
+        ctx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      /* Play a silent 1-sample buffer — required to unlock iOS audio */
+      try {
+        const b = ctx.createBuffer(1, 1, ctx.sampleRate);
+        const s = ctx.createBufferSource();
+        s.buffer = b; s.connect(ctx.destination); s.start(0);
+      } catch (_) {}
+    }
+
     async function boot() {
       if (_bootPromise) return _bootPromise;
       _bootPromise = (async () => {
-        if (!ctx) {
-          ctx = new (window.AudioContext || window.webkitAudioContext)();
-        }
-        await ctx.resume(); /* iOS requires awaiting this before nodes start */
-
-        if (masterGain) return; /* already built */
+        await ctx.resume();
+        if (masterGain) return;
 
         masterGain = ctx.createGain();
         masterGain.gain.value = masterVol * 0.38;
@@ -558,6 +570,12 @@
       })();
       return _bootPromise;
     }
+
+    /* Resume ctx when returning to the page (iOS suspends on tab switch) */
+    document.addEventListener('visibilitychange', () => {
+      if (!ctx || document.hidden) return;
+      ctx.resume();
+    });
 
     /* ── Warm convolution reverb ── */
     function buildReverb() {
@@ -949,6 +967,7 @@
     ═══════════════════════════════════════════════════════ */
     document.querySelectorAll('.layer-btn').forEach((btn, i) => {
       btn.addEventListener('click', async () => {
+        iosUnlock(); /* synchronous — must be first, before any await */
         if (LAYER_ACTIVE[i]) {
           stopLayer(i);
           btn.classList.remove('on');
