@@ -213,6 +213,22 @@
       opacity: 1; transform: translateX(-50%) translateY(0);
     }
 
+    /* ── iOS tap-to-watch overlay ── */
+    .tap-overlay {
+      position: absolute; inset: 0;
+      z-index: 5;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(0,0,0,0.55);
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .tap-overlay span {
+      font-size: 0.78rem; letter-spacing: 0.22em; text-transform: uppercase;
+      color: rgba(255,255,255,0.85);
+      border: 1px solid rgba(255,255,255,0.3);
+      padding: 0.55rem 1.4rem;
+    }
+
     /* ── Responsive ── */
 
     /* Tablet (portrait iPad etc.) */
@@ -277,11 +293,16 @@
 
       <iframe
         id="obs-player"
-        src="https://vdo.ninja/?view=xYuuWBy&label=ffm_listening_room&cleanoutput&autoplay&bitrate=2500&quality=0&audiobitrate=256"
+        src="https://vdo.ninja/?view=xYuuWBy&label=ffm_listening_room&cleanoutput&autoplay&bitrate=1500&quality=0&audiobitrate=256"
         allow="autoplay;camera;microphone;fullscreen;picture-in-picture;display-capture;midi;encrypted-media"
         allowfullscreen
         title="Fur FM live stream"
       ></iframe>
+
+      <!-- iOS tap-to-watch (hidden on non-iOS) -->
+      <div class="tap-overlay" id="tap-overlay" style="display:none">
+        <span>tap to watch</span>
+      </div>
 
       <!-- Top-left: Logo -->
       <div class="ov ov-tl">
@@ -339,6 +360,18 @@
 (async () => {
   const { createClient } = window.supabase;
   const db = createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+
+  /* ── iOS tap-to-watch ── */
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  if (isIOS) {
+    const tapOverlay = document.getElementById('tap-overlay');
+    const iframe     = document.getElementById('obs-player');
+    tapOverlay.style.display = 'flex';
+    tapOverlay.addEventListener('click', () => {
+      tapOverlay.remove();
+      iframe.src = iframe.src; /* reload inside gesture = iOS autoplay allowed */
+    });
+  }
 
   /* ── Auth gate ── */
   const isBroadcaster = window.location.hash === '#broadcast';
