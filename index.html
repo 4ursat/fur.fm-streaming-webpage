@@ -27,7 +27,7 @@
       );
     }
 
-    /* ── Drone Room wire + link ── */
+    /* ── Fursat wire + link ── */
     .drone-wire-wrap {
       display: flex;
       flex-direction: column;
@@ -439,8 +439,8 @@
         <div class="ticket-main">
 
           <div class="ticket-top-bar">
-            <div class="ticker-inner">
-              <span>Next Session &nbsp;·&nbsp; June 6, 5:00 PM</span><span>Next Session &nbsp;·&nbsp; June 6, 5:00 PM</span>
+            <div class="ticker-inner" id="ticker-inner">
+              <span id="ticker-text-1">Next Session</span><span id="ticker-text-2">Next Session</span>
             </div>
           </div>
 
@@ -543,7 +543,7 @@
 
   <div class="drone-wire-wrap">
     <div class="drone-wire"></div>
-    <a href="drone.html" class="drone-link">Drone Room</a>
+    <a href="drone.html" class="drone-link">Fursat · फ़ुर्सत</a>
   </div>
 
   </div><!-- /.center-col -->
@@ -665,6 +665,28 @@
   (() => {
     const { createClient } = window.supabase;
     const db = createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+
+    /* ── Dynamic ticker: load next upcoming session ── */
+    /* ── Dynamic ticker: load most recent session ── */
+    (async () => {
+      const { data } = await db.from('sessions').select('title, date, time')
+        .order('created_at', { ascending: false }).limit(1).maybeSingle();
+      if (!data) return;
+      const parts = ['Next Session'];
+      if (data.title) parts.push(data.title);
+      if (data.date) {
+        const d = new Date(data.date + 'T00:00:00');
+        parts.push(d.toLocaleDateString('en-US', { month: 'long', day: 'numeric' }));
+      }
+      if (data.time) {
+        const [h, m] = data.time.split(':').map(Number);
+        const ampm = h >= 12 ? 'PM' : 'AM';
+        parts.push(`${h % 12 || 12}:${String(m).padStart(2,'0')} ${ampm}`);
+      }
+      const text = parts.join('  ·  ');
+      document.getElementById('ticker-text-1').textContent = text;
+      document.getElementById('ticker-text-2').textContent = text;
+    })();
 
     let formState    = 'email';
     let pendingEmail = '';

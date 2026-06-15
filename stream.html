@@ -195,6 +195,40 @@
     }
     .nav-link:hover { color: rgba(255,255,255,0.95); }
 
+    /* ── Now Playing bar (archival) ── */
+    .np-bar {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      z-index: 9; pointer-events: none;
+      background: linear-gradient(to top, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0) 100%);
+      padding: 2.2rem 1.4rem 0.9rem;
+      display: none; flex-direction: column; gap: 0.3rem;
+    }
+    .np-bar.visible { display: flex; }
+    .np-track-line {
+      font-size: 0.8rem; font-weight: bold; letter-spacing: 0.04em;
+      color: rgba(255,255,255,0.95);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .np-meta-line {
+      font-size: 0.68rem; letter-spacing: 0.06em;
+      color: rgba(255,255,255,0.65);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .np-translation {
+      font-size: 0.72rem; font-style: italic;
+      color: rgba(255,255,255,0.78); line-height: 1.5;
+      margin-top: 0.15rem;
+      display: -webkit-box; -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical; overflow: hidden;
+    }
+    /* Archive image overlay (when no video) */
+    .np-image-bg {
+      position: absolute; inset: 0; z-index: 0;
+      background-size: cover; background-position: center;
+      opacity: 0; transition: opacity 0.6s;
+    }
+    .np-image-bg.show { opacity: 0.35; }
+
     /* ── Join toast ── */
     .join-toast {
       position: fixed; bottom: 2.2rem; left: 50%;
@@ -293,7 +327,7 @@
 
       <iframe
         id="obs-player"
-        src="https://vdo.ninja/?view=xYuuWBy&label=ffm_listening_room&cleanoutput&autoplay&bitrate=1500&quality=0&audiobitrate=256&buffer=1000"
+        src="https://vdo.ninja/?view=xYuuWBy&label=ffm_listening_room&cleanoutput&autoplay"
         allow="autoplay;camera;microphone;fullscreen;picture-in-picture;display-capture;midi;encrypted-media"
         allowfullscreen
         title="Fur FM live stream"
@@ -302,6 +336,16 @@
       <!-- iOS tap-to-watch (hidden on non-iOS) -->
       <div class="tap-overlay" id="tap-overlay" style="display:none">
         <span>tap to watch</span>
+      </div>
+
+      <!-- Archive image background (shown during archival sessions) -->
+      <div class="np-image-bg" id="np-image-bg"></div>
+
+      <!-- Now Playing bar (archival, bottom of stage) -->
+      <div class="np-bar" id="np-bar">
+        <div class="np-track-line" id="np-track-line"></div>
+        <div class="np-meta-line" id="np-meta-line"></div>
+        <div class="np-translation" id="np-translation" style="display:none"></div>
       </div>
 
       <!-- Top-left: Logo -->
@@ -562,6 +606,50 @@
       }
     });
   }
+
+  /* ── Archival now-playing ── */
+  const npBar        = document.getElementById('np-bar');
+  const npTrackLine  = document.getElementById('np-track-line');
+  const npMetaLine   = document.getElementById('np-meta-line');
+  const npTranslation = document.getElementById('np-translation');
+  const npImageBg    = document.getElementById('np-image-bg');
+
+  function applyNP(d) {
+    if (!d) return;
+    const hasContent = d.track_title || d.artist;
+    npBar.classList.toggle('visible', !!hasContent);
+
+    const track = [d.track_title, d.artist].filter(Boolean).join(' — ');
+    npTrackLine.textContent = track || '';
+
+    const meta = [d.archive_source].filter(Boolean).join(' · ');
+    npMetaLine.textContent = meta || '';
+
+    if (d.translation) {
+      npTranslation.textContent = d.translation;
+      npTranslation.style.display = '';
+    } else {
+      npTranslation.style.display = 'none';
+    }
+
+    if (d.image_url) {
+      npImageBg.style.backgroundImage = `url("${d.image_url.replace(/"/g,'%22')}")`;
+      npImageBg.classList.add('show');
+    } else {
+      npImageBg.classList.remove('show');
+    }
+  }
+
+  (async () => {
+    const { data } = await db.from('now_playing')
+      .select('*').eq('id', '00000000-0000-0000-0000-000000000001').maybeSingle();
+    if (data) applyNP(data);
+  })();
+
+  db.channel('now-playing-listener')
+    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'now_playing' },
+      payload => applyNP(payload.new))
+    .subscribe();
 
   /* ── Presence ── */
   function showJoinToast(name) {
