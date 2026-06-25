@@ -4,796 +4,934 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Fur FM</title>
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Hind:wght@400;500&family=Yatra+One&display=swap" rel="stylesheet">
   <script src="supabase-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    /* Palette:
+       bg       #0d1c15  dark Mughal forest
+       cream    #f0e0a8  miniature parchment
+       saffron  #e07828  figure robes
+       gold     #c89020  jewellery / borders
+    */
+
     html, body {
       width: 100%; height: 100%;
       overflow: hidden;
-      background: #ffffff;
-      font-family: 'Courier New', Courier, monospace;
+      background: #0d1c15;
+      font-family: 'Hind', sans-serif;
+      color: #f0e0a8;
+      -webkit-tap-highlight-color: transparent;
     }
 
-    .vignette {
-      position: fixed; inset: 0; z-index: 2; pointer-events: none;
-      background: radial-gradient(
-        ellipse 80% 80% at 50% 50%,
-        transparent 50%,
-        rgba(220,218,215,0.18) 80%,
-        rgba(200,198,195,0.28) 100%
-      );
+    /* ── Floating layer ──────────────────────────────────────── */
+    #floating-layer {
+      position: fixed; inset: 0; z-index: 10;
+      pointer-events: none; overflow: hidden;
+    }
+    .float-msg {
+      position: absolute;
+      bottom: 5.5rem;
+      white-space: nowrap;
+      font-size: 0.85rem;
+      pointer-events: none;
+      animation: float-up 7s ease-out forwards;
+    }
+    .f-sender { color: #c89020; }
+    .f-text   { color: #f0e0a8; margin-left: 0.42em; }
+
+    @keyframes float-up {
+      0%   { transform: translateY(0);     opacity: 0; }
+      8%   { opacity: 1; }
+      78%  { opacity: 0.9; }
+      100% { transform: translateY(-72vh); opacity: 0; }
     }
 
-    /* ── Fursat wire + link ── */
-    .drone-wire-wrap {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      opacity: 0;
-      animation: fadein 1s ease 1.2s forwards;
+    /* ── UI chrome ───────────────────────────────────────────── */
+    #ui-chrome {
+      position: fixed; inset: 0; z-index: 20;
+      pointer-events: none;
     }
 
-    .drone-wire {
-      width: 1px;
-      height: 1.8rem;
-      background: rgba(0,0,0,0.18);
+    #top-left {
+      position: absolute; top: 1.5rem; left: 1.5rem;
+      display: flex; flex-direction: column; gap: 0.42rem;
     }
-
-    .drone-link {
-      font-family: 'Courier New', Courier, monospace;
-      font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase;
-      color: rgba(0,0,0,0.58);
+    #drone-label {
+      font-size: 0.72rem; letter-spacing: 0.05em;
+      color: #c89020;
+    }
+    #live-indicator {
+      display: none;
+      font-size: 0.75rem;
+      pointer-events: auto;
+    }
+    #live-indicator .dot {
+      color: #e07828;
+      animation: blink 1.8s ease-in-out infinite;
+    }
+    #live-link {
+      color: #f0e0a8;
       text-decoration: none;
-      background: transparent;
-      border: 1px solid rgba(0,0,0,0.2);
-      padding: 0.42rem 1.1rem;
-      white-space: nowrap;
-      transition: background 0.2s, border-color 0.2s, color 0.2s;
+      margin-left: 0.28em;
     }
-    .drone-link:hover {
-      background: rgba(0,0,0,0.04);
-      border-color: rgba(0,0,0,0.38);
-      color: rgba(0,0,0,0.82);
+    #live-link:hover { color: white; text-decoration: underline; }
+
+    #notif-tray {
+      position: absolute; top: 1.5rem; right: 1.5rem;
+      display: flex; flex-direction: column; gap: 0.5rem;
+      align-items: flex-end;
+      pointer-events: auto;
     }
 
-    /* ── Welcome line ── */
-    .welcome {
-      z-index: 10; text-align: center; white-space: nowrap;
-      opacity: 0; animation: fadein 1.1s ease 0.5s forwards;
-    }
-    .welcome-main {
-      font-size: 0.76rem; letter-spacing: 0.28em; text-transform: uppercase;
-      color: rgba(0,0,0,0.52);
-    }
-
-    /* ── Centre column — welcome + ticket stacked ── */
-    .center-col {
-      position: fixed; inset: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 0;
-      padding: 2rem 1rem 1.5rem;
-    }
-
-    /* ── Door frame ── */
-    .door-frame {
-      position: relative;               /* for absolute children */
-      width: min(500px, calc(100vw - 2rem));
-      aspect-ratio: 5 / 3;             /* keeps 500×300 proportions at all widths */
-      z-index: 5;
-      cursor: default;
-      opacity: 0;
-      flex-shrink: 0;
-    }
-
-    .door-panel-wrap {
-      position: absolute; inset: 0;
-    }
-
-    .door-panel {
-      position: absolute; inset: 0;
-      background: #fff;
-      border: 1px solid rgba(0,0,0,0.13);
-      box-shadow: 0 8px 40px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.05);
-      display: flex;
-      flex-direction: row;
-      align-items: stretch;
-    }
-
-    /* ── Ticket main body ── */
-    .ticket-main {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      min-width: 0;
-    }
-
-    .ticket-top-bar {
-      overflow: hidden;
-      padding: 0.34rem 0;
-      border-bottom: 1px solid rgba(0,0,0,0.07);
-      background: rgba(0,0,0,0.018);
-      flex-shrink: 0;
-    }
-
-    /* ── Scrolling ticker ── */
-    .ticker-inner {
-      display: inline-flex;
-      white-space: nowrap;
-      animation: ticker-scroll 22s linear infinite;
-    }
-    .ticker-inner span {
-      font-size: 0.46rem; letter-spacing: 0.14em; text-transform: uppercase;
-      color: rgba(0,0,0,0.58);
-      padding: 0 2.8rem;
-    }
-    @keyframes ticker-scroll {
-      from { transform: translateX(0); }
-      to   { transform: translateX(-50%); }
-    }
-
-    /* ── Bottom bar ticket items ── */
-    .tbar-items-row {
-      display: flex; align-items: center; gap: 0.5rem;
-    }
-    .tbar-item {
-      font-size: 0.46rem;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: rgba(0,0,0,0.55);
-    }
-    .tbar-item.tbar-mid { color: rgba(0,0,0,0.38); }
-    .tbar-sep { font-size: 0.46rem; color: rgba(0,0,0,0.2); }
-
-    .ticket-identity {
-      padding: 0.58rem 0.9rem 0.48rem;
-      border-bottom: 1px solid rgba(0,0,0,0.07);
-      flex-shrink: 0;
-      display: flex;
-      align-items: flex-start;
-      gap: 0.65rem;
-    }
-
-    .ticket-rings { flex-shrink: 0; }
-
-    .ticket-event-name {
-      font-size: 1.42rem;
-      font-weight: bold;
-      letter-spacing: 0.07em;
-      color: #1a1a1a;
-      line-height: 1;
-      font-family: 'Courier New', Courier, monospace;
-    }
-
-    .ticket-event-dot {
-      display: inline-block;
-      width: 5px; height: 5px;
-      background: #1a1a1a;
-      border-radius: 50%;
-      vertical-align: middle;
-      margin: 0 0.22em;
-      position: relative;
-      top: -2px;
-    }
-
-    .ticket-venue-line {
-      font-size: 0.66rem;
-      letter-spacing: 0.19em;
-      text-transform: uppercase;
-      color: rgba(0,0,0,0.58);
-      margin-top: 0.25rem;
-    }
-
-    .ticket-form-area {
-      flex: 1;
-      padding: 0.5rem 0.9rem 0.35rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.36rem;
-    }
-
-    .field { display: flex; flex-direction: column; gap: 0.14rem; }
-
-    .field label {
-      font-size: 0.7rem;
-      letter-spacing: 0.22em;
-      text-transform: uppercase;
-      color: rgba(0,0,0,0.6);
-    }
-
-    .field input {
-      background: transparent;
-      border: none;
-      border-bottom: 1px solid rgba(0,0,0,0.15);
-      padding: 0.22rem 0;
-      font-family: 'Courier New', Courier, monospace;
-      font-size: 0.84rem;
-      color: rgba(0,0,0,0.88);
-      outline: none;
-      width: 100%;
-      cursor: text;
-      transition: border-color 0.15s;
-    }
-
-    .field input:focus { border-bottom-color: rgba(0,0,0,0.32); }
-    .field input::placeholder { color: rgba(0,0,0,0.22); }
-
-    .status {
-      font-size: 0.72rem;
-      color: rgba(0,0,0,0.65);
-      letter-spacing: 0.04em;
-      min-height: 0.7em;
-    }
-    .status.error { color: #b03020; }
-
-
-    /* ── Welcome / confirmation state ── */
-    .ticket-welcome {
+    /* ── Drifting session card ───────────────────────────────── */
+    #session-card {
+      position: fixed;
+      top: 0; left: 0;
+      z-index: 25;
       display: none;
       flex-direction: column;
-      justify-content: center;
-      gap: 1rem;
-      flex: 1;
+      gap: 0.22rem;
+      padding: 0.75rem 1rem;
+      background: rgba(13,28,21,0.92);
+      border: 1px solid #c89020;
+      max-width: 210px;
+      line-height: 1.55;
+      will-change: transform;
+      pointer-events: auto;
     }
-    .welcome-heading {
-      font-size: 1.05rem; font-weight: bold; letter-spacing: 0.04em;
-      color: rgba(0,0,0,0.78); line-height: 1.2;
+    #sc-title {
+      font-family: 'Yatra One', serif;
+      font-size: 0.95rem;
+      color: #f0e0a8;
+      line-height: 1.35;
     }
-    .join-btn {
-      align-self: flex-start;
-      font-family: 'Courier New', Courier, monospace;
-      font-size: 0.76rem; letter-spacing: 0.1em;
-      color: rgba(0,0,0,0.72);
-      background: none;
-      border: 1px solid rgba(0,0,0,0.22);
-      padding: 0.42rem 1rem;
-      cursor: pointer;
-      transition: background 0.2s, border-color 0.2s, color 0.2s;
-      white-space: nowrap;
+    #sc-date {
+      font-size: 0.68rem; letter-spacing: 0.04em;
+      color: #c89020;
     }
-    .join-btn:hover {
-      background: rgba(0,0,0,0.04);
-      border-color: rgba(0,0,0,0.42);
-      color: rgba(0,0,0,0.88);
+    #sc-join {
+      background: transparent; border: none;
+      font-family: 'Hind', sans-serif;
+      font-size: 0.72rem; letter-spacing: 0.05em;
+      color: #e07828;
+      cursor: pointer; padding: 0; margin-top: 0.3rem;
+      text-align: left; touch-action: manipulation;
+      transition: color 0.15s;
+    }
+    #sc-join:hover { color: #f0e0a8; }
+
+    .notif-card {
+      background: rgba(13,28,21,0.92);
+      border: 1px solid #c89020;
+      padding: 0.65rem 0.95rem;
+      font-size: 0.75rem;
+      color: #f0e0a8;
+      max-width: 230px;
+      line-height: 1.6;
+      transform: translateX(14px);
+      opacity: 0;
+      transition: transform 0.32s ease, opacity 0.32s ease;
+    }
+    .notif-card.visible { transform: translateX(0); opacity: 1; }
+    .notif-card a {
+      color: #e07828;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    .notif-card em {
+      color: #f0e0a8;
+      font-family: 'Yatra One', serif;
+      font-size: 0.88rem;
+      font-style: normal;
+    }
+    .notif-card .dot { color: #e07828; }
+
+    #bottom-left {
+      position: absolute;
+      bottom: 4.8rem; left: 1.5rem;
+      pointer-events: none;
+    }
+    #listener-count {
+      font-size: 0.7rem; letter-spacing: 0.05em;
+      color: #c89020;
     }
 
-    .ticket-bottom-bar {
+    #bottom-right {
+      position: absolute;
+      bottom: 4.8rem; right: 1.5rem;
+      display: flex; align-items: center; gap: 0.4rem;
+      pointer-events: auto;
+    }
+    #username-text { font-size: 0.72rem; color: #c89020; }
+    #username-edit {
+      background: transparent; border: none;
+      color: rgba(200,144,32,0.55); cursor: pointer;
+      font-size: 0.78rem; padding: 0 0.1rem; line-height: 1;
+      touch-action: manipulation;
+    }
+    #username-edit:hover { color: #f0e0a8; }
+    #username-input {
+      background: transparent; border: none;
+      border-bottom: 1px solid #c89020;
+      color: #f0e0a8;
+      font-family: 'Hind', sans-serif; font-size: 0.72rem;
+      padding: 0.1rem 0; outline: none; width: 130px;
+    }
+
+    /* ── Chat bar ────────────────────────────────────────────── */
+    #chat-bar {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      z-index: 30;
+      padding: 0.75rem 1.5rem;
+      padding-bottom: max(1rem, env(safe-area-inset-bottom));
+      background: linear-gradient(to top, rgba(13,28,21,0.98) 55%, transparent);
+      display: flex; align-items: center; gap: 0.75rem;
+    }
+    #chat-input {
+      flex: 1; background: transparent; border: none;
+      border-bottom: 1px solid rgba(200,144,32,0.4);
+      color: #f0e0a8;
+      font-family: 'Hind', sans-serif; font-size: 0.85rem;
+      padding: 0.35rem 0; outline: none;
+    }
+    #chat-input::placeholder { color: rgba(200,144,32,0.45); }
+    #send-btn {
+      background: transparent; border: none;
+      color: #c89020; cursor: pointer;
+      font-size: 1rem; padding: 0 0.15rem;
+      transition: color 0.15s; touch-action: manipulation;
+    }
+    #send-btn:hover { color: #f0e0a8; }
+
+    /* ── Brand ───────────────────────────────────────────────── */
+    #brand {
+      position: fixed;
+      left: 50%; top: 38%;
+      transform: translate(-50%, -50%);
+      z-index: 8;
+      text-align: center;
+      pointer-events: none;
+      user-select: none;
       display: flex;
-      justify-content: space-between;
+      flex-direction: column;
       align-items: center;
-      padding: 0.38rem 0.9rem;
-      border-top: 1px solid rgba(0,0,0,0.07);
-      background: rgba(0,0,0,0.018);
-      flex-shrink: 0;
+      gap: 0.6rem;
+    }
+    #brand svg { opacity: 0.22; }
+    #brand-tagline {
+      font-family: 'Yatra One', serif;
+      font-size: 0.78rem;
+      letter-spacing: 0.05em;
+      color: rgba(200,144,32,0.35);
+      margin-top: 0.1rem;
     }
 
-    .enter-row {
-      cursor: pointer;
+    /* ── Tap overlay ─────────────────────────────────────────── */
+    #tap-overlay {
+      position: fixed; inset: 0; z-index: 100;
+      background: #0d1c15;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 0.9rem;
+      cursor: pointer; transition: opacity 0.55s ease;
+      touch-action: manipulation;
+    }
+    #tap-logo { opacity: 0.55; }
+    #tap-hint {
+      font-family: 'Yatra One', serif;
+      font-size: 0.82rem; letter-spacing: 0.18em;
+      color: #c89020;
       user-select: none;
     }
 
-    .enter-word {
-      font-size: 0.92rem;
-      letter-spacing: 0.1em;
-      color: rgba(0,0,0,0.68);
-      font-weight: normal;
-      line-height: 1;
+    /* ── Join / OTP modal ────────────────────────────────────── */
+    #join-modal {
+      position: fixed; inset: 0; z-index: 50;
+      background: rgba(13,28,21,0.97);
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.28s ease;
     }
+    #join-modal.open { opacity: 1; pointer-events: auto; }
 
-    .ticket-fine {
-      font-size: 0.37rem;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: rgba(0,0,0,0.25);
-    }
-
-    /* ── Perforation ── */
-    .ticket-perf {
-      width: 14px;
-      flex-shrink: 0;
+    #join-panel {
       position: relative;
+      width: 100%; max-width: 280px;
+      padding: 0 1.5rem;
+      display: flex; flex-direction: column;
     }
+    #join-close {
+      position: absolute; top: -2.2rem; right: 1.5rem;
+      cursor: pointer; font-size: 1.1rem;
+      color: #c89020;
+      background: none; border: none;
+      font-family: inherit; touch-action: manipulation;
+      transition: color 0.15s;
+    }
+    #join-close:hover { color: #f0e0a8; }
 
-    .ticket-perf::before {
-      content: '';
-      position: absolute;
-      top: 0; bottom: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      border-left: 1.5px dashed rgba(0,0,0,0.24);
+    .join-heading {
+      font-family: 'Yatra One', serif;
+      font-size: 1rem; letter-spacing: 0.02em;
+      color: #f0e0a8;
+      margin-bottom: 0.35rem;
     }
+    .join-sub {
+      font-size: 0.72rem; color: #c89020;
+      margin-bottom: 1.4rem; line-height: 1.55;
+    }
+    .join-input {
+      background: transparent; border: none;
+      border-bottom: 1px solid #c89020;
+      color: #f0e0a8;
+      font-family: 'Hind', sans-serif; font-size: 0.9rem;
+      padding: 0.4rem 0; outline: none; width: 100%;
+      margin-bottom: 1.2rem;
+    }
+    .join-input::placeholder { color: rgba(200,144,32,0.4); }
+    .join-submit {
+      background: transparent; border: none;
+      font-family: 'Hind', sans-serif;
+      font-size: 0.8rem; letter-spacing: 0.05em;
+      color: #e07828;
+      cursor: pointer; padding: 0; text-align: left;
+      touch-action: manipulation; transition: color 0.15s;
+    }
+    .join-submit:hover { color: #f0e0a8; }
+    .join-submit:disabled { color: rgba(200,144,32,0.3); cursor: default; }
+    .join-err {
+      font-size: 0.68rem; color: #e05030;
+      margin-top: 0.8rem; min-height: 1rem; line-height: 1.5;
+    }
+    .join-back {
+      font-size: 0.68rem; color: #c89020;
+      cursor: pointer; background: none; border: none;
+      font-family: inherit; padding: 0; margin-top: 1.2rem;
+      touch-action: manipulation;
+    }
+    .join-back:hover { color: #f0e0a8; }
 
-    .ticket-notch-top,
-    .ticket-notch-bot {
-      position: absolute;
-      width: 14px; height: 7px;
-      background: #ffffff;
-      border: 1px solid rgba(0,0,0,0.13);
-      z-index: 2;
-      left: 0;
-    }
-    .ticket-notch-top {
-      top: -1px;
-      border-radius: 0 0 7px 7px;
-      border-top: none;
-    }
-    .ticket-notch-bot {
-      bottom: -1px;
-      border-radius: 7px 7px 0 0;
-      border-bottom: none;
-    }
-
-    /* ── Stub ── */
-    .ticket-stub {
-      width: 118px;
-      flex-shrink: 0;
-      display: flex;
-      flex-direction: column;
-      padding: 0.55rem 0.65rem;
-      background: rgba(0,0,0,0.013);
-      gap: 0.4rem;
-    }
-
-    .stub-admit { text-align: center; }
-    .stub-admit-line1 {
-      font-size: 0.65rem; letter-spacing: 0.3em; text-transform: uppercase;
-      color: rgba(0,0,0,0.58); display: block;
-    }
-    .stub-admit-line2 {
-      font-size: 0.9rem; font-weight: bold; letter-spacing: 0.1em; text-transform: uppercase;
-      color: rgba(0,0,0,0.72); display: block; margin-top: 0.05rem;
-    }
-
-    .stub-divider {
-      border: none;
-      border-top: 1px solid rgba(0,0,0,0.07);
-    }
-
-    .stub-info {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0.22rem 0.1rem;
-    }
-    .stub-info-item { text-align: center; }
-    .stub-info-label {
-      font-size: 0.56rem; letter-spacing: 0.15em; text-transform: uppercase;
-      color: rgba(0,0,0,0.48); display: block;
-    }
-    .stub-info-value {
-      font-size: 0.6rem; font-weight: bold; letter-spacing: 0.05em; text-transform: uppercase;
-      color: rgba(0,0,0,0.68); display: block;
-    }
-
-    .stub-barcode {
-      flex: 1;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .stub-ref {
-      font-size: 0.56rem; letter-spacing: 0.13em; text-transform: uppercase;
-      color: rgba(0,0,0,0.44); text-align: center;
-    }
-
-    /* Transition flash */
-    .flash {
-      position: fixed; inset: 0;
-      background: #fff;
-      opacity: 0; pointer-events: none; z-index: 200;
-    }
-
-    #ticket-ring-inner { animation: ticket-ring-pulse 2.4s ease-in-out infinite; }
-    #ticket-ring-mid   { animation: ticket-ring-pulse 2.4s ease-in-out 0.5s infinite; }
-    #ticket-ring-outer { animation: ticket-ring-pulse 2.4s ease-in-out 1s infinite; }
-    @keyframes ticket-ring-pulse {
-      0%, 100% { opacity: 0.06; }
-      40%      { opacity: 0.9; }
-    }
-
-    @keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
-
-    /* ── Responsive ── */
-
-    /* Tablet and small laptop: ticket fits, stub visible */
-    @media (max-width: 560px) {
-      .center-col { padding-top: 2rem; }
-      .drone-link { font-size: 0.62rem; padding: 0.36rem 0.9rem; }
-      .drone-wire { height: 1.4rem; }
-    }
-
-    /* Phone portrait: hide stub + perf, tighten paddings to fit aspect-ratio height */
-    @media (max-width: 440px) {
-      .ticket-perf,
-      .ticket-stub  { display: none; }
-      .ticket-fine  { display: none; }
-      .ticket-top-bar    { padding: 0.18rem 0; }
-      .ticket-identity   { padding: 0.28rem 0.7rem 0.22rem; }
-      .ticket-form-area  { padding: 0.25rem 0.7rem 0.18rem; gap: 0.18rem; }
-      .ticket-bottom-bar { padding: 0.24rem 0.7rem; }
-      .enter-word        { font-size: 0.78rem; }
-      .ticket-event-name { font-size: 1.18rem; }
-      .field label       { font-size: 0.58rem; }
-      .field input       { font-size: 0.74rem; }
-      .status            { font-size: 0.6rem; }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.3; }
     }
   </style>
 </head>
 <body>
 
-  <div class="vignette"></div>
-  <div class="flash" id="flash"></div>
+<div id="brand">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 108" width="220" height="85" fill="none">
+    <defs>
+      <clipPath id="logo-gap">
+        <rect x="-500" y="-5000" width="5000" height="5064"/>
+      </clipPath>
+    </defs>
+    <g clip-path="url(#logo-gap)">
+      <circle cx="138" cy="82" r="36" stroke="white" stroke-width="1.3"  opacity="0.65"/>
+      <circle cx="138" cy="82" r="54" stroke="white" stroke-width="1.0"  opacity="0.44"/>
+      <circle cx="138" cy="82" r="72" stroke="white" stroke-width="0.75" opacity="0.26"/>
+    </g>
+    <circle cx="138" cy="82" r="5" fill="white"/>
+    <text x="128" y="89" text-anchor="end"
+          font-family="'Courier New',Courier,monospace"
+          font-size="22" font-weight="bold" letter-spacing="4"
+          fill="white">FUR</text>
+    <text x="148" y="89" text-anchor="start"
+          font-family="'Courier New',Courier,monospace"
+          font-size="22" font-weight="bold" letter-spacing="4"
+          fill="white">FM</text>
+  </svg>
+  <div id="brand-tagline">A space for intentional listening</div>
+</div>
 
-  <div class="center-col">
-  <div class="door-frame" id="door-frame">
-    <div class="door-panel-wrap">
-      <div class="door-panel">
+<div id="floating-layer"></div>
 
-        <!-- ── Main ticket body ── -->
-        <div class="ticket-main">
-
-          <div class="ticket-top-bar">
-            <div class="ticker-inner" id="ticker-inner">
-              <span id="ticker-text-1">Next Session</span><span id="ticker-text-2">Next Session</span>
-            </div>
-          </div>
-
-          <div class="ticket-identity">
-            <div class="ticket-rings">
-              <svg viewBox="0 0 36 20" width="36" height="20" fill="none">
-                <defs>
-                  <clipPath id="icon-rings-clip">
-                    <rect x="-500" y="-1000" width="1000" height="1014"/>
-                  </clipPath>
-                </defs>
-                <g clip-path="url(#icon-rings-clip)">
-                  <circle id="ticket-ring-inner" cx="18" cy="11" r="6"  stroke="#1a1a1a" stroke-width="1.3"/>
-                  <circle id="ticket-ring-mid"   cx="18" cy="11" r="11" stroke="#1a1a1a" stroke-width="1.0"/>
-                  <circle id="ticket-ring-outer" cx="18" cy="11" r="16" stroke="#1a1a1a" stroke-width="0.75"/>
-                </g>
-                <circle cx="18" cy="11" r="2.2" fill="#1a1a1a"/>
-              </svg>
-            </div>
-            <div>
-              <div class="ticket-event-name">FUR<span class="ticket-event-dot"></span>FM</div>
-              <div class="ticket-venue-line">Listening Portal</div>
-            </div>
-          </div>
-
-          <div class="ticket-form-area">
-
-            <!-- new user fields (shown by default) -->
-            <div class="field" id="field-name">
-              <label for="inp-name">name</label>
-              <input type="text" id="inp-name" autocomplete="name" required />
-            </div>
-            <div class="field" id="field-email">
-              <label for="inp-email">email</label>
-              <input type="email" id="inp-email" autocomplete="email" required />
-            </div>
-
-            <!-- OTP (hidden until sent) -->
-            <div class="field" id="field-otp" style="display:none">
-              <label for="inp-otp">verification code</label>
-              <input type="text" id="inp-otp" maxlength="6"
-                     inputmode="numeric" autocomplete="one-time-code" placeholder="6-digit code" />
-            </div>
-
-            <p class="status" id="form-status"></p>
-
-            <!-- shown after successful auth -->
-            <div class="ticket-welcome" id="ticket-welcome">
-              <div class="welcome-heading" id="welcome-heading">Welcome.</div>
-              <button class="join-btn" id="join-btn">Join the listening room now →</button>
-            </div>
-          </div>
-
-          <div class="ticket-bottom-bar" id="ticket-bottom-bar">
-            <div class="enter-row" id="enter-row">
-              <span class="enter-word" id="enter-word">register</span>
-            </div>
-            <div class="tbar-items-row">
-              <span class="tbar-item">Season I</span>
-              <span class="tbar-sep">·</span>
-              <span class="tbar-item">Open Admission</span>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- ── Perforation ── -->
-        <div class="ticket-perf">
-          <div class="ticket-notch-top"></div>
-          <div class="ticket-notch-bot"></div>
-        </div>
-
-        <!-- ── Stub ── -->
-        <div class="ticket-stub">
-          <div class="stub-admit">
-            <span class="stub-admit-line1">admit</span>
-            <span class="stub-admit-line2">one</span>
-          </div>
-          <hr class="stub-divider"/>
-          <div class="stub-info">
-            <div class="stub-info-item">
-              <span class="stub-info-value">digital</span>
-            </div>
-            <div class="stub-info-item">
-              <span class="stub-info-value">stream</span>
-            </div>
-          </div>
-          <hr class="stub-divider"/>
-          <div class="stub-barcode">
-            <canvas id="barcode-canvas" width="82" height="92"
-                    style="display:block; cursor:pointer;" title="click to generate"></canvas>
-          </div>
-          <hr class="stub-divider"/>
-          <div class="stub-ref">FFM · 2026 · A</div>
-        </div>
-
-      </div>
+<div id="ui-chrome">
+  <div id="top-left">
+    <div id="drone-label">·</div>
+    <div id="live-indicator">
+      <span class="dot">●</span><a href="stream.html" target="_blank" id="live-link">live now · join →</a>
     </div>
   </div>
-
-  <div class="drone-wire-wrap">
-    <div class="drone-wire"></div>
-    <a href="drone.html" class="drone-link">Fursat · फ़ुर्सत</a>
+  <div id="notif-tray"></div>
+  <div id="bottom-left">
+    <div id="listener-count">·</div>
   </div>
+  <div id="bottom-right">
+    <span id="username-text"></span>
+    <button id="username-edit" title="change name">✎</button>
+    <input id="username-input" style="display:none" maxlength="28" autocomplete="off" spellcheck="false" />
+  </div>
+</div>
 
-  </div><!-- /.center-col -->
+<div id="chat-bar">
+  <input id="chat-input" type="text" placeholder="say something…" maxlength="200" autocomplete="off" />
+  <button id="send-btn">→</button>
+</div>
 
-  <script>
-  (() => {
-    const canvas = document.getElementById('barcode-canvas');
-    const ctx    = canvas.getContext('2d');
-    const W = canvas.width, H = canvas.height;
-    let patternIndex = 0;
+<!-- Drifting session / join card -->
+<div id="session-card">
+  <div id="sc-title"></div>
+  <div id="sc-date"></div>
+  <button id="sc-join">join →</button>
+</div>
 
-    const patterns = [
-      // 0: vertical barcode — horizontal bars
-      function hBars() {
-        ctx.clearRect(0, 0, W, H);
-        let y = 0;
-        while (y < H) {
-          const h   = 1 + Math.floor(Math.random() * 3);
-          const gap = 1 + Math.floor(Math.random() * 4);
-          ctx.fillStyle = `rgba(26,26,26,${(0.45 + Math.random() * 0.5).toFixed(2)})`;
-          ctx.fillRect(0, y, W, h);
-          y += h + gap;
-        }
-      },
-      // 1: random grid cells
-      function grid() {
-        ctx.clearRect(0, 0, W, H);
-        const cols = 5 + Math.floor(Math.random() * 5);
-        const rows = Math.round(cols * H / W);
-        const cw = W / cols, rh = H / rows;
-        for (let r = 0; r < rows; r++) {
-          for (let c = 0; c < cols; c++) {
-            if (Math.random() > 0.42) {
-              ctx.fillStyle = `rgba(26,26,26,${(0.25 + Math.random() * 0.65).toFixed(2)})`;
-              ctx.fillRect(c * cw + 0.5, r * rh + 0.5, cw - 1, rh - 1);
-            }
+<div id="tap-overlay">
+  <svg id="tap-logo" viewBox="0 0 280 108" width="160" height="62" fill="none">
+    <defs>
+      <clipPath id="tap-clip">
+        <rect x="0" y="0" width="280" height="82"/>
+      </clipPath>
+    </defs>
+    <g clip-path="url(#tap-clip)">
+      <circle cx="138" cy="82" r="36"  stroke="#f0e0a8" stroke-width="1.3" opacity="0.65"/>
+      <circle cx="138" cy="82" r="54"  stroke="#f0e0a8" stroke-width="1.0" opacity="0.44"/>
+      <circle cx="138" cy="82" r="72"  stroke="#f0e0a8" stroke-width="0.75" opacity="0.26"/>
+    </g>
+    <circle cx="138" cy="82" r="5" fill="#f0e0a8"/>
+    <text x="128" y="89" text-anchor="end"   font-family="'Courier New'" font-size="22" font-weight="bold" letter-spacing="4" fill="#f0e0a8">FUR</text>
+    <text x="148" y="89" text-anchor="start" font-family="'Courier New'" font-size="22" font-weight="bold" letter-spacing="4" fill="#f0e0a8">FM</text>
+  </svg>
+  <div id="tap-hint">tap to listen</div>
+</div>
+
+<!-- Join / OTP modal -->
+<div id="join-modal">
+  <div id="join-panel">
+    <button id="join-close">×</button>
+
+    <!-- Step 1: email -->
+    <div id="step-email">
+      <div class="join-heading">join the session</div>
+      <div class="join-sub">we'll send a one-time code to your email</div>
+      <input class="join-input" id="join-email" type="email" placeholder="your@email.com" autocomplete="email" />
+      <button class="join-submit" id="join-send">send code →</button>
+      <div class="join-err" id="join-err1"></div>
+    </div>
+
+    <!-- Step 2: OTP code -->
+    <div id="step-otp" style="display:none">
+      <div class="join-heading">check your email</div>
+      <div class="join-sub" id="otp-sub">enter the 6-digit code we sent</div>
+      <input class="join-input" id="join-otp" type="text" inputmode="numeric" maxlength="6" placeholder="000000" autocomplete="one-time-code" />
+      <button class="join-submit" id="join-verify">verify →</button>
+      <div class="join-err" id="join-err2"></div>
+      <button class="join-back" id="join-back">← use a different email</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(async () => {
+
+  /* ── Supabase ──────────────────────────────────────────────────────── */
+  const { createClient } = window.supabase;
+  const db = createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+
+  /* ── XSS helper ────────────────────────────────────────────────────── */
+  function esc(s) {
+    return String(s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  /* ── Username ──────────────────────────────────────────────────────── */
+  const ADJS  = ['velvet','amber','silver','crimson','golden','azure','ivory','onyx','jade','cobalt',
+                  'sable','ochre','cedar','coral','ember','frost','dusk','lunar','solar','hollow',
+                  'mossy','burnt','still','muted','copper'];
+  const NOUNS = ['moth','crane','raven','finch','fox','wolf','sparrow','hawk','owl','hare',
+                  'deer','fern','reed','mist','tide','wave','stone','bloom','creek','petal',
+                  'ash','birch','dune','pine','flint'];
+
+  function genName() {
+    return ADJS[Math.floor(Math.random()*ADJS.length)] + '-' + NOUNS[Math.floor(Math.random()*NOUNS.length)];
+  }
+
+  let myId = localStorage.getItem('fur-fm-id');
+  if (!myId) { myId = crypto.randomUUID(); localStorage.setItem('fur-fm-id', myId); }
+
+  let myName = localStorage.getItem('fur-fm-name');
+  if (!myName) { myName = genName(); localStorage.setItem('fur-fm-name', myName); }
+
+  const nameTextEl  = document.getElementById('username-text');
+  const nameEditBtn = document.getElementById('username-edit');
+  const nameInputEl = document.getElementById('username-input');
+
+  function renderName() { nameTextEl.textContent = myName; }
+  renderName();
+
+  nameEditBtn.addEventListener('click', () => {
+    nameInputEl.value = myName;
+    nameInputEl.style.display   = '';
+    nameTextEl.style.display    = 'none';
+    nameEditBtn.style.display   = 'none';
+    nameInputEl.focus();
+    nameInputEl.select();
+  });
+
+  function commitName() {
+    const v = nameInputEl.value.trim().replace(/[<>"&]/g,'').slice(0, 28);
+    if (v && v !== myName) {
+      myName = v;
+      localStorage.setItem('fur-fm-name', myName);
+      if (presenceChannel) presenceChannel.track({ username: myName });
+    }
+    nameInputEl.style.display  = 'none';
+    nameTextEl.style.display   = '';
+    nameEditBtn.style.display  = '';
+    renderName();
+  }
+
+  nameInputEl.addEventListener('blur', commitName);
+  nameInputEl.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); nameInputEl.blur(); }
+  });
+
+  /* ── Floating messages ─────────────────────────────────────────────── */
+  const floatLayer = document.getElementById('floating-layer');
+
+  function floatMessage(sender, text) {
+    const el = document.createElement('div');
+    el.className  = 'float-msg';
+    el.style.left = (8 + Math.random() * 70) + '%';
+    el.innerHTML  = `<span class="f-sender">${esc(sender)}</span><span class="f-text">${esc(text)}</span>`;
+    floatLayer.appendChild(el);
+    setTimeout(() => el.remove(), 7500);
+  }
+
+  /* ── Notifications ─────────────────────────────────────────────────── */
+  const notifTray = document.getElementById('notif-tray');
+
+  function showNotif(html, autoDismissMs = 6500) {
+    const card = document.createElement('div');
+    card.className = 'notif-card';
+    card.innerHTML = html;
+    notifTray.appendChild(card);
+    requestAnimationFrame(() => requestAnimationFrame(() => card.classList.add('visible')));
+    if (autoDismissMs > 0) {
+      setTimeout(() => {
+        card.classList.remove('visible');
+        setTimeout(() => card.remove(), 400);
+      }, autoDismissMs);
+    }
+    return card;
+  }
+
+  /* ── Live indicator + now_playing watch ────────────────────────────── */
+  const liveEl      = document.getElementById('live-indicator');
+  const liveLinkEl  = document.getElementById('live-link');
+  let   liveCard    = null;
+  let   wasLive     = false;
+
+  function setLive(on, label) {
+    liveEl.style.display = on ? '' : 'none';
+    if (on && label) liveLinkEl.textContent = label + ' · join →';
+  }
+
+  /* ── Drifting session card ─────────────────────────────────────────── */
+  const sessionCard = document.getElementById('session-card');
+  const scTitle     = document.getElementById('sc-title');
+  const scDate      = document.getElementById('sc-date');
+  const scJoinBtn   = document.getElementById('sc-join');
+  let   driftTimer  = null;
+
+  function startDrift() {
+    sessionCard.style.display = 'flex';
+
+    function moveTo() {
+      const cw   = sessionCard.offsetWidth  || 170;
+      const ch   = sessionCard.offsetHeight || 85;
+      const padX = 28;
+      const padY = 28;
+      const maxX = window.innerWidth  - cw - padX;
+      const maxY = window.innerHeight * 0.74 - ch; // stay clear of chat bar
+      const x    = padX + Math.random() * Math.max(0, maxX - padX);
+      const y    = padY + Math.random() * Math.max(0, maxY - padY);
+      sessionCard.style.transform = `translate(${x}px, ${y}px)`;
+    }
+
+    // Snap to first position instantly, then begin smooth drift
+    sessionCard.style.transition = 'none';
+    moveTo();
+    setTimeout(() => {
+      sessionCard.style.transition = 'transform 7s ease-in-out';
+      moveTo();
+      driftTimer = setInterval(moveTo, 7500);
+    }, 80);
+  }
+
+  (async () => {
+    // Upcoming session → populate drifting card
+    const today = new Date().toISOString().slice(0, 10);
+    const { data: next } = await db.from('sessions')
+      .select('title, date')
+      .gte('date', today)
+      .order('date', { ascending: true })
+      .limit(1)
+      .maybeSingle();
+
+    if (next?.title) {
+      scTitle.textContent = next.title;
+      scDate.textContent  = next.date
+        ? new Date(next.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric' })
+        : '';
+    } else {
+      scTitle.textContent = 'fur fm';
+      scDate.textContent  = 'sessions coming soon';
+    }
+
+    // Wire join button — skip modal if already authed
+    const { data: { session: existing } } = await db.auth.getSession();
+    if (existing) {
+      scJoinBtn.textContent = 'enter room →';
+      scJoinBtn.addEventListener('click', () => window.open('stream.html', '_blank'));
+    } else {
+      scJoinBtn.addEventListener('click', () => openJoinModal());
+    }
+
+    startDrift();
+
+    // Current live state
+    const { data: np } = await db.from('now_playing')
+      .select('is_playing, archive_header, track_title')
+      .eq('id', '00000000-0000-0000-0000-000000000001')
+      .maybeSingle();
+
+    if (np?.is_playing) {
+      wasLive = true;
+      setLive(true, np.archive_header || np.track_title || 'Session');
+    }
+
+    // Realtime watch
+    db.channel('lounge-np')
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'now_playing' }, ({ new: d }) => {
+        if (d.is_playing && !wasLive) {
+          wasLive = true;
+          const label = d.archive_header || d.track_title || 'Session';
+          setLive(true, label);
+          liveCard = showNotif(
+            `<span class="dot">●</span> live now · <em>${esc(label)}</em><br><a href="stream.html" target="_blank">join the session →</a>`,
+            0
+          );
+        } else if (!d.is_playing && wasLive) {
+          wasLive = false;
+          setLive(false);
+          if (liveCard) {
+            liveCard.classList.remove('visible');
+            setTimeout(() => { liveCard?.remove(); liveCard = null; }, 400);
           }
         }
-      },
-      // 2: diagonal hatching
-      function diagonals() {
-        ctx.clearRect(0, 0, W, H);
-        const step = 3 + Math.floor(Math.random() * 6);
-        const flip = Math.random() > 0.5;
-        for (let i = -H; i < W + H; i += step) {
-          ctx.lineWidth   = 0.7 + Math.random() * 1.3;
-          ctx.strokeStyle = `rgba(26,26,26,${(0.28 + Math.random() * 0.5).toFixed(2)})`;
-          ctx.beginPath();
-          if (flip) { ctx.moveTo(i, 0);  ctx.lineTo(i + H, H); }
-          else       { ctx.moveTo(i, H);  ctx.lineTo(i + H, 0); }
-          ctx.stroke();
-        }
-      },
-      // 3: halftone dots
-      function dots() {
-        ctx.clearRect(0, 0, W, H);
-        const sp = 6 + Math.floor(Math.random() * 6);
-        for (let y = sp / 2; y < H; y += sp) {
-          for (let x = sp / 2; x < W; x += sp) {
-            const r = 0.4 + Math.random() * (sp * 0.38);
-            ctx.beginPath();
-            ctx.arc(x + (Math.random() - 0.5), y + (Math.random() - 0.5), r, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(26,26,26,${(0.28 + Math.random() * 0.6).toFixed(2)})`;
-            ctx.fill();
-          }
-        }
-      },
-      // 4: sine waves
-      function waves() {
-        ctx.clearRect(0, 0, W, H);
-        const lines = 10 + Math.floor(Math.random() * 10);
-        const step  = H / lines;
-        for (let i = 0; i < lines; i++) {
-          const cy   = i * step + step / 2;
-          const amp  = 1.5 + Math.random() * 5;
-          const freq = 1.5 + Math.random() * 4;
-          ctx.lineWidth   = 0.5 + Math.random() * 1.5;
-          ctx.strokeStyle = `rgba(26,26,26,${(0.35 + Math.random() * 0.5).toFixed(2)})`;
-          ctx.beginPath();
-          for (let x = 0; x <= W; x++) {
-            const wy = cy + Math.sin((x / W) * Math.PI * freq) * amp;
-            x === 0 ? ctx.moveTo(x, wy) : ctx.lineTo(x, wy);
-          }
-          ctx.stroke();
-        }
-      },
-      // 5: concentric rectangles
-      function rects() {
-        ctx.clearRect(0, 0, W, H);
-        const max = Math.min(W, H) / 2;
-        const step = 3 + Math.random() * 5;
-        for (let r = max; r > 0; r -= step) {
-          const x = W / 2 - r * (W / H);
-          const y = H / 2 - r;
-          const w = r * (W / H) * 2;
-          const h = r * 2;
-          ctx.lineWidth   = 0.5 + Math.random() * 1.2;
-          ctx.strokeStyle = `rgba(26,26,26,${(0.2 + Math.random() * 0.6).toFixed(2)})`;
-          ctx.strokeRect(x, y, w, h);
-        }
-      },
+      })
+      .subscribe();
+  })();
+
+  /* ── Chat ──────────────────────────────────────────────────────────── */
+  const chatInputEl = document.getElementById('chat-input');
+  const sendBtnEl   = document.getElementById('send-btn');
+  const LOUNGE_ID   = 'lounge';
+
+  const { data: history } = await db.from('chat_messages')
+    .select('username, content')
+    .eq('session_id', LOUNGE_ID)
+    .order('created_at', { ascending: true })
+    .limit(30);
+
+  if (history?.length) {
+    history.slice(-8).forEach((m, i) => {
+      setTimeout(() => floatMessage(m.username || 'listener', m.content), i * 900 + 300);
+    });
+  }
+
+  // Track recently sent messages to avoid echoing them back from realtime
+  const recentSent = new Set();
+
+  db.channel(`chat:${LOUNGE_ID}`)
+    .on('postgres_changes', {
+      event: 'INSERT', schema: 'public', table: 'chat_messages',
+      filter: `session_id=eq.${LOUNGE_ID}`,
+    }, ({ new: msg }) => {
+      const key = (msg.username || '') + '\0' + (msg.content || '');
+      if (!recentSent.has(key))
+        floatMessage(msg.username || 'listener', msg.content);
+    })
+    .subscribe();
+
+  async function sendMessage() {
+    const text = chatInputEl.value.trim();
+    if (!text) return;
+    floatMessage(myName, text);
+    chatInputEl.value = '';
+    const key = myName + '\0' + text;
+    recentSent.add(key);
+    setTimeout(() => recentSent.delete(key), 5000);
+    await db.from('chat_messages').insert({
+      user_id: null, username: myName,
+      content: text, session_id: LOUNGE_ID,
+    }).catch(() => {});
+  }
+
+  sendBtnEl.addEventListener('click', sendMessage);
+  chatInputEl.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  });
+
+  /* ── Presence ──────────────────────────────────────────────────────── */
+  const countEl = document.getElementById('listener-count');
+  let presenceChannel = null;
+
+  presenceChannel = db.channel('fur-fm:room');
+  presenceChannel
+    .on('presence', { event: 'sync' }, () => {
+      const n = Object.keys(presenceChannel.presenceState()).length;
+      countEl.textContent = n === 1 ? '1 listening' : `${n} listening`;
+    })
+    .subscribe(async status => {
+      if (status === 'SUBSCRIBED') await presenceChannel.track({ username: myName });
+    });
+
+  /* ── Drone synth ───────────────────────────────────────────────────── */
+  const SLOT_MS       = 8 * 60 * 1000;   // 8-minute drone slots
+  const LFO_PERIOD_MS = 30 * 1000;       // 30-second filter sweep
+
+  const ROOTS = [
+    { hz: 55.00,  name: 'A' },
+    { hz: 73.42,  name: 'D' },
+    { hz: 82.41,  name: 'E' },
+    { hz: 98.00,  name: 'G' },
+    { hz: 110.00, name: 'A' },
+  ];
+
+  // Deterministic pseudo-random from integer seed + index
+  function seedRand(seed, n) {
+    const x = Math.sin(seed * 127.1 + n * 311.7) * 43758.5453;
+    return x - Math.floor(x);
+  }
+
+  function droneParams(seed) {
+    const ri = Math.floor(seedRand(seed, 0) * ROOTS.length);
+    return {
+      rootHz:     ROOTS[ri].hz,
+      rootName:   ROOTS[ri].name,
+      detune2:    (seedRand(seed, 1) * 16) - 8,     // ±8 cents on fifth
+      detune3:    (seedRand(seed, 2) * 16) - 8,     // ±8 cents on octave
+      filterBase: 220 + seedRand(seed, 3) * 380,    // 220–600 Hz
+      lfoDepth:   70  + seedRand(seed, 4) * 110,    // 70–180 Hz swing
+      vol:        0.12 + seedRand(seed, 5) * 0.08,  // 0.12–0.20
+    };
+  }
+
+  function lerp(a, b, t) { return a + (b - a) * t; }
+
+  const droneLabelEl = document.getElementById('drone-label');
+  let ctx, oscNodes, filterNode, masterNode, lfoTimer, currentParams;
+
+  function updateDroneLabel() {
+    if (!currentParams) return;
+    const ms   = SLOT_MS - (Date.now() % SLOT_MS);
+    const mins = Math.ceil(ms / 60000);
+    droneLabelEl.textContent =
+      `drone in ${currentParams.rootName} · shifting in ${mins < 2 ? 'soon' : mins + 'm'}`;
+  }
+
+  // LFO runs on a setInterval so phase is locked to wall-clock time —
+  // all listeners at the same UTC moment compute the same phase.
+  function startLFO(params, fromParams, transStart) {
+    clearInterval(lfoTimer);
+    const TRANS_MS = 12000;
+    lfoTimer = setInterval(() => {
+      let base  = params.filterBase;
+      let depth = params.lfoDepth;
+      if (fromParams && transStart) {
+        const p = Math.min(1, (Date.now() - transStart) / TRANS_MS);
+        base  = lerp(fromParams.filterBase, params.filterBase, p);
+        depth = lerp(fromParams.lfoDepth,   params.lfoDepth,   p);
+      }
+      const phase  = ((Date.now() % LFO_PERIOD_MS) / LFO_PERIOD_MS) * Math.PI * 2;
+      const cutoff = Math.max(60, base + Math.sin(phase) * depth);
+      filterNode.frequency.setTargetAtTime(cutoff, ctx.currentTime, 0.35);
+    }, 100);
+  }
+
+  function scheduleDroneSlot() {
+    const msUntilNext = SLOT_MS - (Date.now() % SLOT_MS);
+    setTimeout(() => {
+      const newParams = droneParams(Math.floor(Date.now() / SLOT_MS));
+      const t    = ctx.currentTime;
+      const RAMP = 12; // seconds to crossfade
+      oscNodes[0].osc.frequency.linearRampToValueAtTime(newParams.rootHz,       t + RAMP);
+      oscNodes[1].osc.frequency.linearRampToValueAtTime(newParams.rootHz * 1.5, t + RAMP);
+      oscNodes[2].osc.frequency.linearRampToValueAtTime(newParams.rootHz * 2,   t + RAMP);
+      oscNodes[1].osc.detune.linearRampToValueAtTime(newParams.detune2, t + RAMP);
+      oscNodes[2].osc.detune.linearRampToValueAtTime(newParams.detune3, t + RAMP);
+      masterNode.gain.linearRampToValueAtTime(newParams.vol, t + RAMP);
+      startLFO(newParams, currentParams, Date.now());
+      currentParams = newParams;
+      updateDroneLabel();
+      scheduleDroneSlot(); // schedule the one after
+    }, msUntilNext);
+  }
+
+  function buildDrone() {
+    const seed = Math.floor(Date.now() / SLOT_MS);
+    currentParams = droneParams(seed);
+    const p = currentParams;
+
+    ctx = new (window.AudioContext || window.webkitAudioContext)();
+
+    // Root + fifth + octave, each slightly detuned for warmth
+    const cfgs = [
+      { freq: p.rootHz,       detune: 0,         vol: 0.62 },
+      { freq: p.rootHz * 1.5, detune: p.detune2,  vol: 0.36 },
+      { freq: p.rootHz * 2,   detune: p.detune3,  vol: 0.18 },
     ];
 
-    function draw() {
-      patterns[patternIndex]();
-    }
-
-    draw();
-
-    canvas.addEventListener('click', function(e) {
-      e.stopPropagation();
-      patternIndex = (patternIndex + 1) % patterns.length;
-      draw();
-    });
-  })();
-  </script>
-
-  <script>
-  (() => {
-    const { createClient } = window.supabase;
-    const db = createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
-
-    /* ── Dynamic ticker: load next upcoming session ── */
-    /* ── Dynamic ticker: load most recent session ── */
-    (async () => {
-      const { data } = await db.from('sessions').select('title, date, time')
-        .order('created_at', { ascending: false }).limit(1).maybeSingle();
-      if (!data) return;
-      const parts = ['Next Session'];
-      if (data.title) parts.push(data.title);
-      if (data.date) {
-        const d = new Date(data.date + 'T00:00:00');
-        parts.push(d.toLocaleDateString('en-US', { month: 'long', day: 'numeric' }));
-      }
-      if (data.time) {
-        const [h, m] = data.time.split(':').map(Number);
-        const ampm = h >= 12 ? 'PM' : 'AM';
-        parts.push(`${h % 12 || 12}:${String(m).padStart(2,'0')} ${ampm}`);
-      }
-      const text = parts.join('  ·  ');
-      document.getElementById('ticker-text-1').textContent = text;
-      document.getElementById('ticker-text-2').textContent = text;
-    })();
-
-    let formState    = 'email';
-    let pendingEmail = '';
-    let pendingName  = '';
-
-    const doorFrame = document.getElementById('door-frame');
-    const enterWord = document.getElementById('enter-word');
-    const bottomBar = document.getElementById('ticket-bottom-bar');
-
-    gsap.set(doorFrame, { y: 18 });
-    gsap.to(doorFrame,  { opacity: 1, y: 0, duration: 0.9, ease: 'power2.out', delay: 0.2 });
-
-    /* ── Helpers ── */
-    function setStatus(msg, isError = false) {
-      const el = document.getElementById('form-status');
-      el.textContent = msg; el.style.display = '';
-      el.className = 'status' + (isError ? ' error' : '');
-    }
-    function clearStatus() {
-      const el = document.getElementById('form-status');
-      el.textContent = ''; el.style.display = '';
-    }
-    function setLoading(on) { enterWord.style.opacity = on ? '0.35' : '1'; }
-    function hideAllFields() {
-      ['field-name','field-email','field-otp'].forEach(id =>
-        document.getElementById(id).style.display = 'none');
-    }
-
-    /* ── Reset to default form ── */
-    function showNewForm() {
-      formState = 'email';
-      hideAllFields();
-      document.getElementById('field-name').style.display  = '';
-      document.getElementById('field-email').style.display = '';
-      document.getElementById('ticket-welcome').style.display = 'none';
-      enterWord.textContent = 'register';
-      clearStatus();
-    }
-
-    async function sendOTP() {
-      pendingName  = document.getElementById('inp-name').value.trim();
-      pendingEmail = document.getElementById('inp-email').value.trim();
-      if (!pendingName || !pendingEmail) { setStatus('please fill in both fields', true); return; }
-
-      formState = 'loading'; setLoading(true); setStatus('sending code…');
-      const { error } = await db.auth.signInWithOtp({
-        email: pendingEmail,
-        options: { data: { username: pendingName }, shouldCreateUser: true },
-      });
-      setLoading(false);
-      if (error) { formState = 'email'; setStatus(error.message, true); return; }
-
-      formState = 'otp';
-      document.getElementById('field-name').style.display  = 'none';
-      document.getElementById('field-email').style.display = 'none';
-      document.getElementById('field-otp').style.display   = '';
-      enterWord.textContent = 'verify';
-      setStatus('check your email for the code');
-      document.getElementById('inp-otp').focus();
-    }
-
-    async function verifyOTP() {
-      const token = document.getElementById('inp-otp').value.trim();
-      if (token.length < 6) { setStatus('enter the full 6-digit code', true); return; }
-
-      formState = 'loading'; setLoading(true); setStatus('verifying…');
-      const { data, error } = await db.auth.verifyOtp({ email: pendingEmail, token, type: 'email' });
-      setLoading(false);
-      if (error) { formState = 'otp'; setStatus(error.message || 'invalid code', true); return; }
-
-      const user = data.user;
-      await db.from('users').upsert(
-        { auth_id: user.id, email: user.email, name: pendingName, verified: true },
-        { onConflict: 'auth_id' }
-      );
-      showWelcome();
-    }
-
-    /* ── Welcome screen ── */
-    function showWelcome() {
-      formState = 'welcome';
-      hideAllFields();
-      document.getElementById('form-status').style.display = 'none';
-      bottomBar.style.display = 'none';
-      document.getElementById('ticket-welcome').style.display = 'flex';
-      document.getElementById('join-btn').addEventListener('click', () => {
-        window.location.href = 'stream.html';
-      });
-    }
-
-    /* ── Submit router ── */
-    async function handleSubmit() {
-      if (formState === 'loading' || formState === 'welcome') return;
-      if (formState === 'email')     await sendOTP();
-      else if (formState === 'otp') await verifyOTP();
-    }
-
-    /* ── Wire up ── */
-    document.getElementById('enter-row').addEventListener('click', handleSubmit);
-    document.querySelectorAll('.field input').forEach(inp => {
-      inp.addEventListener('keydown', e => {
-        if (e.key === 'Enter') { e.preventDefault(); handleSubmit(); }
-      });
+    oscNodes = cfgs.map(({ freq, detune, vol }) => {
+      const osc = ctx.createOscillator();
+      const g   = ctx.createGain();
+      osc.type            = 'sine';
+      osc.frequency.value = freq;
+      osc.detune.value    = detune;
+      g.gain.value        = vol;
+      osc.connect(g);
+      return { osc, g };
     });
 
-  })();
-  </script>
+    // Low-pass filter (driven by LFO)
+    filterNode = ctx.createBiquadFilter();
+    filterNode.type            = 'lowpass';
+    filterNode.Q.value         = 0.9;
+    filterNode.frequency.value = p.filterBase;
+
+    // Three comb-filter delays for a long reverb tail
+    function makeComb(dt, fb) {
+      const d  = ctx.createDelay(4); d.delayTime.value = dt;
+      const fg = ctx.createGain();   fg.gain.value     = fb;
+      d.connect(fg); fg.connect(d);
+      return d;
+    }
+    const c1 = makeComb(0.233, 0.70);
+    const c2 = makeComb(0.413, 0.65);
+    const c3 = makeComb(0.173, 0.60);
+
+    const dryG = ctx.createGain();  dryG.gain.value  = 0.42;
+    const w1   = ctx.createGain();  w1.gain.value    = 0.28;
+    const w2   = ctx.createGain();  w2.gain.value    = 0.20;
+    const w3   = ctx.createGain();  w3.gain.value    = 0.14;
+
+    masterNode = ctx.createGain();
+    masterNode.gain.value = 0; // starts silent, fades in
+
+    oscNodes.forEach(({ g }) => g.connect(filterNode));
+    filterNode.connect(dryG); dryG.connect(masterNode);
+    filterNode.connect(c1);   c1.connect(w1); w1.connect(masterNode);
+    filterNode.connect(c2);   c2.connect(w2); w2.connect(masterNode);
+    filterNode.connect(c3);   c3.connect(w3); w3.connect(masterNode);
+    masterNode.connect(ctx.destination);
+
+    oscNodes.forEach(({ osc }) => osc.start());
+    masterNode.gain.linearRampToValueAtTime(p.vol, ctx.currentTime + 3);
+
+    startLFO(currentParams);
+    updateDroneLabel();
+    scheduleDroneSlot();
+    setInterval(updateDroneLabel, 60000);
+  }
+
+  /* ── Join session / OTP modal ─────────────────────────────────────── */
+  const joinModal    = document.getElementById('join-modal');
+  const joinClose    = document.getElementById('join-close');
+  const stepEmail    = document.getElementById('step-email');
+  const stepOtp      = document.getElementById('step-otp');
+  const joinEmailEl  = document.getElementById('join-email');
+  const joinSendBtn  = document.getElementById('join-send');
+  const joinOtpEl    = document.getElementById('join-otp');
+  const joinVerifyBtn= document.getElementById('join-verify');
+  const joinErr1     = document.getElementById('join-err1');
+  const joinErr2     = document.getElementById('join-err2');
+  const joinBackBtn  = document.getElementById('join-back');
+  const otpSubEl     = document.getElementById('otp-sub');
+
+  let otpEmail = '';
+
+  function openJoinModal() {
+    stepEmail.style.display = '';
+    stepOtp.style.display   = 'none';
+    joinErr1.textContent    = '';
+    joinEmailEl.value       = '';
+    joinModal.classList.add('open');
+    setTimeout(() => joinEmailEl.focus(), 50);
+  }
+
+  function closeJoinModal() {
+    joinModal.classList.remove('open');
+  }
+
+  joinClose.addEventListener('click', closeJoinModal);
+  joinModal.addEventListener('click', e => { if (e.target === joinModal) closeJoinModal(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeJoinModal(); });
+
+  joinBackBtn.addEventListener('click', () => {
+    stepOtp.style.display   = 'none';
+    stepEmail.style.display = '';
+    joinEmailEl.focus();
+  });
+
+  // Step 1 — send OTP email
+  async function sendOtp() {
+    const email = joinEmailEl.value.trim();
+    if (!email || !email.includes('@')) { joinErr1.textContent = 'enter a valid email address'; return; }
+    joinErr1.textContent    = '';
+    joinSendBtn.disabled    = true;
+    joinSendBtn.textContent = 'sending…';
+    const { error } = await db.auth.signInWithOtp({ email, options: { shouldCreateUser: true } });
+    joinSendBtn.disabled    = false;
+    joinSendBtn.textContent = 'send code →';
+    if (error) { joinErr1.textContent = error.message; return; }
+    otpEmail = email;
+    otpSubEl.textContent    = `enter the code we sent to ${email}`;
+    joinErr2.textContent    = '';
+    joinOtpEl.value         = '';
+    stepEmail.style.display = 'none';
+    stepOtp.style.display   = '';
+    setTimeout(() => joinOtpEl.focus(), 50);
+  }
+
+  joinSendBtn.addEventListener('click', sendOtp);
+  joinEmailEl.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); sendOtp(); } });
+
+  // Step 2 — verify OTP
+  async function verifyOtp() {
+    const token = joinOtpEl.value.trim().replace(/\D/g,'');
+    if (token.length < 6) { joinErr2.textContent = 'enter the 6-digit code from your email'; return; }
+    joinErr2.textContent     = '';
+    joinVerifyBtn.disabled   = true;
+    joinVerifyBtn.textContent= 'verifying…';
+    const { data, error } = await db.auth.verifyOtp({ email: otpEmail, token, type: 'email' });
+    joinVerifyBtn.disabled   = false;
+    joinVerifyBtn.textContent= 'verify →';
+    if (error) { joinErr2.textContent = error.message; return; }
+    closeJoinModal();
+    window.location.href = 'stream.html';
+  }
+
+  joinVerifyBtn.addEventListener('click', verifyOtp);
+  joinOtpEl.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); verifyOtp(); } });
+
+  /* ── Tap overlay ───────────────────────────────────────────────────── */
+  const tapOverlay = document.getElementById('tap-overlay');
+  tapOverlay.addEventListener('click', () => {
+    buildDrone();
+    tapOverlay.style.opacity      = '0';
+    tapOverlay.style.pointerEvents = 'none';
+    setTimeout(() => tapOverlay.remove(), 600);
+  }, { once: true });
+
+})();
+</script>
 
 </body>
 </html>
