@@ -649,16 +649,19 @@
   // Track recently sent messages to avoid echoing them back from realtime
   const recentSent = new Set();
 
-  db.channel(`chat:${LOUNGE_ID}`)
+  db.channel('lounge-chat')
     .on('postgres_changes', {
       event: 'INSERT', schema: 'public', table: 'chat_messages',
-      filter: `session_id=eq.${LOUNGE_ID}`,
     }, ({ new: msg }) => {
+      if (msg.session_id !== LOUNGE_ID) return;
       const key = (msg.username || '') + '\0' + (msg.content || '');
       if (!recentSent.has(key))
         floatMessage(msg.username || 'listener', msg.content);
     })
-    .subscribe();
+    .subscribe((status, err) => {
+      if (err) console.error('[fur-fm] chat sub error:', err);
+      else console.log('[fur-fm] chat sub status:', status);
+    });
 
   async function sendMessage() {
     const text = chatInputEl.value.trim();
@@ -668,10 +671,11 @@
     const key = myName + '\0' + text;
     recentSent.add(key);
     setTimeout(() => recentSent.delete(key), 5000);
-    await db.from('chat_messages').insert({
+    const { error } = await db.from('chat_messages').insert({
       user_id: null, username: myName,
       content: text, session_id: LOUNGE_ID,
-    }).catch(() => {});
+    });
+    if (error) console.error('[fur-fm] chat insert error:', error);
   }
 
   sendBtnEl.addEventListener('click', sendMessage);
