@@ -247,6 +247,18 @@
       opacity: 1; transform: translateX(-50%) translateY(0);
     }
 
+    /* ── Audio unlock prompt ── */
+    .audio-prompt {
+      position: fixed; bottom: 1.4rem; left: 50%;
+      transform: translateX(-50%);
+      z-index: 80; display: none; align-items: center; gap: 0.5rem;
+      background: rgba(255,255,255,0.95); color: #000;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.64rem; letter-spacing: 0.12em; text-transform: uppercase;
+      padding: 0.55rem 1.1rem; cursor: pointer;
+    }
+    .audio-prompt.visible { display: flex; }
+
     /* ── iOS tap-to-watch overlay ── */
     .tap-overlay {
       position: absolute; inset: 0;
@@ -399,6 +411,9 @@
 
   </div><!-- /.content-col -->
 </div><!-- /.page-wrap -->
+
+<audio id="np-audio" style="display:none" preload="auto"></audio>
+<div class="audio-prompt" id="audio-prompt">🔈 Tap to enable audio</div>
 
 <script>
 (async () => {
@@ -613,9 +628,53 @@
   const npMetaLine   = document.getElementById('np-meta-line');
   const npTranslation = document.getElementById('np-translation');
   const npImageBg    = document.getElementById('np-image-bg');
+  const npAudio      = document.getElementById('np-audio');
+  const audioPrompt  = document.getElementById('audio-prompt');
+
+  /* ── Synced audio playback (archival tracks) ── */
+  let wantPlaying = false;
+  let wantUrl     = null;
+
+  function attemptPlay() {
+    npAudio.play().then(() => {
+      audioPrompt.classList.remove('visible');
+    }).catch(() => {
+      audioPrompt.classList.add('visible');
+    });
+  }
+
+  function syncAudio(d) {
+    const url = d.audio_url || null;
+    wantPlaying = !!d.is_playing;
+
+    if (url !== wantUrl) {
+      wantUrl = url;
+      if (url) {
+        npAudio.src = url;
+        npAudio.currentTime = d.playhead_pos || 0;
+      } else {
+        npAudio.removeAttribute('src');
+      }
+    } else if (url && typeof d.playhead_pos === 'number'
+               && Math.abs(npAudio.currentTime - d.playhead_pos) > 1.5) {
+      npAudio.currentTime = d.playhead_pos;
+    }
+
+    if (wantPlaying && url) {
+      if (npAudio.paused) attemptPlay();
+    } else {
+      npAudio.pause();
+    }
+  }
+
+  document.addEventListener('click', () => {
+    if (wantPlaying && npAudio.paused) attemptPlay();
+  }, true);
+  audioPrompt.addEventListener('click', () => attemptPlay());
 
   function applyNP(d) {
     if (!d) return;
+    syncAudio(d);
     const hasContent = d.track_title || d.artist;
     npBar.classList.toggle('visible', !!hasContent);
 

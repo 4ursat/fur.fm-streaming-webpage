@@ -6,6 +6,7 @@
   <title>Fur FM · Admin</title>
   <script src="supabase-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsmediatags@3.9.7/dist/jsmediatags.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -303,12 +304,19 @@
     }
 
     /* ── Archival Room Player ── */
+    .arc-header-row {
+      display: flex; align-items: center; gap: 0.75rem;
+      padding: 0.6rem 1rem; border-bottom: 1px solid rgba(0,0,0,0.07);
+      background: rgba(0,0,0,0.015); flex-shrink: 0;
+    }
+    .arc-header-input { flex: 1; font-size: 0.9rem; letter-spacing: 0.03em; }
+
     .arc-grid {
       display: grid;
       grid-template-columns: 210px 1fr 250px;
       border: 1px solid rgba(0,0,0,0.08);
-      height: calc(100vh - 162px);
-      min-height: 440px;
+      height: calc(100vh - 212px);
+      min-height: 400px;
       overflow: hidden;
     }
     .arc-col {
@@ -358,12 +366,37 @@
     }
     .upload-label:hover { border-color: rgba(0,0,0,0.3); color: #1a1a1a; }
 
-    .arc-now-track {
-      font-size: 0.8rem; font-weight: bold; letter-spacing: 0.02em;
-      color: rgba(0,0,0,0.62); white-space: nowrap; overflow: hidden;
-      text-overflow: ellipsis; flex-shrink: 0;
+    /* Cassette deck */
+    .cassette-deck {
+      border: 1px solid rgba(0,0,0,0.1);
+      padding: 0.75rem 0.85rem;
+      flex-shrink: 0;
     }
-    .arc-controls { display: flex; align-items: center; gap: 0.6rem; flex-shrink: 0; }
+    .cassette-body {
+      display: flex; align-items: center; gap: 0.5rem;
+      margin-bottom: 0.6rem;
+    }
+    .reel {
+      color: #1a1a1a; flex-shrink: 0;
+      transform-origin: center center;
+    }
+    @keyframes reel-spin { to { transform: rotate(360deg); } }
+    .cassette-deck.playing .reel {
+      animation: reel-spin 3.5s linear infinite;
+    }
+    .cassette-window {
+      flex: 1; min-width: 0;
+      border: 1px solid rgba(0,0,0,0.1);
+      padding: 0.28rem 0.6rem;
+      background: rgba(0,0,0,0.02);
+    }
+    .cassette-track-name {
+      font-size: 0.72rem; letter-spacing: 0.04em;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      color: rgba(0,0,0,0.52); display: block;
+    }
+    .cassette-deck .arc-controls { display: flex; align-items: center; gap: 0.6rem; }
+
     .arc-play-btn {
       width: 34px; height: 34px; flex-shrink: 0;
       font-size: 0.85rem; background: none;
@@ -467,7 +500,6 @@
         <button class="nav-item" data-sec="broadcast">Broadcast</button>
         <button class="nav-item" data-sec="users">Users</button>
         <button class="nav-item" data-sec="past">Past Sessions</button>
-        <button class="nav-item" data-sec="archival">Archival</button>
       </nav>
       <div class="aside-footer" id="sign-out-btn">Sign out</div>
     </aside>
@@ -497,6 +529,13 @@
               <label class="form-label">Title</label>
               <input class="form-input" id="sess-title" placeholder="e.g. Late Night Frequencies"/>
             </div>
+            <div class="form-group">
+              <label class="form-label">Session Type</label>
+              <div class="btn-row">
+                <button class="btn btn-sm btn-primary" id="sess-type-archival" type="button">📼 Archival Room</button>
+                <button class="btn btn-sm" id="sess-type-live" type="button">🎙 Live Room</button>
+              </div>
+            </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem">
               <div class="form-group">
                 <label class="form-label">Date</label>
@@ -520,6 +559,41 @@
               <button class="btn btn-sm" id="sess-cancel-btn" style="display:none">
                 Cancel
               </button>
+            </div>
+
+            <!-- Archive Details (archival-type sessions only, shown after first Save) -->
+            <div id="sess-archive-panel" style="display:none;margin-top:1.4rem;padding-top:1.2rem;border-top:1px solid rgba(0,0,0,0.08)">
+              <div class="col-head">Archive Details</div>
+              <div class="arc-header-row" style="padding:0;border:none;background:none;margin-bottom:0.9rem">
+                <span class="form-label" style="flex-shrink:0;min-width:max-content">Archive Header</span>
+                <input class="form-input arc-header-input" id="sa-header"
+                       placeholder="e.g. Alan Lomax Field Recordings, 1967" autocomplete="off"/>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Archive Notes</label>
+                <textarea class="form-textarea" id="sa-notes" rows="3"
+                          placeholder="Context, credits, set notes…"></textarea>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Archive Image</label>
+                <div class="arc-image-preview" id="sa-image-preview" style="height:120px"></div>
+                <label class="upload-label" style="margin-top:0.5rem;align-self:flex-start">
+                  ↑ Image
+                  <input type="file" id="sa-image-upload" accept="image/*" style="display:none"/>
+                </label>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Tracks</label>
+                <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;margin-bottom:0.5rem">
+                  <label class="upload-label">
+                    ↑ Upload Tracks
+                    <input type="file" id="sa-track-upload" accept=".mp3,.wav,.flac" multiple style="display:none"/>
+                  </label>
+                  <span class="status-msg" id="sa-upload-status" style="font-size:0.62rem"></span>
+                </div>
+                <div class="arc-track-list" id="sa-track-list"
+                     style="max-height:240px;border:1px solid rgba(0,0,0,0.08);padding:0.4rem"></div>
+              </div>
             </div>
 
             <!-- Chat clear -->
@@ -546,6 +620,14 @@
           </div>
         </div>
 
+        <!-- Session picker — scopes timer + archive below -->
+        <div class="arc-header-row">
+          <span class="form-label" style="flex-shrink:0;min-width:max-content">Session</span>
+          <select class="form-select" id="bc-session-select">
+            <option value="">Loading sessions…</option>
+          </select>
+        </div>
+
         <!-- Controls row -->
         <div class="bc-controls">
           <div class="form-group">
@@ -563,7 +645,7 @@
         <!-- Broadcast + monitor panels -->
         <div class="bc-panels">
           <div class="bc-panel">
-            <div class="bc-panel-label">Transmit — share screen inside</div>
+            <div class="bc-panel-label">Transmit — camera &amp; audio</div>
             <div class="frame-wrap" id="push-wrap">
               <div class="frame-placeholder" id="push-placeholder">
                 Click "Go Live" to start
@@ -591,6 +673,114 @@
             <button class="btn btn-sm btn-primary" id="bc-timer-start">Start Timer</button>
             <button class="btn btn-sm btn-danger" id="bc-timer-stop">Stop Timer</button>
           </div>
+        </div>
+
+        <!-- ── Live Room placeholder (shown when selected session type = 'live') ── -->
+        <div class="sec-header" id="bc-live-placeholder" style="display:none;margin-top:1.6rem">
+          <span class="sec-title">🎙 Live Room — coming soon</span>
+        </div>
+
+        <!-- ── Archival Room (merged) ── -->
+        <div id="bc-archival-block">
+        <div class="sec-header" style="margin-top:1.6rem">
+          <span class="sec-title">Archival Room</span>
+          <div class="live-badge">
+            <div class="live-dot" id="arc-dot"></div>
+            <span id="arc-status-text">Idle</span>
+          </div>
+        </div>
+
+        <div class="arc-header-row">
+          <span class="form-label" style="flex-shrink:0;min-width:max-content">Archive Header</span>
+          <input class="form-input arc-header-input" id="arc-header"
+                 placeholder="e.g. Alan Lomax Field Recordings, 1967" autocomplete="off"/>
+        </div>
+
+        <div class="arc-grid">
+
+          <!-- Library -->
+          <div class="arc-col">
+            <div class="col-head">Library</div>
+            <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap">
+              <label class="upload-label">
+                ↑ Upload
+                <input type="file" id="arc-track-upload" accept=".mp3,.wav,.flac" multiple style="display:none"/>
+              </label>
+              <span class="status-msg" id="arc-upload-status" style="font-size:0.62rem"></span>
+            </div>
+            <div class="arc-track-list" id="arc-track-list">
+              <div class="empty-state">Loading…</div>
+            </div>
+          </div>
+
+          <!-- Cassette Player + Image -->
+          <div class="arc-col">
+            <div class="col-head">Player</div>
+            <div class="cassette-deck" id="admin-cassette">
+              <div class="cassette-body">
+              <svg class="reel" viewBox="0 0 40 40" width="36" height="36" fill="none">
+                <circle cx="20" cy="20" r="17" stroke="currentColor" stroke-width="1.2" opacity="0.28"/>
+                <circle cx="20" cy="20" r="5"  stroke="currentColor" stroke-width="1"   opacity="0.35"/>
+                <line x1="20"   y1="8"  x2="20"   y2="15"  stroke="currentColor" stroke-width="1" opacity="0.28"/>
+                <line x1="30.5" y1="26" x2="24.3" y2="22.5" stroke="currentColor" stroke-width="1" opacity="0.28"/>
+                <line x1="9.5"  y1="26" x2="15.7" y2="22.5" stroke="currentColor" stroke-width="1" opacity="0.28"/>
+              </svg>
+                <div class="cassette-window">
+                  <span class="cassette-track-name" id="arc-now-track">No track selected</span>
+                </div>
+              <svg class="reel" viewBox="0 0 40 40" width="36" height="36" fill="none">
+                <circle cx="20" cy="20" r="17" stroke="currentColor" stroke-width="1.2" opacity="0.28"/>
+                <circle cx="20" cy="20" r="5"  stroke="currentColor" stroke-width="1"   opacity="0.35"/>
+                <line x1="20"   y1="8"  x2="20"   y2="15"  stroke="currentColor" stroke-width="1" opacity="0.28"/>
+                <line x1="30.5" y1="26" x2="24.3" y2="22.5" stroke="currentColor" stroke-width="1" opacity="0.28"/>
+                <line x1="9.5"  y1="26" x2="15.7" y2="22.5" stroke="currentColor" stroke-width="1" opacity="0.28"/>
+              </svg>
+              </div>
+              <div class="arc-controls">
+                <button class="arc-play-btn" id="arc-play-btn" disabled>▶</button>
+                <div class="arc-seek-wrap">
+                  <input type="range" class="arc-seek" id="arc-seek" min="0" max="100" step="0.1" value="0"/>
+                  <div class="arc-time" id="arc-time">0:00 / 0:00</div>
+                </div>
+              </div>
+            </div>
+            <div class="arc-image-area">
+              <div class="col-head" style="margin-bottom:0">Archive Image</div>
+              <div class="arc-image-preview" id="arc-image-preview"></div>
+              <label class="upload-label">
+                ↑ Image
+                <input type="file" id="arc-image-upload" accept="image/*" style="display:none"/>
+              </label>
+            </div>
+          </div>
+
+          <!-- Metadata + Translation -->
+          <div class="arc-col arc-meta">
+            <div class="col-head">Metadata</div>
+            <div class="form-group">
+              <label class="form-label">Track Title</label>
+              <input class="form-input" id="meta-title" autocomplete="off"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Artist / Ensemble</label>
+              <input class="form-input" id="meta-artist" autocomplete="off"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Archive Source</label>
+              <input class="form-input" id="meta-source" placeholder="e.g. Alan Lomax Archive, 1967" autocomplete="off"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Context Notes</label>
+              <textarea class="form-textarea" id="meta-notes" rows="3" style="min-height:52px;max-height:80px"></textarea>
+            </div>
+            <div class="arc-meta-sep">Translation</div>
+            <div class="arc-meta-grow">
+              <textarea class="form-textarea" id="meta-translation"
+                        placeholder="Type translation here as the track plays…"></textarea>
+            </div>
+          </div>
+
+        </div>
         </div>
       </section>
 
@@ -660,83 +850,6 @@
               </button>
             </div>
           </div>
-        </div>
-      </section>
-
-      <!-- ── ARCHIVAL ROOM PLAYER ── -->
-      <section id="sec-archival">
-        <div class="sec-header">
-          <span class="sec-title">Archival Room</span>
-          <div class="live-badge">
-            <div class="live-dot" id="arc-dot"></div>
-            <span id="arc-status-text">Idle</span>
-          </div>
-        </div>
-
-        <div class="arc-grid">
-
-          <!-- Library -->
-          <div class="arc-col">
-            <div class="col-head">Library</div>
-            <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap">
-              <label class="upload-label">
-                ↑ Upload
-                <input type="file" id="arc-track-upload" accept=".mp3,.wav,.flac" multiple style="display:none"/>
-              </label>
-              <span class="status-msg" id="arc-upload-status" style="font-size:0.62rem"></span>
-            </div>
-            <div class="arc-track-list" id="arc-track-list">
-              <div class="empty-state">Loading…</div>
-            </div>
-          </div>
-
-          <!-- Player + Image -->
-          <div class="arc-col">
-            <div class="col-head">Player</div>
-            <div class="arc-now-track" id="arc-now-track">No track selected</div>
-            <div class="arc-controls">
-              <button class="arc-play-btn" id="arc-play-btn" disabled>▶</button>
-              <div class="arc-seek-wrap">
-                <input type="range" class="arc-seek" id="arc-seek" min="0" max="100" step="0.1" value="0"/>
-                <div class="arc-time" id="arc-time">0:00 / 0:00</div>
-              </div>
-            </div>
-            <div class="arc-image-area">
-              <div class="col-head" style="margin-bottom:0">Archive Image</div>
-              <div class="arc-image-preview" id="arc-image-preview"></div>
-              <label class="upload-label">
-                ↑ Image
-                <input type="file" id="arc-image-upload" accept="image/*" style="display:none"/>
-              </label>
-            </div>
-          </div>
-
-          <!-- Metadata + Translation -->
-          <div class="arc-col arc-meta">
-            <div class="col-head">Metadata</div>
-            <div class="form-group">
-              <label class="form-label">Track Title</label>
-              <input class="form-input" id="meta-title" autocomplete="off"/>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Artist / Ensemble</label>
-              <input class="form-input" id="meta-artist" autocomplete="off"/>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Archive Source</label>
-              <input class="form-input" id="meta-source" placeholder="e.g. Alan Lomax Archive, 1967" autocomplete="off"/>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Context Notes</label>
-              <textarea class="form-textarea" id="meta-notes" rows="3" style="min-height:52px;max-height:80px"></textarea>
-            </div>
-            <div class="arc-meta-sep">Translation</div>
-            <div class="arc-meta-grow">
-              <textarea class="form-textarea" id="meta-translation"
-                        placeholder="Type translation here as the track plays…"></textarea>
-            </div>
-          </div>
-
         </div>
       </section>
 
@@ -834,8 +947,7 @@
 
   /* ── Admin init (called after auth) ── */
   function initAdmin() {
-    const serviceKey = window.SUPABASE_SERVICE_KEY || window.SUPABASE_ANON_KEY;
-    const db = createClient(window.SUPABASE_URL, serviceKey);
+    const db = createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
 
     /* sign out */
     document.getElementById('sign-out-btn').addEventListener('click', () => {
@@ -855,7 +967,6 @@
       if (name === 'broadcast') initBroadcast();
       if (name === 'users')     loadUsers();
       if (name === 'past')      loadPastSessions();
-      if (name === 'archival')  initArchival();
     }
 
     navItems.forEach(b => b.addEventListener('click', () => switchTo(b.dataset.sec)));
@@ -864,6 +975,7 @@
        SECTION 1 — SESSION MANAGER
     ═════════════════════════════════════════════════════ */
     let editingSessionId = null;
+    let sessType     = 'archival';
     const sessSt     = document.getElementById('sess-status');
     const sessCards  = document.getElementById('sess-cards');
     const sessTitle  = document.getElementById('sess-title');
@@ -875,46 +987,93 @@
     const sessCancel = document.getElementById('sess-cancel-btn');
     const sessHead   = document.getElementById('sess-form-head');
     const chatCount  = document.getElementById('chat-count');
+    const sessTypeArcBtn  = document.getElementById('sess-type-archival');
+    const sessTypeLiveBtn = document.getElementById('sess-type-live');
+    const archivePanel    = document.getElementById('sess-archive-panel');
+
+    function setSessType(t) {
+      sessType = t;
+      sessTypeArcBtn.classList.toggle('btn-primary', t === 'archival');
+      sessTypeLiveBtn.classList.toggle('btn-primary', t === 'live');
+    }
+    sessTypeArcBtn.addEventListener('click', () => { setSessType('archival'); markDirty(); });
+    sessTypeLiveBtn.addEventListener('click', () => { setSessType('live'); markDirty(); });
+
+    [sessTitle, sessDate, sessTime, sessDesc].forEach(el => el.addEventListener('input', markDirty));
+
+    let sessFormDirty = false;
 
     function setSessStatus(msg, type = '') {
       sessSt.textContent = msg;
       sessSt.className = 'status-msg' + (type ? ` ${type}` : '');
-      if (type === 'ok') setTimeout(() => { sessSt.textContent = ''; }, 2500);
+      /* 'ok' no longer auto-clears — stays until markDirty() or resetSessForm() */
+    }
+
+    function markDirty() {
+      if (!editingSessionId && !sessTitle.value.trim()) return;
+      sessFormDirty = true;
+      setSessStatus('• unsaved changes');
     }
 
     function resetSessForm() {
       editingSessionId = null;
+      sessFormDirty = false;
       sessTitle.value = sessDate.value = sessTime.value = sessDesc.value = '';
+      setSessType('archival');
       sessHead.textContent = 'New Session';
       sessDel.style.display = 'none';
       sessCancel.style.display = 'none';
+      archivePanel.style.display = 'none';
+      sessSt.textContent = '';
+      sessSt.className = 'status-msg';
       document.querySelectorAll('.item-card.selected').forEach(c => c.classList.remove('selected'));
     }
 
     function populateSessForm(row) {
       editingSessionId = row.id;
+      sessFormDirty = false;
+      sessSt.textContent = '';
+      sessSt.className = 'status-msg';
       sessTitle.value = row.title || '';
       sessDate.value  = row.date  || '';
       sessTime.value  = row.time  || '';
       sessDesc.value  = row.description || '';
+      setSessType(row.type || 'archival');
       sessHead.textContent = 'Edit Session';
       sessDel.style.display    = '';
       sessCancel.style.display = '';
+      if (sessType === 'archival') showArchivePanel(row);
+      else archivePanel.style.display = 'none';
+    }
+
+    function showArchivePanel(row) {
+      archivePanel.style.display = '';
+      document.getElementById('sa-header').value = row.archive_header || '';
+      document.getElementById('sa-notes').value  = row.archive_notes  || '';
+      if (row.archive_image_url) setSaImg(row.archive_image_url); else clearSaImg();
+      loadSessionTracks(row.id);
     }
 
     async function loadSessions() {
-      sessCards.innerHTML = '';
       const { data, error } = await db.from('sessions').select('*').order('date', { ascending: false });
+      /* Clear only after all awaits so concurrent calls don't double-render */
+      sessCards.innerHTML = '';
       if (error) { sessCards.innerHTML = `<div class="empty-state">${error.message}</div>`; return; }
       if (!data?.length) {
         sessCards.innerHTML = '<div class="empty-state">No sessions yet.</div>'; return;
       }
+      const { data: trackCounts } = await db.from('tracks').select('session_id');
+      sessCards.innerHTML = ''; /* clear again after second await in case another call rendered between */
+      const counts = {};
+      (trackCounts || []).forEach(t => { if (t.session_id) counts[t.session_id] = (counts[t.session_id] || 0) + 1; });
       data.forEach(row => {
         const card = document.createElement('div');
         card.className = 'item-card' + (row.id === editingSessionId ? ' selected' : '');
+        const n = counts[row.id] || 0;
+        const typeBadge = row.type === 'live' ? '🎙 Live' : '📼 Archival';
         card.innerHTML = `
           <div class="card-title">${row.title || 'Untitled'}</div>
-          <div class="card-meta">${fmtDate(row.date)}${row.time ? ' · ' + fmtTime12(row.time) : ''}</div>
+          <div class="card-meta">${typeBadge} · ${fmtDate(row.date)}${row.time ? ' · ' + fmtTime12(row.time) : ''}${n ? ` · 🎵 ${n} track${n===1?'':'s'}` : ''}</div>
           <button class="card-del" data-id="${row.id}" title="Delete">✕</button>
         `;
         card.addEventListener('click', e => {
@@ -929,26 +1088,37 @@
           await db.from('sessions').delete().eq('id', row.id);
           if (editingSessionId === row.id) resetSessForm();
           loadSessions();
+          if (bcInited) populateSessionDropdown();
         });
         sessCards.appendChild(card);
       });
     }
 
     sessSave.addEventListener('click', async () => {
+      if (sessSave.disabled) return;
       const title = sessTitle.value.trim();
       const date  = sessDate.value;
       if (!title) { setSessStatus('title is required', 'err'); return; }
+      sessSave.disabled = true;
       setSessStatus('Saving…');
-      const payload = { title, date: date || null, time: sessTime.value || null, description: sessDesc.value.trim() || null };
-      let error;
+      const payload = { title, date: date || null, time: sessTime.value || null, description: sessDesc.value.trim() || null, type: sessType };
+      let error, savedRow;
       if (editingSessionId) {
-        ({ error } = await db.from('sessions').update(payload).eq('id', editingSessionId));
+        ({ data: savedRow, error } = await db.from('sessions').update(payload).eq('id', editingSessionId).select().single());
       } else {
-        ({ error } = await db.from('sessions').insert(payload));
+        ({ data: savedRow, error } = await db.from('sessions').insert(payload).select().single());
       }
+      sessSave.disabled = false;
       if (error) { setSessStatus(error.message, 'err'); return; }
-      setSessStatus('Saved.', 'ok');
-      resetSessForm();
+      sessFormDirty = false;
+      setSessStatus('✓ Saved', 'ok');
+      if (savedRow) {
+        populateSessForm(savedRow);
+      } else if (!editingSessionId) {
+        /* fallback: re-query most recently created session so editingSessionId is set */
+        const { data: latest } = await db.from('sessions').select('*').order('created_at', { ascending: false }).limit(1).maybeSingle();
+        if (latest) populateSessForm(latest);
+      }
       loadSessions();
     });
 
@@ -978,6 +1148,121 @@
       setSessStatus('Chat cleared.', 'ok');
     });
 
+    /* ── Archive Details panel (prep — Session Manager, no player) ── */
+    let saMetaTm = null;
+    ['sa-header', 'sa-notes'].forEach(id => {
+      document.getElementById(id).addEventListener('input', () => {
+        clearTimeout(saMetaTm);
+        saMetaTm = setTimeout(async () => {
+          const sessionId = editingSessionId;
+          if (!sessionId) return;
+          const field = id === 'sa-header' ? 'archive_header' : 'archive_notes';
+          const value = document.getElementById(id).value;
+          await db.from('sessions').update({ [field]: value }).eq('id', sessionId);
+          if (field === 'archive_header') {
+            const s = bcSessions.find(x => x.id === sessionId);
+            if (s) s.archive_header = value;
+          }
+        }, 400);
+      });
+    });
+
+    document.getElementById('sa-image-upload').addEventListener('change', async e => {
+      const file = e.target.files[0]; if (!file) return;
+      const sessionId = editingSessionId;
+      if (!sessionId) { e.target.value = ''; return; }
+      const path = `${Date.now()}-${file.name.replace(/\s+/g,'_')}`;
+      const { error } = await db.storage.from('fur-fm-images').upload(path, file);
+      if (error) return;
+      const { data: { publicUrl } } = db.storage.from('fur-fm-images').getPublicUrl(path);
+      setSaImg(publicUrl);
+      await db.from('sessions').update({ archive_image_url: publicUrl }).eq('id', sessionId);
+      const s = bcSessions.find(x => x.id === sessionId);
+      if (s) s.archive_image_url = publicUrl;
+      e.target.value = '';
+    });
+
+    function setSaImg(url) {
+      const el = document.getElementById('sa-image-preview');
+      el.style.backgroundImage = `url("${url.replace(/"/g,'%22')}")`;
+      el.classList.add('has-image');
+    }
+    function clearSaImg() {
+      const el = document.getElementById('sa-image-preview');
+      el.style.backgroundImage = '';
+      el.classList.remove('has-image');
+    }
+
+    async function loadSessionTracks(sessionId) {
+      const list = document.getElementById('sa-track-list');
+      list.innerHTML = '<div class="empty-state">Loading…</div>';
+      const { data } = await db.from('tracks').select('*')
+        .eq('session_id', sessionId).order('uploaded_at', { ascending: false });
+      renderSessionTracks(sessionId, data || []);
+    }
+
+    function renderSessionTracks(sessionId, tracks) {
+      const list = document.getElementById('sa-track-list');
+      list.innerHTML = '';
+      if (!tracks.length) { list.innerHTML = '<div class="empty-state">No tracks — upload one.</div>'; return; }
+      tracks.forEach(t => {
+        const row = document.createElement('div');
+        row.className = 'arc-track-row';
+        row.innerHTML = `
+          <span class="arc-track-title">${t.name}</span>
+          ${t.duration ? `<span class="arc-track-dur">${fmtDur(t.duration)}</span>` : ''}
+          <button class="arc-track-del" title="Remove">✕</button>
+        `;
+        row.querySelector('.arc-track-del').addEventListener('click', async () => {
+          if (!confirm(`Remove "${t.name}"?`)) return;
+          await db.storage.from('fur-fm-tracks').remove([t.storage_path]);
+          await db.from('tracks').delete().eq('id', t.id);
+          loadSessionTracks(sessionId);
+          loadSessions();
+          if (sessionId === bcSessionId) loadTracks();
+        });
+        list.appendChild(row);
+      });
+    }
+
+    document.getElementById('sa-track-upload').addEventListener('change', async e => {
+      const files = Array.from(e.target.files);
+      if (!files.length) return;
+      const sessionId = editingSessionId;
+      const st = document.getElementById('sa-upload-status');
+      if (!sessionId) {
+        st.textContent = 'Save the session first.'; st.className = 'status-msg err';
+        e.target.value = ''; return;
+      }
+      st.textContent = 'Uploading…'; st.className = 'status-msg';
+      let anyErr = false;
+      for (const file of files) {
+        const path = `${Date.now()}-${file.name.replace(/\s+/g,'_')}`;
+        const { error: upErr } = await db.storage.from('fur-fm-tracks').upload(path, file);
+        if (upErr) { st.textContent = `Storage: ${upErr.message}`; st.className = 'status-msg err'; anyErr = true; continue; }
+        const { data: { publicUrl } } = db.storage.from('fur-fm-tracks').getPublicUrl(path);
+        const dur  = await arcGetDur(file);
+        const tags = await arcReadTags(file);
+        let tagPicUrl = null;
+        if (tags.picture) tagPicUrl = await arcUploadPicture(tags.picture, path);
+        const { error: dbErr } = await db.from('tracks').insert({
+          name: tags.title || file.name.replace(/\.[^.]+$/,''),
+          filename: file.name, storage_path: path, url: publicUrl, duration: dur,
+          tag_artist: tags.artist || null,
+          tag_album:  tags.album  || null,
+          tag_picture_url: tagPicUrl,
+          session_id: sessionId,
+        });
+        if (dbErr) { st.textContent = `DB: ${dbErr.message}`; st.className = 'status-msg err'; anyErr = true; continue; }
+      }
+      if (!anyErr) { st.textContent = 'Done.'; st.className = 'status-msg ok'; }
+      setTimeout(() => { st.textContent = ''; }, 2500);
+      e.target.value = '';
+      loadSessionTracks(sessionId);
+      loadSessions();
+      if (sessionId === bcSessionId) loadTracks();
+    });
+
     loadSessions();
     loadChatCount();
 
@@ -989,12 +1274,16 @@
     let bcInterval = null;
     let bcSessionId = null;
 
-    function initBroadcast() {
+    async function initBroadcast() {
       if (bcInited) return;
       bcInited = true;
       loadAudioDevices();
-      loadBcSession();
       setupBcTimer();
+      setupArcAudio();
+      setupArcMeta();
+      setupArcUploads();
+      await populateSessionDropdown(); /* must finish before loadArcNP so cleared state isn't overwritten */
+      loadArcNP();
     }
 
     /* Audio device enumeration */
@@ -1021,8 +1310,8 @@
       const label = sel.options[sel.selectedIndex]?.text || '';
       const url   = new URL('https://vdo.ninja/');
       url.searchParams.set('push',        'xYuuWBy');
-      url.searchParams.set('screenshare', '1');
-      url.searchParams.set('videodevice', '0');
+      url.searchParams.set('webcam',      '1');
+      url.searchParams.set('videodevice', '1');
       url.searchParams.set('bitrate',     '4000');
       url.searchParams.set('label',       'FurFM_Admin');
       if (label && label !== 'Default (system)' && label !== 'Permission needed — allow mic access') {
@@ -1072,17 +1361,84 @@
     const bcTimerEl = document.getElementById('bc-timer');
     const bcSessNm  = document.getElementById('bc-sess-name');
 
-    async function loadBcSession() {
-      const { data } = await db.from('sessions').select('id, title, stream_started_at')
-        .order('created_at', { ascending: false }).limit(1).maybeSingle();
-      if (!data) {
+    let bcSessions = [];
+
+    async function populateSessionDropdown() {
+      const sel = document.getElementById('bc-session-select');
+      const { data } = await db.from('sessions')
+        .select('id, title, date, stream_started_at, archive_header, archive_image_url, type')
+        .order('date', { ascending: false }).order('created_at', { ascending: false });
+      bcSessions = data || [];
+      if (!bcSessions.length) {
+        sel.innerHTML = '<option value="">No session — create one in Session Manager</option>';
         bcSessNm.textContent = 'No session — create one in Session Manager';
+        /* Clear all stale broadcast UI and wipe now_playing so listeners see nothing */
+        clearArcImg();
+        ['meta-title','meta-artist','meta-source','meta-notes','meta-translation'].forEach(id => {
+          const el = document.getElementById(id); if (el) el.value = '';
+        });
+        const nowTrackEl = document.getElementById('arc-now-track');
+        if (nowTrackEl) nowTrackEl.textContent = '—';
+        const playBtn = document.getElementById('arc-play-btn');
+        if (playBtn) { playBtn.disabled = true; }
+        const seekBar = document.getElementById('arc-seek');
+        if (seekBar) { seekBar.value = 0; seekBar.max = 0; }
+        const timeEl = document.getElementById('arc-time');
+        if (timeEl) timeEl.textContent = '0:00 / 0:00';
+        const trackList = document.getElementById('arc-track-list');
+        if (trackList) trackList.innerHTML = '<div class="empty-state">No session selected.</div>';
+        const headerEl = document.getElementById('arc-header');
+        if (headerEl) headerEl.value = '';
+        /* Clear the now_playing row so listeners see a blank state */
+        await db.from('now_playing').update({
+          track_title: null, artist: null, archive_source: null,
+          context_notes: null, translation: null, image_url: null,
+          audio_url: null, is_playing: false, playhead_pos: 0,
+        }).eq('id', NP_ID);
         return;
       }
-      bcSessionId = data.id;
-      bcSessNm.textContent = data.title || 'Untitled session';
-      if (data.stream_started_at) startBcTimer(data.stream_started_at);
+      sel.innerHTML = bcSessions.map(s =>
+        `<option value="${s.id}">${(s.title || 'Untitled session')}${s.date ? ' — ' + fmtDate(s.date) : ''}</option>`
+      ).join('');
+      sel.value = bcSessions[0].id;
+      selectSession(bcSessions[0].id);
     }
+
+    function selectSession(id) {
+      const s = bcSessions.find(x => x.id === id);
+      if (!s) return;
+      bcSessionId = id;
+      document.getElementById('bc-session-select').value = id;
+      bcSessNm.textContent = s.title || 'Untitled session';
+      if (s.stream_started_at) startBcTimer(s.stream_started_at);
+      else stopBcTimer();
+
+      const isLive = s.type === 'live';
+      document.getElementById('bc-archival-block').style.display     = isLive ? 'none' : '';
+      document.getElementById('bc-live-placeholder').style.display   = isLive ? '' : 'none';
+
+      if (!isLive) {
+        document.getElementById('arc-header').value = s.archive_header || '';
+        if (s.archive_image_url) setArcImg(s.archive_image_url); else clearArcImg();
+        /* Clear stale track metadata from previous session */
+        ['meta-title','meta-artist','meta-source','meta-notes','meta-translation'].forEach(id => {
+          document.getElementById(id).value = '';
+        });
+        const nowTrackEl = document.getElementById('arc-now-track');
+        if (nowTrackEl) nowTrackEl.textContent = '—';
+        const playBtn = document.getElementById('arc-play-btn');
+        if (playBtn) playBtn.disabled = true;
+        const seekBar = document.getElementById('arc-seek');
+        if (seekBar) { seekBar.value = 0; seekBar.max = 0; }
+        const timeEl = document.getElementById('arc-time');
+        if (timeEl) timeEl.textContent = '0:00 / 0:00';
+        loadTracks();
+      }
+    }
+
+    document.getElementById('bc-session-select').addEventListener('change', e => {
+      selectSession(e.target.value);
+    });
 
     function startBcTimer(ts) {
       if (bcInterval) clearInterval(bcInterval);
@@ -1296,25 +1652,14 @@
     ═════════════════════════════════════════════════════ */
     const NP_ID  = '00000000-0000-0000-0000-000000000001';
     const arcAudio = new Audio();
-    let arcInited  = false;
     let arcSeeking = false;
     let arcPlaying = false;
     let arcPHTimer = null;
     let arcMetaTm  = null;
     let arcCurUrl  = null;
 
-    function initArchival() {
-      if (arcInited) return;
-      arcInited = true;
-      loadArcNP();
-      loadTracks();
-      setupArcAudio();
-      setupArcMeta();
-      setupArcUploads();
-    }
-
     async function loadArcNP() {
-      const { data } = await adminDb.from('now_playing').select('*')
+      const { data } = await db.from('now_playing').select('*')
         .eq('id', NP_ID).maybeSingle();
       if (!data) return;
       document.getElementById('meta-title').value       = data.track_title    || '';
@@ -1334,9 +1679,8 @@
         }
       }
     }
-
     async function writeNP(fields) {
-      await adminDb.from('now_playing').upsert({
+      await db.from('now_playing').upsert({
         id: NP_ID, updated_at: new Date().toISOString(), ...fields,
       });
     }
@@ -1347,11 +1691,12 @@
     }
 
     function setupArcAudio() {
-      const playBtn = document.getElementById('arc-play-btn');
-      const seekBar = document.getElementById('arc-seek');
-      const timeEl  = document.getElementById('arc-time');
-      const dotEl   = document.getElementById('arc-dot');
-      const lblEl   = document.getElementById('arc-status-text');
+      const playBtn  = document.getElementById('arc-play-btn');
+      const seekBar  = document.getElementById('arc-seek');
+      const timeEl   = document.getElementById('arc-time');
+      const dotEl    = document.getElementById('arc-dot');
+      const lblEl    = document.getElementById('arc-status-text');
+      const cassette = document.getElementById('admin-cassette');
 
       arcAudio.addEventListener('loadedmetadata', () => {
         seekBar.max = arcAudio.duration;
@@ -1368,6 +1713,7 @@
 
       arcAudio.addEventListener('ended', () => {
         arcPlaying = false; playBtn.textContent = '▶';
+        cassette.classList.remove('playing');
         clearInterval(arcPHTimer); arcPHTimer = null;
         dotEl.classList.remove('on'); lblEl.textContent = 'Idle';
         writeNP({ is_playing: false, playhead_pos: 0 });
@@ -1377,12 +1723,14 @@
         if (!arcAudio.src || arcAudio.src === window.location.href) return;
         if (arcPlaying) {
           arcAudio.pause(); arcPlaying = false; playBtn.textContent = '▶';
+          cassette.classList.remove('playing');
           clearInterval(arcPHTimer); arcPHTimer = null;
           dotEl.classList.remove('on'); lblEl.textContent = 'Paused';
           writeNP({ is_playing: false, playhead_pos: arcAudio.currentTime });
         } else {
           try { await arcAudio.play(); } catch (_) { return; }
           arcPlaying = true; playBtn.textContent = '⏸';
+          cassette.classList.add('playing');
           dotEl.classList.add('on'); lblEl.textContent = 'Broadcasting';
           writeNP({ is_playing: true, playhead_pos: arcAudio.currentTime });
           arcPHTimer = setInterval(() => {
@@ -1403,8 +1751,19 @@
       document.addEventListener('mouseup',  endSeek);
       document.addEventListener('touchend', endSeek);
     }
-
     function setupArcMeta() {
+      document.getElementById('arc-header').addEventListener('input', () => {
+        clearTimeout(arcMetaTm);
+        arcMetaTm = setTimeout(() => {
+          const value = document.getElementById('arc-header').value;
+          writeNP({ archive_header: value });
+          if (bcSessionId) {
+            db.from('sessions').update({ archive_header: value }).eq('id', bcSessionId).then(() => {});
+            const s = bcSessions.find(x => x.id === bcSessionId);
+            if (s) s.archive_header = value;
+          }
+        }, 400);
+      });
       [
         ['meta-title',       'track_title'],
         ['meta-artist',      'artist'],
@@ -1420,9 +1779,10 @@
         });
       });
     }
-
     async function loadTracks() {
-      const { data } = await adminDb.from('tracks').select('*')
+      if (!bcSessionId) { renderTracks([]); return; }
+      const { data } = await db.from('tracks').select('*')
+        .eq('session_id', bcSessionId)
         .order('uploaded_at', { ascending: false });
       renderTracks(data || []);
     }
@@ -1431,7 +1791,10 @@
       const list = document.getElementById('arc-track-list');
       list.innerHTML = '';
       if (!tracks.length) {
-        list.innerHTML = '<div class="empty-state">No tracks — upload one.</div>'; return;
+        list.innerHTML = bcSessionId
+          ? '<div class="empty-state">No tracks — upload one.</div>'
+          : '<div class="empty-state">Select a session above to manage its archive.</div>';
+        return;
       }
       tracks.forEach(t => {
         const row = document.createElement('div');
@@ -1448,8 +1811,8 @@
         row.querySelector('.arc-track-del').addEventListener('click', async e => {
           e.stopPropagation();
           if (!confirm(`Remove "${t.name}"?`)) return;
-          await adminDb.storage.from('fur-fm-tracks').remove([t.storage_path]);
-          await adminDb.from('tracks').delete().eq('id', t.id);
+          await db.storage.from('fur-fm-tracks').remove([t.storage_path]);
+          await db.from('tracks').delete().eq('id', t.id);
           loadTracks();
         });
         list.appendChild(row);
@@ -1460,6 +1823,7 @@
       if (arcPlaying) {
         arcAudio.pause(); arcPlaying = false;
         document.getElementById('arc-play-btn').textContent = '▶';
+        document.getElementById('admin-cassette').classList.remove('playing');
         clearInterval(arcPHTimer); arcPHTimer = null;
         document.getElementById('arc-dot').classList.remove('on');
         document.getElementById('arc-status-text').textContent = 'Idle';
@@ -1470,30 +1834,51 @@
       document.getElementById('arc-play-btn').disabled = false;
       document.getElementById('arc-seek').value = 0;
       document.getElementById('arc-time').textContent = `0:00 / ${t.duration ? fmtDur(t.duration) : '…'}`;
-      const titleEl = document.getElementById('meta-title');
-      if (!titleEl.value.trim()) { titleEl.value = t.name; writeNP({ track_title: t.name }); }
-      writeNP({ audio_url: t.url, is_playing: false, playhead_pos: 0 });
+
+      const titleEl  = document.getElementById('meta-title');
+      const artistEl = document.getElementById('meta-artist');
+      const sourceEl = document.getElementById('meta-source');
+      const npFields = { audio_url: t.url, is_playing: false, playhead_pos: 0 };
+
+      titleEl.value = t.name; npFields.track_title = t.name;
+      if (!artistEl.value.trim() && t.tag_artist) { artistEl.value = t.tag_artist; npFields.artist = t.tag_artist; }
+      if (!sourceEl.value.trim() && t.tag_album)  { sourceEl.value = t.tag_album;  npFields.archive_source = t.tag_album; }
+      if (t.tag_picture_url) { setArcImg(t.tag_picture_url); npFields.image_url = t.tag_picture_url; }
+
+      writeNP(npFields);
       loadTracks();
     }
-
     async function setupArcUploads() {
       document.getElementById('arc-track-upload').addEventListener('change', async e => {
         const files = Array.from(e.target.files);
         if (!files.length) return;
         const st = document.getElementById('arc-upload-status');
+        if (!bcSessionId) {
+          st.textContent = 'Select a session first.'; st.className = 'status-msg err';
+          e.target.value = ''; return;
+        }
         st.textContent = 'Uploading…'; st.className = 'status-msg';
+        let anyErr = false;
         for (const file of files) {
           const path = `${Date.now()}-${file.name.replace(/\s+/g,'_')}`;
-          const { error } = await adminDb.storage.from('fur-fm-tracks').upload(path, file);
-          if (error) { st.textContent = error.message; st.className = 'status-msg err'; continue; }
-          const { data: { publicUrl } } = adminDb.storage.from('fur-fm-tracks').getPublicUrl(path);
-          const dur = await arcGetDur(file);
-          await adminDb.from('tracks').insert({
-            name: file.name.replace(/\.[^.]+$/,''),
+          const { error: upErr } = await db.storage.from('fur-fm-tracks').upload(path, file);
+          if (upErr) { st.textContent = `Storage: ${upErr.message}`; st.className = 'status-msg err'; anyErr = true; continue; }
+          const { data: { publicUrl } } = db.storage.from('fur-fm-tracks').getPublicUrl(path);
+          const dur  = await arcGetDur(file);
+          const tags = await arcReadTags(file);
+          let tagPicUrl = null;
+          if (tags.picture) tagPicUrl = await arcUploadPicture(tags.picture, path);
+          const { error: dbErr } = await db.from('tracks').insert({
+            name: tags.title || file.name.replace(/\.[^.]+$/,''),
             filename: file.name, storage_path: path, url: publicUrl, duration: dur,
+            tag_artist: tags.artist || null,
+            tag_album:  tags.album  || null,
+            tag_picture_url: tagPicUrl,
+            session_id: bcSessionId,
           });
+          if (dbErr) { st.textContent = `DB: ${dbErr.message}`; st.className = 'status-msg err'; anyErr = true; continue; }
         }
-        st.textContent = 'Done.'; st.className = 'status-msg ok';
+        if (!anyErr) { st.textContent = 'Done.'; st.className = 'status-msg ok'; }
         setTimeout(() => { st.textContent = ''; }, 2500);
         e.target.value = ''; loadTracks();
       });
@@ -1501,9 +1886,9 @@
       document.getElementById('arc-image-upload').addEventListener('change', async e => {
         const file = e.target.files[0]; if (!file) return;
         const path = `${Date.now()}-${file.name.replace(/\s+/g,'_')}`;
-        const { error } = await adminDb.storage.from('fur-fm-images').upload(path, file);
+        const { error } = await db.storage.from('fur-fm-images').upload(path, file);
         if (error) return;
-        const { data: { publicUrl } } = adminDb.storage.from('fur-fm-images').getPublicUrl(path);
+        const { data: { publicUrl } } = db.storage.from('fur-fm-images').getPublicUrl(path);
         setArcImg(publicUrl); writeNP({ image_url: publicUrl });
         e.target.value = '';
       });
@@ -1515,6 +1900,12 @@
       el.classList.add('has-image');
     }
 
+    function clearArcImg() {
+      const el = document.getElementById('arc-image-preview');
+      el.style.backgroundImage = '';
+      el.classList.remove('has-image');
+    }
+
     function arcGetDur(file) {
       return new Promise(resolve => {
         const a = new Audio();
@@ -1523,6 +1914,38 @@
         a.addEventListener('error', () => { URL.revokeObjectURL(u); resolve(null); });
         a.src = u;
       });
+    }
+
+    /* Read embedded ID3/Vorbis tags (title, artist, album, cover art) */
+    function arcReadTags(file) {
+      return new Promise(resolve => {
+        if (!window.jsmediatags) return resolve({});
+        window.jsmediatags.read(file, {
+          onSuccess: tag => {
+            const t = tag.tags || {};
+            resolve({
+              title:   t.title  || null,
+              artist:  t.artist || null,
+              album:   t.album  || null,
+              picture: t.picture || null,
+            });
+          },
+          onError: () => resolve({}),
+        });
+      });
+    }
+
+    async function arcUploadPicture(picture, basePath) {
+      try {
+        const byteArray = new Uint8Array(picture.data);
+        const blob = new Blob([byteArray], { type: picture.format || 'image/jpeg' });
+        const ext  = (picture.format || '').includes('png') ? 'png' : 'jpg';
+        const path = `${basePath}-cover.${ext}`;
+        const { error } = await db.storage.from('fur-fm-images').upload(path, blob);
+        if (error) return null;
+        const { data: { publicUrl } } = db.storage.from('fur-fm-images').getPublicUrl(path);
+        return publicUrl;
+      } catch (_) { return null; }
     }
 
     /* Load first section */

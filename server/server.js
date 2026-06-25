@@ -19,6 +19,17 @@ const muxClient = new Mux({ tokenId: MUX_TOKEN_ID, tokenSecret: MUX_TOKEN_SECRET
 const supabase  = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 const app       = express();
 
+// ── Serve supabase-config.js dynamically (BEFORE static) so the service key ──
+// ── never leaves the server — only URL, anon key, and password hash go out. ───
+app.get('/supabase-config.js', (_req, res) => {
+  res.type('application/javascript');
+  res.send(
+    `window.SUPABASE_URL='${process.env.SUPABASE_URL}';\n` +
+    `window.SUPABASE_ANON_KEY='${process.env.SUPABASE_ANON_KEY}';\n` +
+    `window.ADMIN_PASSWORD_HASH='${process.env.ADMIN_PASSWORD_HASH}';\n`
+  );
+});
+
 // ── Serve the website files from the parent directory ────────────────────────
 app.use(express.static(path.join(__dirname, '..')));
 
