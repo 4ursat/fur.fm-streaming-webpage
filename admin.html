@@ -687,6 +687,9 @@
       color: rgba(255,255,255,0.18); margin-top: 0.45rem;
     }
     .sbr-text-mod-label:first-child { margin-top: 0; }
+    #sbr-cam-preview, #sbr-scr-preview {
+      position: relative;  /* needed for absolute iframe fill */
+    }
 
     /* ── Responsive ── */
     @media (max-width: 900px) {
@@ -923,6 +926,8 @@
                   <button class="sbr-btn" id="sbr-cam-start">▶ Start</button>
                   <button class="sbr-btn sbr-live" id="sbr-cam-stop" style="display:none">■ Stop</button>
                 </div>
+                <!-- Push iframe lives here so browser can access camera -->
+                <div id="sbr-cam-preview" style="display:none;margin-top:0.4rem;position:relative;overflow:hidden;background:#000;aspect-ratio:16/9"></div>
                 <div class="sbr-fader-row">
                   <span class="sbr-flabel">Mic</span>
                   <input type="range" id="sbr-mic-vol" min="0" max="1" step="0.01" value="0.8">
@@ -937,6 +942,8 @@
                   <button class="sbr-btn" id="sbr-scr-start">⬡ Start</button>
                   <button class="sbr-btn sbr-live" id="sbr-scr-stop" style="display:none">■ Stop</button>
                 </div>
+                <!-- Push iframe lives here so browser can access screen share -->
+                <div id="sbr-scr-preview" style="display:none;margin-top:0.4rem;position:relative;overflow:hidden;background:#000;aspect-ratio:16/9"></div>
               </div>
 
               <!-- Archive Music -->
@@ -2015,13 +2022,14 @@
       /* Populate audio device selector (includes USB soundcards) */
       loadAudioDevicesInto(document.getElementById('sbr-audio-dev'));
 
-      const pushStore = document.getElementById('sb-push-store');
-      const camStart  = document.getElementById('sbr-cam-start');
-      const camStop   = document.getElementById('sbr-cam-stop');
-      const scrStart  = document.getElementById('sbr-scr-start');
-      const scrStop   = document.getElementById('sbr-scr-stop');
+      const camStart   = document.getElementById('sbr-cam-start');
+      const camStop    = document.getElementById('sbr-cam-stop');
+      const camPreview = document.getElementById('sbr-cam-preview');
+      const scrStart   = document.getElementById('sbr-scr-start');
+      const scrStop    = document.getElementById('sbr-scr-stop');
+      const scrPreview = document.getElementById('sbr-scr-preview');
 
-      /* Camera start */
+      /* Camera start — iframe lives in the visible right-panel preview div */
       camStart.addEventListener('click', () => {
         const devSel = document.getElementById('sbr-audio-dev');
         const label  = devSel.options[devSel.selectedIndex]?.text || '';
@@ -2038,8 +2046,10 @@
         iframe.id    = 'sbr-cam-iframe';
         iframe.src   = url.toString();
         iframe.allow = 'autoplay;camera;microphone;fullscreen;picture-in-picture;display-capture;midi;encrypted-media';
-        iframe.style.cssText = 'width:320px;height:240px;border:none;display:block;';
-        pushStore.appendChild(iframe);
+        iframe.style.cssText = 'width:100%;height:100%;border:none;display:block;position:absolute;inset:0;';
+        camPreview.innerHTML = '';
+        camPreview.appendChild(iframe);
+        camPreview.style.display = '';
         camStart.style.display = 'none';
         camStop.style.display  = '';
         bcLive = true;
@@ -2052,6 +2062,7 @@
       camStop.addEventListener('click', () => {
         const iframe = document.getElementById('sbr-cam-iframe');
         if (iframe) { iframe.src = 'about:blank'; iframe.remove(); }
+        camPreview.style.display = 'none';
         camStart.style.display = '';
         camStop.style.display  = 'none';
         bcLive = false;
@@ -2060,7 +2071,7 @@
         document.getElementById('sbr-dot').classList.remove('on');
       });
 
-      /* Screen share start */
+      /* Screen share start — iframe in visible preview div for getDisplayMedia to work */
       scrStart.addEventListener('click', () => {
         const url = new URL('https://vdo.ninja/');
         url.searchParams.set('push',        'xYuuWBysc');
@@ -2071,8 +2082,10 @@
         iframe.id    = 'sbr-scr-iframe';
         iframe.src   = url.toString();
         iframe.allow = 'autoplay;camera;microphone;display-capture;fullscreen;picture-in-picture;midi;encrypted-media';
-        iframe.style.cssText = 'width:320px;height:240px;border:none;display:block;';
-        pushStore.appendChild(iframe);
+        iframe.style.cssText = 'width:100%;height:100%;border:none;display:block;position:absolute;inset:0;';
+        scrPreview.innerHTML = '';
+        scrPreview.appendChild(iframe);
+        scrPreview.style.display = '';
         scrStart.style.display = 'none';
         scrStop.style.display  = '';
       });
@@ -2081,6 +2094,7 @@
       scrStop.addEventListener('click', () => {
         const iframe = document.getElementById('sbr-scr-iframe');
         if (iframe) { iframe.src = 'about:blank'; iframe.remove(); }
+        scrPreview.style.display = 'none';
         scrStart.style.display = '';
         scrStop.style.display  = 'none';
       });
