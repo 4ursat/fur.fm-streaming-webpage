@@ -542,6 +542,48 @@
       background: rgba(255,255,255,0.15);
     }
 
+    /* Video / Screen module controls */
+    .sb-cam-ctl, .sb-scr-ctl {
+      width: 100%; height: 100%;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 0.5rem;
+      padding: 0.5rem;
+      background: rgba(0,0,0,0.6);
+    }
+    .sb-cam-ctl select {
+      width: 100%; font-size: 0.6rem;
+      background: rgba(255,255,255,0.08);
+      color: rgba(255,255,255,0.7);
+      border: 1px solid rgba(255,255,255,0.18);
+      padding: 0.2rem 0.3rem; border-radius: 0;
+    }
+    .sb-start-cam, .sb-start-scr {
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 0.3rem 0.7rem;
+      background: #1a1a1a; color: #faf9f7;
+      border: 1px solid rgba(255,255,255,0.18); cursor: pointer;
+      transition: opacity 0.14s;
+    }
+    .sb-start-cam:hover, .sb-start-scr:hover { opacity: 0.8; }
+    .sb-vc-stop {
+      position: absolute; bottom: 4px; right: 4px;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.55rem; letter-spacing: 0.08em;
+      padding: 0.2rem 0.45rem;
+      background: rgba(176,48,32,0.85); color: #fff;
+      border: none; cursor: pointer; z-index: 2;
+    }
+    .sb-vc-stop:hover { background: rgba(176,48,32,1); }
+    .sb-audio-body {
+      width: 100%; height: 100%;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 0.25rem;
+      padding: 0.4rem; background: rgba(0,0,0,0.5);
+    }
+    .sb-audio-track { font-size: 0.6rem; color: rgba(255,255,255,0.5); text-align: center; }
+    .sb-audio-state { font-size: 0.7rem; color: rgba(255,255,255,0.3); }
+
     #sb-config-panel {
       margin-top: 0.7rem;
       padding: 0.7rem 0.9rem;
@@ -743,42 +785,6 @@
           </select>
         </div>
 
-        <!-- Controls row -->
-        <div class="bc-controls">
-          <div class="form-group">
-            <label class="form-label">Audio Source</label>
-            <select class="form-select" id="bc-audio-device">
-              <option value="">Loading devices…</option>
-            </select>
-          </div>
-          <div class="btn-row" style="padding-bottom:0.3rem">
-            <button class="btn btn-primary" id="bc-go-live-btn">Go Live</button>
-            <button class="btn btn-danger" id="bc-stop-btn" style="display:none">Stop</button>
-          </div>
-        </div>
-
-        <!-- Broadcast + monitor panels -->
-        <div class="bc-panels">
-          <div class="bc-panel">
-            <div class="bc-panel-label">Transmit — camera &amp; audio</div>
-            <div class="frame-wrap" id="push-wrap">
-              <div class="frame-placeholder" id="push-placeholder">
-                Click "Go Live" to start
-              </div>
-            </div>
-          </div>
-          <div class="bc-panel">
-            <div class="bc-panel-label">Monitor (listener view)</div>
-            <div class="frame-wrap">
-              <iframe
-                id="bc-view-frame"
-                src="https://vdo.ninja/?view=xYuuWBy&cleanoutput&autoplay&muted"
-                allow="autoplay;camera;microphone;display-capture"
-                title="Monitor"></iframe>
-            </div>
-          </div>
-        </div>
-
         <!-- Session timer -->
         <div class="timer-row">
           <div class="timer-label">Session Timer</div>
@@ -818,8 +824,9 @@
           </div>
         </div>
 
-        <!-- ── Archival Room (merged) ── -->
-        <div id="bc-archival-block">
+        <!-- ── Archival Room — hidden; teleported into audio module config panel when selected ── -->
+        <div id="sb-arc-store" style="display:none"></div>
+        <div id="bc-archival-block" style="display:none">
         <div class="sec-header" style="margin-top:1.6rem">
           <span class="sec-title">Archival Room</span>
           <div class="live-badge">
@@ -1415,85 +1422,29 @@
     async function initBroadcast() {
       if (bcInited) return;
       bcInited = true;
-      loadAudioDevices();
       setupBcTimer();
       setupArcAudio();
       setupArcMeta();
       setupArcUploads();
-      await populateSessionDropdown(); /* must finish before loadArcNP so cleared state isn't overwritten */
+      await populateSessionDropdown();
       loadArcNP();
     }
 
-    /* Audio device enumeration */
-    async function loadAudioDevices() {
-      const sel = document.getElementById('bc-audio-device');
-      sel.innerHTML = '<option value="">Default (system)</option>';
+    async function loadAudioDevicesInto(sel) {
+      sel.innerHTML = '<option value="">Default mic</option>';
       try {
         await navigator.mediaDevices.getUserMedia({ audio: true }).then(s => s.getTracks().forEach(t => t.stop()));
         const devices = await navigator.mediaDevices.enumerateDevices();
         devices.filter(d => d.kind === 'audioinput').forEach(d => {
           const opt = document.createElement('option');
           opt.value = d.deviceId;
-          opt.textContent = d.label || `Microphone ${d.deviceId.slice(0,6)}`;
+          opt.textContent = d.label || `Mic ${d.deviceId.slice(0,6)}`;
           sel.appendChild(opt);
         });
       } catch (_) {
-        sel.innerHTML = '<option value="">Permission needed — allow mic access</option>';
+        sel.innerHTML = '<option value="">Allow mic in browser</option>';
       }
     }
-
-    /* Go Live */
-    document.getElementById('bc-go-live-btn').addEventListener('click', () => {
-      const sel   = document.getElementById('bc-audio-device');
-      const label = sel.options[sel.selectedIndex]?.text || '';
-      const url   = new URL('https://vdo.ninja/');
-      url.searchParams.set('push',        'xYuuWBy');
-      url.searchParams.set('webcam',      '1');
-      url.searchParams.set('videodevice', '1');
-      url.searchParams.set('bitrate',     '4000');
-      url.searchParams.set('label',       'FurFM_Admin');
-      if (label && label !== 'Default (system)' && label !== 'Permission needed — allow mic access') {
-        url.searchParams.set('audiodevice', label);
-      }
-
-      const wrap = document.getElementById('push-wrap');
-      const placeholder = document.getElementById('push-placeholder');
-      if (placeholder) placeholder.remove();
-
-      let iframe = wrap.querySelector('iframe');
-      if (!iframe) {
-        iframe = document.createElement('iframe');
-        iframe.allow = 'autoplay;camera;microphone;fullscreen;picture-in-picture;display-capture;midi;encrypted-media';
-        iframe.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;border:none;display:block;';
-        wrap.appendChild(iframe);
-      }
-      iframe.src = url.toString();
-
-      bcLive = true;
-      document.getElementById('bc-dot').classList.add('on');
-      document.getElementById('bc-status-label').textContent = 'Live';
-      document.getElementById('bc-go-live-btn').style.display = 'none';
-      document.getElementById('bc-stop-btn').style.display    = '';
-    });
-
-    /* Stop */
-    document.getElementById('bc-stop-btn').addEventListener('click', () => {
-      const iframe = document.getElementById('push-wrap').querySelector('iframe');
-      if (iframe) { iframe.src = 'about:blank'; iframe.remove(); }
-
-      const wrap = document.getElementById('push-wrap');
-      const ph = document.createElement('div');
-      ph.id = 'push-placeholder';
-      ph.className = 'frame-placeholder';
-      ph.textContent = 'Click "Go Live" to start';
-      wrap.appendChild(ph);
-
-      bcLive = false;
-      document.getElementById('bc-dot').classList.remove('on');
-      document.getElementById('bc-status-label').textContent = 'Offline';
-      document.getElementById('bc-go-live-btn').style.display = '';
-      document.getElementById('bc-stop-btn').style.display    = 'none';
-    });
 
     /* Broadcast timer (mirrors stream.html timer logic) */
     const bcTimerEl = document.getElementById('bc-timer');
@@ -1660,7 +1611,18 @@
       }, 500);
     }
 
+    function clearConfigPanel() {
+      const block = document.getElementById('bc-archival-block');
+      if (block && block.parentElement === sbConfigPanel) {
+        document.getElementById('sb-arc-store').appendChild(block);
+        block.style.display = 'none';
+      }
+      sbConfigPanel.innerHTML = '';
+      sbConfigPanel.classList.remove('visible');
+    }
+
     function selectModule(id) {
+      if (sbSelectedId && sbSelectedId !== id) clearConfigPanel();
       sbSelectedId = id;
       sbCanvas.querySelectorAll('.sb-module').forEach(el =>
         el.classList.toggle('selected', el.dataset.id === id));
@@ -1668,7 +1630,7 @@
     }
 
     function renderConfigPanel(id) {
-      if (!id) { sbConfigPanel.innerHTML = ''; sbConfigPanel.classList.remove('visible'); return; }
+      if (!id) { clearConfigPanel(); return; }
       const mod = getModuleById(id);
       if (!mod) return;
       sbConfigPanel.classList.add('visible');
@@ -1745,9 +1707,23 @@
           Screen share — the VDO.ninja room <em>xYuuWBysc</em> is shown to listeners at this position.<br>
           Start a screen-share push to room <code>xYuuWBysc</code> from a separate browser tab using VDO.ninja.</div>`;
       } else if (mod.type === 'audio') {
-        sbConfigPanel.innerHTML = `<div style="font-size:0.72rem;color:rgba(0,0,0,0.45);line-height:1.7">
-          Audio-only module — no visual shown to listeners.<br>
-          Audio is controlled via the Archival Room deck below.</div>`;
+        const block = document.getElementById('bc-archival-block');
+        sbConfigPanel.innerHTML = '';
+        sbConfigPanel.appendChild(block);
+        block.style.display = '';
+        sbConfigPanel.classList.add('visible');
+        if (bcSessionId) loadTracks();
+        // keep audio state label in module body in sync
+        function syncAudioBody() {
+          const el = getModuleEl(id);
+          if (!el) return;
+          const trackEl = el.querySelector('.sb-audio-track');
+          const stateEl = el.querySelector('.sb-audio-state');
+          if (trackEl) trackEl.textContent = document.getElementById('arc-now-track')?.textContent || 'no track';
+          if (stateEl) stateEl.textContent  = arcPlaying ? '● playing' : '♪';
+        }
+        syncAudioBody();
+        return; // classList.add('visible') already done above
       }
     }
 
@@ -1763,9 +1739,14 @@
 
       let bodyHtml = '';
       if (mod.type === 'video') {
-        bodyHtml = `<iframe src="https://vdo.ninja/?view=xYuuWBy&cleanoutput&autoplay&muted" allow="autoplay;camera;microphone"></iframe>`;
+        bodyHtml = `<div class="sb-cam-ctl">
+          <select class="sb-audio-dev"></select>
+          <button class="sb-start-cam">▶ Start Camera</button>
+        </div>`;
       } else if (mod.type === 'screen') {
-        bodyHtml = `<iframe src="https://vdo.ninja/?view=xYuuWBysc&cleanoutput&autoplay&muted" allow="autoplay;camera;microphone;display-capture"></iframe>`;
+        bodyHtml = `<div class="sb-scr-ctl">
+          <button class="sb-start-scr">⬡ Start Screen Share</button>
+        </div>`;
       } else if (mod.type === 'text') {
         bodyHtml = `<div class="sb-text-preview">${sbEsc(mod.config.content||'')}</div>`;
       } else if (mod.type === 'image') {
@@ -1773,7 +1754,10 @@
           ? `<img class="sb-img-preview" src="${sbEsc(mod.config.url)}" alt=""/>`
           : `<div class="sb-audio-label">no image set</div>`;
       } else {
-        bodyHtml = `<div class="sb-audio-label">♪ audio deck</div>`;
+        bodyHtml = `<div class="sb-audio-body">
+          <div class="sb-audio-state">♪</div>
+          <div class="sb-audio-track">no track</div>
+        </div>`;
       }
 
       el.innerHTML = `
@@ -1828,12 +1812,88 @@
         document.onmouseup = () => { document.onmousemove = null; document.onmouseup = null; scheduleSave(); };
       });
 
+      if (mod.type === 'video')  initVideoPush(el);
+      if (mod.type === 'screen') initScreenPush(el);
+
       return el;
+    }
+
+    function initVideoPush(el) {
+      const sel      = el.querySelector('.sb-audio-dev');
+      const startBtn = el.querySelector('.sb-start-cam');
+      const body     = el.querySelector('.sb-mod-body');
+      loadAudioDevicesInto(sel);
+      startBtn.addEventListener('click', () => {
+        const label = sel.options[sel.selectedIndex]?.text || '';
+        const url = new URL('https://vdo.ninja/');
+        url.searchParams.set('push',        'xYuuWBy');
+        url.searchParams.set('webcam',      '1');
+        url.searchParams.set('videodevice', '1');
+        url.searchParams.set('bitrate',     '4000');
+        url.searchParams.set('label',       'FurFM_Admin');
+        if (label && !label.includes('Default') && !label.includes('Allow')) {
+          url.searchParams.set('audiodevice', label);
+        }
+        const iframe = document.createElement('iframe');
+        iframe.src   = url.toString();
+        iframe.allow = 'autoplay;camera;microphone;fullscreen;picture-in-picture;display-capture;midi;encrypted-media';
+        iframe.style.cssText = 'width:100%;height:100%;border:none;display:block;';
+        const stopBtn = document.createElement('button');
+        stopBtn.className   = 'sb-vc-stop';
+        stopBtn.textContent = '■ Stop';
+        stopBtn.addEventListener('click', () => {
+          iframe.src = 'about:blank'; iframe.remove(); stopBtn.remove();
+          body.innerHTML = `<div class="sb-cam-ctl">
+            <select class="sb-audio-dev"></select>
+            <button class="sb-start-cam">▶ Start Camera</button>
+          </div>`;
+          initVideoPush(el);
+          bcLive = false;
+          document.getElementById('bc-dot').classList.remove('on');
+          document.getElementById('bc-status-label').textContent = 'Offline';
+        });
+        body.innerHTML = '';
+        body.style.position = 'relative';
+        body.appendChild(iframe);
+        body.appendChild(stopBtn);
+        bcLive = true;
+        document.getElementById('bc-dot').classList.add('on');
+        document.getElementById('bc-status-label').textContent = 'Live';
+      });
+    }
+
+    function initScreenPush(el) {
+      const startBtn = el.querySelector('.sb-start-scr');
+      const body     = el.querySelector('.sb-mod-body');
+      startBtn.addEventListener('click', () => {
+        const url = new URL('https://vdo.ninja/');
+        url.searchParams.set('push',        'xYuuWBysc');
+        url.searchParams.set('screenshare', '1');
+        url.searchParams.set('cleanoutput', '1');
+        url.searchParams.set('label',       'FurFM_Screen');
+        const iframe = document.createElement('iframe');
+        iframe.src   = url.toString();
+        iframe.allow = 'autoplay;camera;microphone;display-capture;fullscreen;picture-in-picture;midi;encrypted-media';
+        iframe.style.cssText = 'width:100%;height:100%;border:none;display:block;';
+        const stopBtn = document.createElement('button');
+        stopBtn.className   = 'sb-vc-stop';
+        stopBtn.textContent = '■ Stop';
+        stopBtn.addEventListener('click', () => {
+          iframe.src = 'about:blank'; iframe.remove(); stopBtn.remove();
+          body.innerHTML = `<div class="sb-scr-ctl"><button class="sb-start-scr">⬡ Start Screen Share</button></div>`;
+          initScreenPush(el);
+        });
+        body.innerHTML = '';
+        body.style.position = 'relative';
+        body.appendChild(iframe);
+        body.appendChild(stopBtn);
+      });
     }
 
     function populateCanvas(sceneConfig) {
       sbCanvas.querySelectorAll('.sb-module').forEach(el => el.remove());
-      sbSelectedId = null; renderConfigPanel(null);
+      clearConfigPanel();
+      sbSelectedId = null;
       sbModules = (sceneConfig?.modules || []).map(m => ({ ...m, config: m.config || {} }));
       sbModules.forEach(mod => sbCanvas.appendChild(buildModuleEl(mod)));
       syncEmptyHint();
