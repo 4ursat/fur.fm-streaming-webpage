@@ -350,6 +350,9 @@
         <span>tap to watch</span>
       </div>
 
+      <!-- Scene layer: rendered by admin scene builder, overlays the VDO.ninja frame -->
+      <div id="scene-layer" style="display:none; position:absolute; inset:0; z-index:15; pointer-events:none; overflow:hidden;"></div>
+
       <!-- Archive image background (shown during archival sessions) -->
       <div class="np-image-bg" id="np-image-bg"></div>
 
@@ -672,8 +675,40 @@
   }, true);
   audioPrompt.addEventListener('click', () => attemptPlay());
 
+  /* ── Scene renderer ── */
+  const sceneLayer  = document.getElementById('scene-layer');
+  const obsPlayer   = document.getElementById('obs-player');
+
+  function renderScene(scene) {
+    const mods = scene?.modules ?? [];
+    if (!mods.length) {
+      sceneLayer.style.display = 'none';
+      if (obsPlayer) obsPlayer.style.display = '';
+      return;
+    }
+    if (obsPlayer) obsPlayer.style.display = 'none';
+    sceneLayer.style.display = 'block';
+    sceneLayer.innerHTML = '';
+    for (const m of mods) {
+      const el = document.createElement('div');
+      el.style.cssText = `position:absolute;left:${m.x}%;top:${m.y}%;width:${m.w}%;height:${m.h}%;overflow:hidden;`;
+      if (m.type === 'video') {
+        el.innerHTML = `<iframe src="https://vdo.ninja/?view=xYuuWBy&label=ffm_listening_room&cleanoutput&autoplay" style="width:100%;height:100%;border:none;display:block" allow="autoplay;camera;microphone" allowfullscreen></iframe>`;
+      } else if (m.type === 'screen') {
+        el.innerHTML = `<iframe src="https://vdo.ninja/?view=xYuuWBysc&cleanoutput&autoplay" style="width:100%;height:100%;border:none;display:block" allow="autoplay" allowfullscreen></iframe>`;
+      } else if (m.type === 'text') {
+        el.style.cssText += `color:#f0e0a8;white-space:pre-wrap;word-break:break-word;font-size:${m.config?.fontSize||16}px;padding:0.5em;font-family:'Hind',sans-serif;`;
+        el.textContent = m.config?.content || '';
+      } else if (m.type === 'image') {
+        el.innerHTML = `<img src="${esc(m.config?.url||'')}" style="width:100%;height:100%;object-fit:contain;display:block;" alt=""/>`;
+      }
+      sceneLayer.appendChild(el);
+    }
+  }
+
   function applyNP(d) {
     if (!d) return;
+    if ('scene' in d) renderScene(d.scene);
     syncAudio(d);
     const hasContent = d.track_title || d.artist;
     npBar.classList.toggle('visible', !!hasContent);

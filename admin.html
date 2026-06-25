@@ -447,6 +447,121 @@
     }
     .arc-meta-grow .form-textarea { flex: 1; min-height: 80px; }
 
+    /* ── Scene Builder ── */
+    #scene-builder {
+      margin-top: 1.4rem;
+      border-top: 1px solid rgba(0,0,0,0.08);
+      padding-top: 1.2rem;
+    }
+    #sb-wrap {
+      display: flex; gap: 0.8rem; align-items: flex-start;
+      margin-top: 0.9rem;
+    }
+    #sb-palette {
+      display: flex; flex-direction: column; gap: 0.35rem;
+      flex-shrink: 0; width: 100px;
+    }
+    .sb-add-btn {
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.58rem; letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 0.38rem 0.5rem; border: 1px dashed rgba(0,0,0,0.2);
+      background: transparent; color: rgba(0,0,0,0.46);
+      cursor: pointer; text-align: left; transition: all 0.13s;
+    }
+    .sb-add-btn:hover { border-color: rgba(0,0,0,0.36); color: #1a1a1a; background: rgba(0,0,0,0.02); }
+
+    #sb-canvas-wrap {
+      flex: 1; position: relative;
+      padding-top: calc((9/16) * (100% - 108px)); /* 16:9 minus palette+gap */
+      background: #111; border: 1px solid rgba(0,0,0,0.18);
+      min-width: 0;
+    }
+    #sb-canvas {
+      position: absolute; inset: 0;
+      overflow: hidden;
+    }
+    #sb-empty-hint {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase;
+      color: rgba(255,255,255,0.18); pointer-events: none;
+    }
+
+    .sb-module {
+      position: absolute;
+      border: 1px solid rgba(255,255,255,0.25);
+      background: rgba(20,20,20,0.9);
+      min-width: 80px; min-height: 60px;
+      box-sizing: border-box;
+      cursor: move;
+      user-select: none;
+      display: flex; flex-direction: column;
+    }
+    .sb-module.selected { border-color: rgba(255,200,50,0.7); }
+    .sb-mod-header {
+      display: flex; align-items: center;
+      padding: 0.2rem 0.35rem; gap: 0.3rem;
+      background: rgba(255,255,255,0.06);
+      flex-shrink: 0; cursor: move;
+    }
+    .sb-mod-type {
+      font-size: 0.55rem; letter-spacing: 0.1em; text-transform: uppercase;
+      color: rgba(255,255,255,0.5); flex: 1;
+    }
+    .sb-mod-del {
+      font-size: 0.6rem; color: rgba(255,255,255,0.28);
+      background: none; border: none; cursor: pointer; padding: 0; line-height: 1;
+      font-family: inherit;
+    }
+    .sb-mod-del:hover { color: #e05040; }
+    .sb-mod-body {
+      flex: 1; overflow: hidden; position: relative; min-height: 0;
+    }
+    .sb-mod-body iframe {
+      width: 100%; height: 100%; border: none; display: block;
+      pointer-events: none; /* allow drag through iframe */
+    }
+    .sb-module.selected .sb-mod-body iframe { pointer-events: auto; }
+    .sb-mod-body .sb-text-preview {
+      width: 100%; height: 100%; padding: 0.3rem 0.4rem;
+      font-size: 0.72rem; color: #f0e0a8;
+      white-space: pre-wrap; word-break: break-word; overflow: auto;
+      pointer-events: none;
+    }
+    .sb-mod-body .sb-img-preview {
+      width: 100%; height: 100%; object-fit: contain; display: block;
+    }
+    .sb-mod-body .sb-audio-label {
+      width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+      font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase;
+      color: rgba(255,255,255,0.35);
+    }
+    .sb-resize {
+      position: absolute; bottom: 0; right: 0;
+      width: 12px; height: 12px; cursor: se-resize;
+      background: rgba(255,255,255,0.15);
+    }
+
+    #sb-config-panel {
+      margin-top: 0.7rem;
+      padding: 0.7rem 0.9rem;
+      border: 1px solid rgba(0,0,0,0.09);
+      background: rgba(0,0,0,0.015);
+      display: none;
+    }
+    #sb-config-panel.visible { display: block; }
+    #sb-config-panel .form-group { margin-bottom: 0.6rem; }
+    #sb-config-panel .form-group:last-child { margin-bottom: 0; }
+    #sb-config-panel textarea.form-textarea { min-height: 56px; max-height: 120px; }
+
+    #sb-actions {
+      display: flex; align-items: center; gap: 0.8rem;
+      margin-top: 0.7rem; flex-wrap: wrap;
+    }
+    #sb-save-status {
+      font-size: 0.62rem; color: rgba(0,0,0,0.36); letter-spacing: 0.04em;
+    }
+
     /* ── Responsive ── */
     @media (max-width: 900px) {
       .bc-panels { grid-template-columns: 1fr; }
@@ -675,9 +790,32 @@
           </div>
         </div>
 
-        <!-- ── Live Room placeholder (shown when selected session type = 'live') ── -->
-        <div class="sec-header" id="bc-live-placeholder" style="display:none;margin-top:1.6rem">
-          <span class="sec-title">🎙 Live Room — coming soon</span>
+        <!-- ── Scene Builder ── -->
+        <div id="scene-builder">
+          <div class="sec-header" style="margin-bottom:0.7rem;padding-bottom:0.6rem">
+            <span class="sec-title">Scene Builder</span>
+            <span class="status-msg" id="sb-save-status"></span>
+          </div>
+          <div id="sb-wrap">
+            <div id="sb-palette">
+              <div style="font-size:0.55rem;letter-spacing:0.16em;text-transform:uppercase;color:rgba(0,0,0,0.32);margin-bottom:0.2rem">Add module</div>
+              <button class="sb-add-btn" data-type="video">▶ Video</button>
+              <button class="sb-add-btn" data-type="screen">⬡ Screen</button>
+              <button class="sb-add-btn" data-type="text">T Text</button>
+              <button class="sb-add-btn" data-type="image">⬜ Image</button>
+              <button class="sb-add-btn" data-type="audio">♪ Audio</button>
+            </div>
+            <div id="sb-canvas-wrap">
+              <div id="sb-canvas">
+                <div id="sb-empty-hint">canvas — add modules from the left</div>
+              </div>
+            </div>
+          </div>
+          <div id="sb-config-panel"></div>
+          <div id="sb-actions">
+            <button class="btn btn-primary" id="sb-push-btn">Push Live →</button>
+            <button class="btn btn-sm" id="sb-clear-btn">Clear Scene</button>
+          </div>
         </div>
 
         <!-- ── Archival Room (merged) ── -->
@@ -1366,7 +1504,7 @@
     async function populateSessionDropdown() {
       const sel = document.getElementById('bc-session-select');
       const { data } = await db.from('sessions')
-        .select('id, title, date, stream_started_at, archive_header, archive_image_url, type')
+        .select('id, title, date, stream_started_at, archive_header, archive_image_url, type, scene_config')
         .order('date', { ascending: false }).order('created_at', { ascending: false });
       bcSessions = data || [];
       if (!bcSessions.length) {
@@ -1414,8 +1552,8 @@
       else stopBcTimer();
 
       const isLive = s.type === 'live';
-      document.getElementById('bc-archival-block').style.display     = isLive ? 'none' : '';
-      document.getElementById('bc-live-placeholder').style.display   = isLive ? '' : 'none';
+      document.getElementById('bc-archival-block').style.display = isLive ? 'none' : '';
+      if (typeof populateCanvas === 'function') populateCanvas(s.scene_config || { modules: [] });
 
       if (!isLive) {
         document.getElementById('arc-header').value = s.archive_header || '';
@@ -1478,6 +1616,265 @@
           else stopBcTimer();
         }).subscribe();
     }
+
+    /* ═════════════════════════════════════════════════════
+       BROADCAST SCENE BUILDER
+    ═════════════════════════════════════════════════════ */
+    const sbCanvas      = document.getElementById('sb-canvas');
+    const sbEmptyHint   = document.getElementById('sb-empty-hint');
+    const sbConfigPanel = document.getElementById('sb-config-panel');
+    const sbSaveStatus  = document.getElementById('sb-save-status');
+
+    let sbModules    = [];
+    let sbSelectedId = null;
+    let sbSaveTimer  = null;
+
+    const MOD_DEFAULTS = {
+      video:  { w: 50, h: 50, label: 'Video — Camera' },
+      screen: { w: 60, h: 55, label: 'Screen Share' },
+      text:   { w: 35, h: 25, label: 'Text' },
+      image:  { w: 40, h: 40, label: 'Image' },
+      audio:  { w: 30, h: 12, label: 'Audio Deck' },
+    };
+
+    function sbEsc(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function syncEmptyHint() {
+      sbEmptyHint.style.display = sbModules.length ? 'none' : '';
+    }
+
+    function getModuleById(id) { return sbModules.find(m => m.id === id); }
+    function getModuleEl(id)   { return sbCanvas.querySelector(`.sb-module[data-id="${CSS.escape(id)}"]`); }
+
+    function scheduleSave() {
+      clearTimeout(sbSaveTimer);
+      sbSaveStatus.textContent = '• saving…';
+      sbSaveTimer = setTimeout(async () => {
+        if (!bcSessionId) { sbSaveStatus.textContent = ''; return; }
+        const { error } = await db.from('sessions')
+          .update({ scene_config: { modules: sbModules } }).eq('id', bcSessionId);
+        sbSaveStatus.textContent = error ? '✕ save failed' : '✓ saved';
+        if (!error) setTimeout(() => { if (sbSaveStatus.textContent === '✓ saved') sbSaveStatus.textContent = ''; }, 2500);
+      }, 500);
+    }
+
+    function selectModule(id) {
+      sbSelectedId = id;
+      sbCanvas.querySelectorAll('.sb-module').forEach(el =>
+        el.classList.toggle('selected', el.dataset.id === id));
+      renderConfigPanel(id);
+    }
+
+    function renderConfigPanel(id) {
+      if (!id) { sbConfigPanel.innerHTML = ''; sbConfigPanel.classList.remove('visible'); return; }
+      const mod = getModuleById(id);
+      if (!mod) return;
+      sbConfigPanel.classList.add('visible');
+
+      if (mod.type === 'text') {
+        sbConfigPanel.innerHTML = `
+          <div class="form-group">
+            <label class="form-label">Content</label>
+            <textarea class="form-textarea" id="sb-cfg-text" rows="3" placeholder="Type text here…">${sbEsc(mod.config.content||'')}</textarea>
+          </div>
+          <div class="form-group" style="flex-direction:row;align-items:center;gap:0.6rem">
+            <label class="form-label" style="white-space:nowrap;margin-bottom:0">Font size</label>
+            <select class="form-select" id="sb-cfg-fs" style="width:auto">
+              ${[12,14,16,18,22,28,36,48,64].map(s=>`<option value="${s}"${mod.config.fontSize===s?' selected':''}>${s}px</option>`).join('')}
+            </select>
+          </div>`;
+        document.getElementById('sb-cfg-text').addEventListener('input', e => {
+          mod.config.content = e.target.value;
+          const el = getModuleEl(id);
+          if (el) el.querySelector('.sb-text-preview').textContent = e.target.value;
+          scheduleSave();
+        });
+        document.getElementById('sb-cfg-fs').addEventListener('change', e => {
+          mod.config.fontSize = parseInt(e.target.value);
+          scheduleSave();
+        });
+      } else if (mod.type === 'image') {
+        sbConfigPanel.innerHTML = `
+          <div class="form-group">
+            <label class="form-label">Image URL</label>
+            <input class="form-input" id="sb-cfg-url" value="${sbEsc(mod.config.url||'')}" placeholder="https://… or upload below"/>
+          </div>
+          <div class="form-group" style="flex-direction:row;align-items:center;gap:0.6rem">
+            <label class="upload-label">↑ Upload image
+              <input type="file" id="sb-img-upload" accept="image/*" style="display:none"/>
+            </label>
+            <span class="status-msg" id="sb-img-status"></span>
+          </div>`;
+        document.getElementById('sb-cfg-url').addEventListener('input', e => {
+          mod.config.url = e.target.value;
+          const el = getModuleEl(id);
+          const img = el?.querySelector('.sb-img-preview');
+          if (img) img.src = e.target.value;
+          else if (el) {
+            const body = el.querySelector('.sb-mod-body');
+            body.innerHTML = `<img class="sb-img-preview" src="${sbEsc(e.target.value)}" alt=""/>`;
+          }
+          scheduleSave();
+        });
+        document.getElementById('sb-img-upload').addEventListener('change', async e => {
+          const file = e.target.files[0]; if (!file) return;
+          const st = document.getElementById('sb-img-status');
+          st.textContent = 'Uploading…';
+          const path = `scene-images/${Date.now()}-${file.name}`;
+          const { error: upErr } = await db.storage.from('fur-fm-images').upload(path, file, { upsert: true });
+          if (upErr) { st.textContent = '✕ ' + upErr.message; return; }
+          const { data: urlData } = db.storage.from('fur-fm-images').getPublicUrl(path);
+          const url = urlData.publicUrl;
+          mod.config.url = url;
+          document.getElementById('sb-cfg-url').value = url;
+          const el = getModuleEl(id);
+          if (el) {
+            const body = el.querySelector('.sb-mod-body');
+            body.innerHTML = `<img class="sb-img-preview" src="${sbEsc(url)}" alt=""/>`;
+          }
+          st.textContent = '✓ uploaded'; scheduleSave();
+        });
+      } else if (mod.type === 'video') {
+        sbConfigPanel.innerHTML = `<div style="font-size:0.72rem;color:rgba(0,0,0,0.45);line-height:1.7">
+          Camera feed via VDO.ninja — click <strong>Go Live</strong> above to activate.<br>
+          Listeners see your camera at this position in the stream.</div>`;
+      } else if (mod.type === 'screen') {
+        sbConfigPanel.innerHTML = `<div style="font-size:0.72rem;color:rgba(0,0,0,0.45);line-height:1.7">
+          Screen share — the VDO.ninja room <em>xYuuWBysc</em> is shown to listeners at this position.<br>
+          Start a screen-share push to room <code>xYuuWBysc</code> from a separate browser tab using VDO.ninja.</div>`;
+      } else if (mod.type === 'audio') {
+        sbConfigPanel.innerHTML = `<div style="font-size:0.72rem;color:rgba(0,0,0,0.45);line-height:1.7">
+          Audio-only module — no visual shown to listeners.<br>
+          Audio is controlled via the Archival Room deck below.</div>`;
+      }
+    }
+
+    function buildModuleEl(mod) {
+      const el = document.createElement('div');
+      el.className     = 'sb-module';
+      el.dataset.id    = mod.id;
+      el.dataset.type  = mod.type;
+      el.style.left    = mod.x + '%';
+      el.style.top     = mod.y + '%';
+      el.style.width   = mod.w + '%';
+      el.style.height  = mod.h + '%';
+
+      let bodyHtml = '';
+      if (mod.type === 'video') {
+        bodyHtml = `<iframe src="https://vdo.ninja/?view=xYuuWBy&cleanoutput&autoplay&muted" allow="autoplay;camera;microphone"></iframe>`;
+      } else if (mod.type === 'screen') {
+        bodyHtml = `<iframe src="https://vdo.ninja/?view=xYuuWBysc&cleanoutput&autoplay&muted" allow="autoplay;camera;microphone;display-capture"></iframe>`;
+      } else if (mod.type === 'text') {
+        bodyHtml = `<div class="sb-text-preview">${sbEsc(mod.config.content||'')}</div>`;
+      } else if (mod.type === 'image') {
+        bodyHtml = mod.config.url
+          ? `<img class="sb-img-preview" src="${sbEsc(mod.config.url)}" alt=""/>`
+          : `<div class="sb-audio-label">no image set</div>`;
+      } else {
+        bodyHtml = `<div class="sb-audio-label">♪ audio deck</div>`;
+      }
+
+      el.innerHTML = `
+        <div class="sb-mod-header">
+          <span class="sb-mod-type">${MOD_DEFAULTS[mod.type]?.label || mod.type}</span>
+          <button class="sb-mod-del" title="Remove">✕</button>
+        </div>
+        <div class="sb-mod-body">${bodyHtml}</div>
+        <div class="sb-resize"></div>`;
+
+      el.querySelector('.sb-mod-del').addEventListener('click', e => {
+        e.stopPropagation();
+        sbModules = sbModules.filter(m => m.id !== mod.id);
+        el.remove();
+        if (sbSelectedId === mod.id) { sbSelectedId = null; renderConfigPanel(null); }
+        syncEmptyHint();
+        scheduleSave();
+      });
+
+      el.addEventListener('mousedown', e => {
+        if (e.target.classList.contains('sb-mod-del') ||
+            e.target.classList.contains('sb-resize')) return;
+        selectModule(mod.id);
+        e.preventDefault();
+        const cRect = sbCanvas.getBoundingClientRect();
+        const ox = e.clientX - el.getBoundingClientRect().left;
+        const oy = e.clientY - el.getBoundingClientRect().top;
+        document.onmousemove = mv => {
+          let x = (mv.clientX - cRect.left - ox) / cRect.width  * 100;
+          let y = (mv.clientY - cRect.top  - oy) / cRect.height * 100;
+          x = Math.max(0, Math.min(100 - mod.w, x));
+          y = Math.max(0, Math.min(100 - mod.h, y));
+          el.style.left = x + '%'; el.style.top = y + '%';
+          mod.x = x; mod.y = y;
+        };
+        document.onmouseup = () => { document.onmousemove = null; document.onmouseup = null; scheduleSave(); };
+      });
+
+      el.querySelector('.sb-resize').addEventListener('mousedown', e => {
+        e.stopPropagation(); e.preventDefault();
+        const cRect = sbCanvas.getBoundingClientRect();
+        const startX = e.clientX, startY = e.clientY;
+        const startW = mod.w,     startH = mod.h;
+        document.onmousemove = mv => {
+          let w = startW + (mv.clientX - startX) / cRect.width  * 100;
+          let h = startH + (mv.clientY - startY) / cRect.height * 100;
+          w = Math.max(8, Math.min(100 - mod.x, w));
+          h = Math.max(6, Math.min(100 - mod.y, h));
+          el.style.width = w + '%'; el.style.height = h + '%';
+          mod.w = w; mod.h = h;
+        };
+        document.onmouseup = () => { document.onmousemove = null; document.onmouseup = null; scheduleSave(); };
+      });
+
+      return el;
+    }
+
+    function populateCanvas(sceneConfig) {
+      sbCanvas.querySelectorAll('.sb-module').forEach(el => el.remove());
+      sbSelectedId = null; renderConfigPanel(null);
+      sbModules = (sceneConfig?.modules || []).map(m => ({ ...m, config: m.config || {} }));
+      sbModules.forEach(mod => sbCanvas.appendChild(buildModuleEl(mod)));
+      syncEmptyHint();
+    }
+
+    document.querySelectorAll('.sb-add-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const type = btn.dataset.type;
+        const defs = MOD_DEFAULTS[type] || { w: 40, h: 35 };
+        const mod = {
+          id: crypto.randomUUID(), type,
+          x: 5 + (sbModules.length * 3) % 20,
+          y: 5 + (sbModules.length * 2) % 15,
+          w: defs.w, h: defs.h,
+          config: {},
+        };
+        sbModules.push(mod);
+        sbCanvas.appendChild(buildModuleEl(mod));
+        syncEmptyHint();
+        selectModule(mod.id);
+        scheduleSave();
+      });
+    });
+
+    document.getElementById('sb-push-btn').addEventListener('click', async () => {
+      const { error } = await db.from('now_playing')
+        .update({ scene: { modules: sbModules } })
+        .eq('id', '00000000-0000-0000-0000-000000000001');
+      sbSaveStatus.textContent = error ? '✕ push failed' : '✓ pushed live';
+      if (!error) setTimeout(() => { if (sbSaveStatus.textContent === '✓ pushed live') sbSaveStatus.textContent = ''; }, 3000);
+    });
+
+    document.getElementById('sb-clear-btn').addEventListener('click', async () => {
+      if (!confirm('Clear the scene? This will also clear what listeners see.')) return;
+      sbModules = []; sbCanvas.querySelectorAll('.sb-module').forEach(el => el.remove());
+      sbSelectedId = null; renderConfigPanel(null); syncEmptyHint();
+      await db.from('now_playing').update({ scene: { modules: [] } }).eq('id', '00000000-0000-0000-0000-000000000001');
+      if (bcSessionId) await db.from('sessions').update({ scene_config: { modules: [] } }).eq('id', bcSessionId);
+      sbSaveStatus.textContent = '✓ cleared';
+      setTimeout(() => { if (sbSaveStatus.textContent === '✓ cleared') sbSaveStatus.textContent = ''; }, 2500);
+    });
 
     /* ═════════════════════════════════════════════════════
        SECTION 3 — REGISTERED USERS
