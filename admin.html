@@ -454,12 +454,12 @@
       padding-top: 1.2rem;
     }
     #sb-wrap {
-      display: flex; gap: 0.8rem; align-items: flex-start;
+      display: flex; gap: 0; align-items: flex-start;
       margin-top: 0.9rem;
     }
     #sb-palette {
       display: flex; flex-direction: column; gap: 0.35rem;
-      flex-shrink: 0; width: 100px;
+      flex-shrink: 0; width: 100px; padding-right: 0.5rem;
     }
     .sb-add-btn {
       font-family: 'Courier New', Courier, monospace;
@@ -472,7 +472,7 @@
 
     #sb-canvas-wrap {
       flex: 1; position: relative;
-      padding-top: calc((9/16) * (100% - 108px)); /* 16:9 minus palette+gap */
+      padding-top: calc((9/16) * (100% - 360px)); /* 16:9: subtract palette(100)+right-panel(260) */
       background: #111; border: 1px solid rgba(0,0,0,0.18);
       min-width: 0;
     }
@@ -603,6 +603,90 @@
     #sb-save-status {
       font-size: 0.62rem; color: rgba(0,0,0,0.36); letter-spacing: 0.04em;
     }
+
+    /* ── Broadcast Right Panel ── */
+    #sb-right-panel {
+      width: 260px; flex-shrink: 0;
+      background: #0d0d0d;
+      border-left: 1px solid rgba(255,255,255,0.07);
+      display: flex; flex-direction: column;
+      overflow-y: auto; align-self: stretch;
+      scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.08) transparent;
+    }
+    #sb-right-panel::-webkit-scrollbar { width: 3px; }
+    #sb-right-panel::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); }
+    .sbr-section {
+      padding: 0.65rem 0.8rem;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      flex-shrink: 0;
+    }
+    .sbr-label {
+      font-size: 0.49rem; letter-spacing: 0.16em; text-transform: uppercase;
+      color: rgba(255,255,255,0.26); margin-bottom: 0.45rem;
+    }
+    .sbr-signal-row {
+      display: flex; align-items: center; gap: 0.45rem;
+    }
+    .sbr-onair {
+      display: flex; align-items: center; gap: 0.38rem; flex: 1;
+      font-size: 0.6rem; color: rgba(255,255,255,0.38);
+      font-family: 'Courier New', monospace; font-variant-numeric: tabular-nums;
+    }
+    .sbr-fader-row {
+      display: flex; align-items: center; gap: 0.4rem; margin-top: 0.38rem;
+    }
+    .sbr-fader-row > .sbr-flabel {
+      font-size: 0.48rem; letter-spacing: 0.1em; text-transform: uppercase;
+      color: rgba(255,255,255,0.24); width: 2rem; flex-shrink: 0;
+    }
+    .sbr-fader-row > .sbr-fpct {
+      font-size: 0.52rem; color: rgba(255,255,255,0.28);
+      width: 2.4rem; text-align: right; flex-shrink: 0;
+    }
+    .sbr-fader-row input[type=range] {
+      flex: 1; cursor: pointer; accent-color: #e07828;
+    }
+    .sbr-arc-track {
+      font-size: 0.63rem; color: rgba(255,255,255,0.52);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      margin-bottom: 0.32rem;
+    }
+    .sbr-btn-row { display: flex; gap: 0.35rem; margin-bottom: 0.32rem; }
+    .sbr-btn {
+      font-family: 'Courier New', monospace; font-size: 0.56rem;
+      letter-spacing: 0.07em; padding: 0.28rem 0.5rem;
+      background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.58);
+      border: 1px solid rgba(255,255,255,0.11); cursor: pointer;
+      flex: 1; text-align: center; transition: background 0.1s;
+    }
+    .sbr-btn:hover { background: rgba(255,255,255,0.1); }
+    .sbr-btn.sbr-live { background: #b03020; color: #fff; border-color: #b03020; }
+    .sbr-btn.sbr-push { color: #f0e0a8; border-color: rgba(240,224,168,0.28); flex: unset; padding: 0.28rem 0.7rem; }
+    .sbr-btn.sbr-push:hover { background: rgba(240,224,168,0.1); }
+    #sbr-arc-seek {
+      width: 100%; cursor: pointer; margin: 0.28rem 0 0.12rem;
+      accent-color: #e07828;
+    }
+    .sbr-time {
+      font-size: 0.52rem; color: rgba(255,255,255,0.2);
+      font-family: 'Courier New', monospace; font-variant-numeric: tabular-nums;
+    }
+    .sbr-dev-select {
+      width: 100%; font-size: 0.56rem; margin-bottom: 0.38rem;
+      background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.52);
+      border: 1px solid rgba(255,255,255,0.09); padding: 0.2rem 0.28rem;
+    }
+    #sbr-text-fields textarea {
+      width: 100%; background: rgba(255,255,255,0.04); color: #f0e0a8;
+      border: 1px solid rgba(255,255,255,0.08); padding: 0.3rem 0.38rem;
+      font-size: 0.63rem; resize: vertical; min-height: 44px; box-sizing: border-box;
+      margin-top: 0.22rem; font-family: inherit; line-height: 1.42;
+    }
+    .sbr-text-mod-label {
+      font-size: 0.47rem; letter-spacing: 0.12em; text-transform: uppercase;
+      color: rgba(255,255,255,0.18); margin-top: 0.45rem;
+    }
+    .sbr-text-mod-label:first-child { margin-top: 0; }
 
     /* ── Responsive ── */
     @media (max-width: 900px) {
@@ -816,13 +900,80 @@
                 <div id="sb-empty-hint">canvas — add modules from the left</div>
               </div>
             </div>
-          </div>
+
+            <!-- ── Broadcast Strip ── -->
+            <div id="sb-right-panel">
+
+              <!-- Signal -->
+              <div class="sbr-section">
+                <div class="sbr-signal-row">
+                  <div class="sbr-onair">
+                    <div class="live-dot" id="sbr-dot"></div>
+                    <span id="sbr-timer">00:00:00</span>
+                  </div>
+                  <button class="sbr-btn sbr-push" id="sbr-push-btn">Push →</button>
+                </div>
+              </div>
+
+              <!-- Camera -->
+              <div class="sbr-section">
+                <div class="sbr-label">Camera</div>
+                <select class="sbr-dev-select" id="sbr-audio-dev"></select>
+                <div class="sbr-btn-row">
+                  <button class="sbr-btn" id="sbr-cam-start">▶ Start</button>
+                  <button class="sbr-btn sbr-live" id="sbr-cam-stop" style="display:none">■ Stop</button>
+                </div>
+                <div class="sbr-fader-row">
+                  <span class="sbr-flabel">Mic</span>
+                  <input type="range" id="sbr-mic-vol" min="0" max="1" step="0.01" value="0.8">
+                  <span class="sbr-fpct" id="sbr-mic-pct">80%</span>
+                </div>
+              </div>
+
+              <!-- Screen (shown only when screen module exists) -->
+              <div class="sbr-section" id="sbr-screen" style="display:none">
+                <div class="sbr-label">Screen Share</div>
+                <div class="sbr-btn-row">
+                  <button class="sbr-btn" id="sbr-scr-start">⬡ Start</button>
+                  <button class="sbr-btn sbr-live" id="sbr-scr-stop" style="display:none">■ Stop</button>
+                </div>
+              </div>
+
+              <!-- Archive Music -->
+              <div class="sbr-section">
+                <div class="sbr-label">Archive Music</div>
+                <div class="sbr-arc-track" id="sbr-arc-track">No track selected</div>
+                <div class="sbr-btn-row">
+                  <button class="sbr-btn" id="sbr-arc-play">▶ Play</button>
+                  <button class="sbr-btn" id="sbr-arc-stop">■ Stop</button>
+                </div>
+                <input type="range" id="sbr-arc-seek" min="0" max="100" step="0.1" value="0">
+                <div class="sbr-time" id="sbr-arc-time">0:00 / 0:00</div>
+                <div class="sbr-fader-row">
+                  <span class="sbr-flabel">Vol</span>
+                  <input type="range" id="sbr-arc-vol" min="0" max="1" step="0.01" value="0.8">
+                  <span class="sbr-fpct" id="sbr-arc-pct">80%</span>
+                </div>
+              </div>
+
+              <!-- Text Modules quick-edit -->
+              <div class="sbr-section">
+                <div class="sbr-label">Text Modules</div>
+                <div id="sbr-text-fields">
+                  <div style="font-size:0.58rem;color:rgba(255,255,255,0.18)">No text modules in scene</div>
+                </div>
+              </div>
+
+            </div><!-- /#sb-right-panel -->
+          </div><!-- /#sb-wrap -->
           <div id="sb-config-panel"></div>
           <div id="sb-actions">
-            <button class="btn btn-primary" id="sb-push-btn">Push Live →</button>
             <button class="btn btn-sm" id="sb-clear-btn">Clear Scene</button>
           </div>
         </div>
+
+        <!-- Hidden off-screen store for VDO.ninja push iframes (camera / screen) -->
+        <div id="sb-push-store" style="position:fixed;left:-1200px;top:-1200px;width:320px;height:240px;overflow:hidden;pointer-events:none"></div>
 
         <!-- ── Archival Room — hidden; teleported into audio module config panel when selected ── -->
         <div id="sb-arc-store" style="display:none"></div>
@@ -1426,6 +1577,7 @@
       setupArcAudio();
       setupArcMeta();
       setupArcUploads();
+      initBroadcastStrip();
       await populateSessionDropdown();
       loadArcNP();
     }
@@ -1503,7 +1655,6 @@
       else stopBcTimer();
 
       const isLive = s.type === 'live';
-      document.getElementById('bc-archival-block').style.display = isLive ? 'none' : '';
       if (typeof populateCanvas === 'function') populateCanvas(s.scene_config || { modules: [] });
 
       if (!isLive) {
@@ -1534,8 +1685,11 @@
       const startMs = new Date(ts).getTime();
       function tick() {
         const s = Math.max(0, Math.floor((Date.now() - startMs) / 1000));
-        bcTimerEl.textContent = [Math.floor(s/3600), Math.floor((s%3600)/60), s%60]
+        const fmt = [Math.floor(s/3600), Math.floor((s%3600)/60), s%60]
           .map(n => String(n).padStart(2,'0')).join(':');
+        bcTimerEl.textContent = fmt;
+        const sbrTimer = document.getElementById('sbr-timer');
+        if (sbrTimer) sbrTimer.textContent = fmt;
       }
       tick();
       bcInterval = setInterval(tick, 1000);
@@ -1544,6 +1698,8 @@
     function stopBcTimer() {
       if (bcInterval) { clearInterval(bcInterval); bcInterval = null; }
       bcTimerEl.textContent = '00:00:00';
+      const sbrTimer = document.getElementById('sbr-timer');
+      if (sbrTimer) sbrTimer.textContent = '00:00:00';
     }
 
     document.getElementById('bc-timer-start').addEventListener('click', async () => {
@@ -1739,14 +1895,14 @@
 
       let bodyHtml = '';
       if (mod.type === 'video') {
-        bodyHtml = `<div class="sb-cam-ctl">
-          <select class="sb-audio-dev"></select>
-          <button class="sb-start-cam">▶ Start Camera</button>
-        </div>`;
+        /* VIEW iframe — shows exactly what listeners see; camera push is handled by right panel */
+        bodyHtml = `<iframe src="https://vdo.ninja/?view=xYuuWBy&cleanoutput=1&muted=1&transparent=1"
+          allow="autoplay;camera;microphone"
+          style="width:100%;height:100%;border:none;display:block;pointer-events:none"></iframe>`;
       } else if (mod.type === 'screen') {
-        bodyHtml = `<div class="sb-scr-ctl">
-          <button class="sb-start-scr">⬡ Start Screen Share</button>
-        </div>`;
+        bodyHtml = `<iframe src="https://vdo.ninja/?view=xYuuWBysc&cleanoutput=1&muted=1&transparent=1"
+          allow="autoplay;camera;microphone;display-capture"
+          style="width:100%;height:100%;border:none;display:block;pointer-events:none"></iframe>`;
       } else if (mod.type === 'text') {
         bodyHtml = `<div class="sb-text-preview">${sbEsc(mod.config.content||'')}</div>`;
       } else if (mod.type === 'image') {
@@ -1774,6 +1930,7 @@
         el.remove();
         if (sbSelectedId === mod.id) { sbSelectedId = null; renderConfigPanel(null); }
         syncEmptyHint();
+        renderRightPanel();
         scheduleSave();
       });
 
@@ -1812,19 +1969,62 @@
         document.onmouseup = () => { document.onmousemove = null; document.onmouseup = null; scheduleSave(); };
       });
 
-      if (mod.type === 'video')  initVideoPush(el);
-      if (mod.type === 'screen') initScreenPush(el);
-
       return el;
     }
 
-    function initVideoPush(el) {
-      const sel      = el.querySelector('.sb-audio-dev');
-      const startBtn = el.querySelector('.sb-start-cam');
-      const body     = el.querySelector('.sb-mod-body');
-      loadAudioDevicesInto(sel);
-      startBtn.addEventListener('click', () => {
-        const label = sel.options[sel.selectedIndex]?.text || '';
+    /* ── Right-panel dynamic sections ── */
+    function renderRightPanel() {
+      /* Screen Share section: show only when a screen module is in the scene */
+      const hasScreen = sbModules.some(m => m.type === 'screen');
+      const sbrScreen = document.getElementById('sbr-screen');
+      if (sbrScreen) sbrScreen.style.display = hasScreen ? '' : 'none';
+
+      /* Text quick-edit: one textarea per text module */
+      const textFieldsEl = document.getElementById('sbr-text-fields');
+      if (!textFieldsEl) return;
+      const textMods = sbModules.filter(m => m.type === 'text');
+      if (!textMods.length) {
+        textFieldsEl.innerHTML = '<div style="font-size:0.58rem;color:rgba(255,255,255,0.18)">No text modules in scene</div>';
+        return;
+      }
+      textFieldsEl.innerHTML = '';
+      textMods.forEach((mod, i) => {
+        const lbl = document.createElement('div');
+        lbl.className = 'sbr-text-mod-label';
+        lbl.textContent = `Text ${i + 1}`;
+        const ta = document.createElement('textarea');
+        ta.value = mod.config.content || '';
+        ta.dataset.modId = mod.id;
+        ta.rows = 2;
+        ta.addEventListener('input', () => {
+          mod.config.content = ta.value;
+          const canvasEl = getModuleEl(mod.id);
+          if (canvasEl) canvasEl.querySelector('.sb-text-preview').textContent = ta.value;
+          /* sync config-panel textarea if this module is selected */
+          const cfgTa = document.getElementById('sb-cfg-text');
+          if (cfgTa && sbSelectedId === mod.id) cfgTa.value = ta.value;
+          scheduleSave();
+        });
+        textFieldsEl.appendChild(lbl);
+        textFieldsEl.appendChild(ta);
+      });
+    }
+
+    /* ── Broadcast strip wiring (called once after initBroadcast) ── */
+    function initBroadcastStrip() {
+      /* Populate audio device selector (includes USB soundcards) */
+      loadAudioDevicesInto(document.getElementById('sbr-audio-dev'));
+
+      const pushStore = document.getElementById('sb-push-store');
+      const camStart  = document.getElementById('sbr-cam-start');
+      const camStop   = document.getElementById('sbr-cam-stop');
+      const scrStart  = document.getElementById('sbr-scr-start');
+      const scrStop   = document.getElementById('sbr-scr-stop');
+
+      /* Camera start */
+      camStart.addEventListener('click', () => {
+        const devSel = document.getElementById('sbr-audio-dev');
+        const label  = devSel.options[devSel.selectedIndex]?.text || '';
         const url = new URL('https://vdo.ninja/');
         url.searchParams.set('push',        'xYuuWBy');
         url.searchParams.set('webcam',      '1');
@@ -1835,59 +2035,154 @@
           url.searchParams.set('audiodevice', label);
         }
         const iframe = document.createElement('iframe');
+        iframe.id    = 'sbr-cam-iframe';
         iframe.src   = url.toString();
         iframe.allow = 'autoplay;camera;microphone;fullscreen;picture-in-picture;display-capture;midi;encrypted-media';
-        iframe.style.cssText = 'width:100%;height:100%;border:none;display:block;';
-        const stopBtn = document.createElement('button');
-        stopBtn.className   = 'sb-vc-stop';
-        stopBtn.textContent = '■ Stop';
-        stopBtn.addEventListener('click', () => {
-          iframe.src = 'about:blank'; iframe.remove(); stopBtn.remove();
-          body.innerHTML = `<div class="sb-cam-ctl">
-            <select class="sb-audio-dev"></select>
-            <button class="sb-start-cam">▶ Start Camera</button>
-          </div>`;
-          initVideoPush(el);
-          bcLive = false;
-          document.getElementById('bc-dot').classList.remove('on');
-          document.getElementById('bc-status-label').textContent = 'Offline';
-        });
-        body.innerHTML = '';
-        body.style.position = 'relative';
-        body.appendChild(iframe);
-        body.appendChild(stopBtn);
+        iframe.style.cssText = 'width:320px;height:240px;border:none;display:block;';
+        pushStore.appendChild(iframe);
+        camStart.style.display = 'none';
+        camStop.style.display  = '';
         bcLive = true;
         document.getElementById('bc-dot').classList.add('on');
         document.getElementById('bc-status-label').textContent = 'Live';
+        document.getElementById('sbr-dot').classList.add('on');
       });
-    }
 
-    function initScreenPush(el) {
-      const startBtn = el.querySelector('.sb-start-scr');
-      const body     = el.querySelector('.sb-mod-body');
-      startBtn.addEventListener('click', () => {
+      /* Camera stop */
+      camStop.addEventListener('click', () => {
+        const iframe = document.getElementById('sbr-cam-iframe');
+        if (iframe) { iframe.src = 'about:blank'; iframe.remove(); }
+        camStart.style.display = '';
+        camStop.style.display  = 'none';
+        bcLive = false;
+        document.getElementById('bc-dot').classList.remove('on');
+        document.getElementById('bc-status-label').textContent = 'Offline';
+        document.getElementById('sbr-dot').classList.remove('on');
+      });
+
+      /* Screen share start */
+      scrStart.addEventListener('click', () => {
         const url = new URL('https://vdo.ninja/');
         url.searchParams.set('push',        'xYuuWBysc');
         url.searchParams.set('screenshare', '1');
         url.searchParams.set('cleanoutput', '1');
         url.searchParams.set('label',       'FurFM_Screen');
         const iframe = document.createElement('iframe');
+        iframe.id    = 'sbr-scr-iframe';
         iframe.src   = url.toString();
         iframe.allow = 'autoplay;camera;microphone;display-capture;fullscreen;picture-in-picture;midi;encrypted-media';
-        iframe.style.cssText = 'width:100%;height:100%;border:none;display:block;';
-        const stopBtn = document.createElement('button');
-        stopBtn.className   = 'sb-vc-stop';
-        stopBtn.textContent = '■ Stop';
-        stopBtn.addEventListener('click', () => {
-          iframe.src = 'about:blank'; iframe.remove(); stopBtn.remove();
-          body.innerHTML = `<div class="sb-scr-ctl"><button class="sb-start-scr">⬡ Start Screen Share</button></div>`;
-          initScreenPush(el);
-        });
-        body.innerHTML = '';
-        body.style.position = 'relative';
-        body.appendChild(iframe);
-        body.appendChild(stopBtn);
+        iframe.style.cssText = 'width:320px;height:240px;border:none;display:block;';
+        pushStore.appendChild(iframe);
+        scrStart.style.display = 'none';
+        scrStop.style.display  = '';
       });
+
+      /* Screen share stop */
+      scrStop.addEventListener('click', () => {
+        const iframe = document.getElementById('sbr-scr-iframe');
+        if (iframe) { iframe.src = 'about:blank'; iframe.remove(); }
+        scrStart.style.display = '';
+        scrStop.style.display  = 'none';
+      });
+
+      /* Mic volume fader (visual — VDO.ninja manages actual mic gain) */
+      document.getElementById('sbr-mic-vol').addEventListener('input', e => {
+        document.getElementById('sbr-mic-pct').textContent = Math.round(e.target.value * 100) + '%';
+      });
+
+      /* Push Live */
+      document.getElementById('sbr-push-btn').addEventListener('click', async () => {
+        const { error } = await db.from('now_playing')
+          .update({ scene: { modules: sbModules } })
+          .eq('id', '00000000-0000-0000-0000-000000000001');
+        sbSaveStatus.textContent = error ? '✕ push failed' : '✓ pushed live';
+        if (!error) setTimeout(() => { if (sbSaveStatus.textContent === '✓ pushed live') sbSaveStatus.textContent = ''; }, 3000);
+      });
+
+      /* Archive music controls */
+      const sbrArcPlay  = document.getElementById('sbr-arc-play');
+      const sbrArcStop  = document.getElementById('sbr-arc-stop');
+      const sbrArcSeek  = document.getElementById('sbr-arc-seek');
+      const sbrArcVol   = document.getElementById('sbr-arc-vol');
+      const sbrArcPct   = document.getElementById('sbr-arc-pct');
+      const sbrArcTime  = document.getElementById('sbr-arc-time');
+      const sbrArcTrack = document.getElementById('sbr-arc-track');
+
+      sbrArcPlay.addEventListener('click', async () => {
+        if (!arcAudio.src || arcAudio.src === window.location.href) return;
+        if (arcPlaying) {
+          arcAudio.pause();
+          /* syncArcPlayUI is called via arc-play-btn click handler sharing arcPlaying state */
+          clearInterval(arcPHTimer); arcPHTimer = null;
+          writeNP({ is_playing: false, playhead_pos: arcAudio.currentTime });
+          arcPlaying = false;
+          sbrArcPlay.textContent = '▶ Play';
+          document.getElementById('arc-play-btn').textContent = '▶';
+          document.getElementById('admin-cassette').classList.remove('playing');
+          document.getElementById('arc-dot').classList.remove('on');
+          document.getElementById('arc-status-text').textContent = 'Paused';
+          document.getElementById('sbr-dot').classList.remove('on');
+        } else {
+          try { await arcAudio.play(); } catch (_) { return; }
+          arcPlaying = true;
+          sbrArcPlay.textContent = '⏸ Pause';
+          document.getElementById('arc-play-btn').textContent = '⏸';
+          document.getElementById('admin-cassette').classList.add('playing');
+          document.getElementById('arc-dot').classList.add('on');
+          document.getElementById('arc-status-text').textContent = 'Broadcasting';
+          document.getElementById('sbr-dot').classList.add('on');
+          writeNP({ is_playing: true, playhead_pos: arcAudio.currentTime });
+          arcPHTimer = setInterval(() => writeNP({ is_playing: true, playhead_pos: arcAudio.currentTime }), 2000);
+        }
+      });
+
+      sbrArcStop.addEventListener('click', () => {
+        arcAudio.pause(); arcAudio.currentTime = 0; arcPlaying = false;
+        clearInterval(arcPHTimer); arcPHTimer = null;
+        sbrArcPlay.textContent = '▶ Play';
+        document.getElementById('arc-play-btn').textContent = '▶';
+        document.getElementById('admin-cassette').classList.remove('playing');
+        document.getElementById('arc-dot').classList.remove('on');
+        document.getElementById('arc-status-text').textContent = 'Idle';
+        document.getElementById('sbr-dot').classList.remove('on');
+        writeNP({ is_playing: false, playhead_pos: 0 });
+      });
+
+      /* Seek bar (0-100%) ↔ arcAudio.currentTime */
+      let sbrSeeking = false;
+      sbrArcSeek.addEventListener('mousedown',  () => { sbrSeeking = true; });
+      sbrArcSeek.addEventListener('touchstart', () => { sbrSeeking = true; }, { passive: true });
+      sbrArcSeek.addEventListener('input', () => {
+        if (!arcAudio.duration) return;
+        const t = parseFloat(sbrArcSeek.value) / 100 * arcAudio.duration;
+        arcAudio.currentTime = t;
+        document.getElementById('arc-seek').value = t;
+      });
+      document.addEventListener('mouseup', () => {
+        if (!sbrSeeking) return;
+        sbrSeeking = false;
+        if (arcAudio.duration) writeNP({ playhead_pos: arcAudio.currentTime });
+      });
+
+      /* Volume fader → arcAudio.volume */
+      sbrArcVol.addEventListener('input', () => {
+        arcAudio.volume = parseFloat(sbrArcVol.value);
+        sbrArcPct.textContent = Math.round(sbrArcVol.value * 100) + '%';
+      });
+
+      /* Sync time display from arcAudio timeupdate */
+      arcAudio.addEventListener('timeupdate', () => {
+        if (!sbrSeeking && arcAudio.duration) {
+          sbrArcSeek.value = (arcAudio.currentTime / arcAudio.duration) * 100;
+        }
+        sbrArcTime.textContent = `${fmtDur(arcAudio.currentTime)} / ${fmtDur(arcAudio.duration)}`;
+      });
+
+      /* Track name: watch #arc-now-track for changes */
+      const nowTrackEl = document.getElementById('arc-now-track');
+      sbrArcTrack.textContent = nowTrackEl.textContent;
+      new MutationObserver(() => { sbrArcTrack.textContent = nowTrackEl.textContent; })
+        .observe(nowTrackEl, { childList: true, characterData: true, subtree: true });
     }
 
     function populateCanvas(sceneConfig) {
@@ -1897,6 +2192,7 @@
       sbModules = (sceneConfig?.modules || []).map(m => ({ ...m, config: m.config || {} }));
       sbModules.forEach(mod => sbCanvas.appendChild(buildModuleEl(mod)));
       syncEmptyHint();
+      renderRightPanel();
     }
 
     document.querySelectorAll('.sb-add-btn').forEach(btn => {
@@ -1913,23 +2209,16 @@
         sbModules.push(mod);
         sbCanvas.appendChild(buildModuleEl(mod));
         syncEmptyHint();
+        renderRightPanel();
         selectModule(mod.id);
         scheduleSave();
       });
     });
 
-    document.getElementById('sb-push-btn').addEventListener('click', async () => {
-      const { error } = await db.from('now_playing')
-        .update({ scene: { modules: sbModules } })
-        .eq('id', '00000000-0000-0000-0000-000000000001');
-      sbSaveStatus.textContent = error ? '✕ push failed' : '✓ pushed live';
-      if (!error) setTimeout(() => { if (sbSaveStatus.textContent === '✓ pushed live') sbSaveStatus.textContent = ''; }, 3000);
-    });
-
     document.getElementById('sb-clear-btn').addEventListener('click', async () => {
       if (!confirm('Clear the scene? This will also clear what listeners see.')) return;
       sbModules = []; sbCanvas.querySelectorAll('.sb-module').forEach(el => el.remove());
-      sbSelectedId = null; renderConfigPanel(null); syncEmptyHint();
+      sbSelectedId = null; renderConfigPanel(null); syncEmptyHint(); renderRightPanel();
       await db.from('now_playing').update({ scene: { modules: [] } }).eq('id', '00000000-0000-0000-0000-000000000001');
       if (bcSessionId) await db.from('sessions').update({ scene_config: { modules: [] } }).eq('id', bcSessionId);
       sbSaveStatus.textContent = '✓ cleared';
@@ -2155,6 +2444,19 @@
       const lblEl    = document.getElementById('arc-status-text');
       const cassette = document.getElementById('admin-cassette');
 
+      /* Centralised play-state sync — called from both config-panel btn and right-panel btn */
+      function syncArcPlayUI(playing) {
+        arcPlaying = playing;
+        playBtn.textContent = playing ? '⏸' : '▶';
+        cassette.classList.toggle('playing', playing);
+        dotEl.classList.toggle('on', playing);
+        lblEl.textContent = playing ? 'Broadcasting' : (arcAudio.currentTime > 0 ? 'Paused' : 'Idle');
+        const sbrPlay = document.getElementById('sbr-arc-play');
+        if (sbrPlay) sbrPlay.textContent = playing ? '⏸ Pause' : '▶ Play';
+        const sbrDot = document.getElementById('sbr-dot');
+        if (sbrDot) sbrDot.classList.toggle('on', playing);
+      }
+
       arcAudio.addEventListener('loadedmetadata', () => {
         seekBar.max = arcAudio.duration;
         timeEl.textContent = `0:00 / ${fmtDur(arcAudio.duration)}`;
@@ -2169,26 +2471,21 @@
       });
 
       arcAudio.addEventListener('ended', () => {
-        arcPlaying = false; playBtn.textContent = '▶';
-        cassette.classList.remove('playing');
+        syncArcPlayUI(false);
         clearInterval(arcPHTimer); arcPHTimer = null;
-        dotEl.classList.remove('on'); lblEl.textContent = 'Idle';
         writeNP({ is_playing: false, playhead_pos: 0 });
       });
 
       playBtn.addEventListener('click', async () => {
         if (!arcAudio.src || arcAudio.src === window.location.href) return;
         if (arcPlaying) {
-          arcAudio.pause(); arcPlaying = false; playBtn.textContent = '▶';
-          cassette.classList.remove('playing');
+          arcAudio.pause();
+          syncArcPlayUI(false);
           clearInterval(arcPHTimer); arcPHTimer = null;
-          dotEl.classList.remove('on'); lblEl.textContent = 'Paused';
           writeNP({ is_playing: false, playhead_pos: arcAudio.currentTime });
         } else {
           try { await arcAudio.play(); } catch (_) { return; }
-          arcPlaying = true; playBtn.textContent = '⏸';
-          cassette.classList.add('playing');
-          dotEl.classList.add('on'); lblEl.textContent = 'Broadcasting';
+          syncArcPlayUI(true);
           writeNP({ is_playing: true, playhead_pos: arcAudio.currentTime });
           arcPHTimer = setInterval(() => {
             writeNP({ is_playing: true, playhead_pos: arcAudio.currentTime });
