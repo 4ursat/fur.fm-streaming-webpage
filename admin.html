@@ -1396,13 +1396,25 @@
           <canvas id="lounge-drone-canvas" width="800" height="88"></canvas>
 
           <!-- Param editor -->
-          <div class="lounge-drone-section-head">Root Note</div>
-          <div class="lounge-root-btns" id="lounge-root-btns">
-            <button class="lounge-root-btn" data-hz="55.00" data-name="A">A<sub>1</sub> 55 Hz</button>
-            <button class="lounge-root-btn" data-hz="73.42" data-name="D">D<sub>1</sub> 73 Hz</button>
-            <button class="lounge-root-btn" data-hz="82.41" data-name="E">E<sub>1</sub> 82 Hz</button>
-            <button class="lounge-root-btn" data-hz="98.00" data-name="G">G<sub>1</sub> 98 Hz</button>
-            <button class="lounge-root-btn" data-hz="110.00" data-name="A">A<sub>2</sub> 110 Hz</button>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 1.4rem">
+            <div>
+              <div class="lounge-drone-section-head">Root Note</div>
+              <div class="lounge-root-btns" id="lounge-root-btns">
+                <button class="lounge-root-btn" data-hz="55.00" data-name="A">A<sub>1</sub> 55</button>
+                <button class="lounge-root-btn" data-hz="73.42" data-name="D">D<sub>1</sub> 73</button>
+                <button class="lounge-root-btn" data-hz="82.41" data-name="E">E<sub>1</sub> 82</button>
+                <button class="lounge-root-btn" data-hz="98.00" data-name="G">G<sub>1</sub> 98</button>
+                <button class="lounge-root-btn" data-hz="110.00" data-name="A">A<sub>2</sub> 110</button>
+              </div>
+            </div>
+            <div>
+              <div class="lounge-drone-section-head">Waveform</div>
+              <div class="lounge-root-btns" id="lounge-wave-btns">
+                <button class="lounge-wave-btn lounge-root-btn active" data-wave="sine">sine</button>
+                <button class="lounge-wave-btn lounge-root-btn" data-wave="triangle">triangle</button>
+                <button class="lounge-wave-btn lounge-root-btn" data-wave="sawtooth">sawtooth</button>
+              </div>
+            </div>
           </div>
           <div class="lounge-param-row">
             <span class="lounge-param-label">Filter base</span>
@@ -1410,9 +1422,19 @@
             <span class="lounge-param-val" id="lounge-param-filter-val">380 Hz</span>
           </div>
           <div class="lounge-param-row">
+            <span class="lounge-param-label">Resonance</span>
+            <input type="range" class="lounge-param-slider" id="lounge-param-res" min="0.3" max="14" step="0.1" value="0.9"/>
+            <span class="lounge-param-val" id="lounge-param-res-val">0.9</span>
+          </div>
+          <div class="lounge-param-row">
             <span class="lounge-param-label">LFO depth</span>
             <input type="range" class="lounge-param-slider" id="lounge-param-lfo" min="0" max="250" step="5" value="120"/>
             <span class="lounge-param-val" id="lounge-param-lfo-val">120 Hz</span>
+          </div>
+          <div class="lounge-param-row">
+            <span class="lounge-param-label">Spread</span>
+            <input type="range" class="lounge-param-slider" id="lounge-param-spread" min="0" max="30" step="1" value="4"/>
+            <span class="lounge-param-val" id="lounge-param-spread-val">4 ¢</span>
           </div>
           <div class="lounge-param-row">
             <span class="lounge-param-label">Volume</span>
@@ -3424,6 +3446,9 @@
         filterBase: 220 + adminSeedRand(seed, 3) * 380,
         lfoDepth:   70  + adminSeedRand(seed, 4) * 110,
         vol:        0.12 + adminSeedRand(seed, 5) * 0.08,
+        waveform:   'sine',
+        resonance:  0.9,
+        spread:     4,
       };
     }
 
@@ -3434,22 +3459,32 @@
     if (ls?.scene?.drone_config?.override) {
       const dc = ls.scene.drone_config;
       droneHasOverride = true;
-      if (dc.rootHz)     droneEditParams.rootHz     = dc.rootHz;
-      if (dc.rootName)   droneEditParams.rootName   = dc.rootName;
-      if (dc.filterBase) droneEditParams.filterBase = dc.filterBase;
+      if (dc.rootHz)             droneEditParams.rootHz     = dc.rootHz;
+      if (dc.rootName)           droneEditParams.rootName   = dc.rootName;
+      if (dc.filterBase)         droneEditParams.filterBase = dc.filterBase;
       if (dc.lfoDepth !== undefined) droneEditParams.lfoDepth = dc.lfoDepth;
-      if (dc.vol)        droneEditParams.vol        = dc.vol;
+      if (dc.vol)                droneEditParams.vol        = dc.vol;
+      if (dc.waveform)           droneEditParams.waveform   = dc.waveform;
+      if (dc.resonance)          droneEditParams.resonance  = dc.resonance;
+      if (dc.spread !== undefined) droneEditParams.spread   = dc.spread;
     }
 
     function syncDroneSliders(p) {
       const fi = document.getElementById('lounge-param-filter');
+      const ri = document.getElementById('lounge-param-res');
       const li = document.getElementById('lounge-param-lfo');
+      const si = document.getElementById('lounge-param-spread');
       const vi = document.getElementById('lounge-param-vol');
-      if (fi) { fi.value = p.filterBase;  document.getElementById('lounge-param-filter-val').textContent = Math.round(p.filterBase) + ' Hz'; }
-      if (li) { li.value = p.lfoDepth;    document.getElementById('lounge-param-lfo-val').textContent    = Math.round(p.lfoDepth)   + ' Hz'; }
+      if (fi) { fi.value = p.filterBase; document.getElementById('lounge-param-filter-val').textContent = Math.round(p.filterBase) + ' Hz'; }
+      if (ri) { ri.value = p.resonance;  document.getElementById('lounge-param-res-val').textContent    = (+p.resonance).toFixed(1); }
+      if (li) { li.value = p.lfoDepth;   document.getElementById('lounge-param-lfo-val').textContent    = Math.round(p.lfoDepth) + ' Hz'; }
+      if (si) { si.value = p.spread;     document.getElementById('lounge-param-spread-val').textContent = p.spread + ' ¢'; }
       if (vi) { vi.value = p.vol.toFixed(2); document.getElementById('lounge-param-vol-val').textContent = p.vol.toFixed(2); }
-      document.querySelectorAll('.lounge-root-btn').forEach(btn => {
+      document.querySelectorAll('#lounge-root-btns .lounge-root-btn').forEach(btn => {
         btn.classList.toggle('active', Math.abs(+btn.dataset.hz - p.rootHz) < 0.1);
+      });
+      document.querySelectorAll('.lounge-wave-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.wave === (p.waveform || 'sine'));
       });
     }
     syncDroneSliders(droneEditParams);
@@ -3458,7 +3493,7 @@
     function updateOverrideTag() { if (overrideTag) overrideTag.style.display = droneHasOverride ? '' : 'none'; }
     updateOverrideTag();
 
-    /* Canvas oscilloscope */
+    /* Canvas — LFO wave + harmonic bars */
     let droneCanvasRaf = null;
     (function startDroneCanvas() {
       const canvas = document.getElementById('lounge-drone-canvas');
@@ -3467,101 +3502,162 @@
       function draw() {
         const W = canvas.width, H = canvas.height;
         const p = droneEditParams;
-        const t = Date.now() / 1000;
-        const lfoPhase = (t % 30) / 30;
-        const cutoff   = p.filterBase + Math.sin(lfoPhase * Math.PI * 2) * p.lfoDepth;
+        const lfoPhase  = (Date.now() / 1000 % 30) / 30; // 0–1 over 30s
+        const lfoSin    = Math.sin(lfoPhase * Math.PI * 2);
+        const cutoff    = p.filterBase + lfoSin * p.lfoDepth;
+        const openness  = (lfoSin + 1) / 2; // 0–1, high = filter open
 
+        // Background
         c2d.fillStyle = '#0d1c15';
         c2d.fillRect(0, 0, W, H);
 
-        // Faint centerline
-        c2d.strokeStyle = 'rgba(200,144,32,0.07)';
-        c2d.lineWidth = 1;
-        c2d.beginPath(); c2d.moveTo(0, H/2); c2d.lineTo(W, H/2); c2d.stroke();
+        // Breathing center glow (driven by LFO openness)
+        const glowR = H * 0.7 * (0.4 + 0.6 * openness);
+        const grd = c2d.createRadialGradient(W * 0.38, H / 2, 0, W * 0.38, H / 2, glowR);
+        grd.addColorStop(0, `rgba(200,144,32,${0.06 * (0.4 + 0.6 * openness)})`);
+        grd.addColorStop(1, 'rgba(0,0,0,0)');
+        c2d.fillStyle = grd; c2d.fillRect(0, 0, W, H);
 
-        const displayDur = 4 / p.rootHz; // 4 cycles
-        function wave(x) {
-          const st = t + (x / W) * displayDur;
-          let s = 0.62 * Math.sin(2*Math.PI*p.rootHz*st)
-                + 0.36 * Math.sin(2*Math.PI*p.rootHz*1.5*st)
-                + 0.18 * Math.sin(2*Math.PI*p.rootHz*2*st);
-          s /= 1.16; // normalize
-          s *= (0.3 + 0.7 * Math.min(1, cutoff / 560)); // filter brightness
-          s *= p.vol / 0.16; // volume scale
-          return H/2 - s * H * 0.36;
+        // LFO wave: full 30s cycle drawn across 70% of width
+        const wW  = Math.floor(W * 0.72);
+        const midY = Math.floor(H * 0.50);
+        const amp  = H * 0.27;
+
+        // Unplayed ghost portion
+        c2d.beginPath(); c2d.strokeStyle = 'rgba(200,144,32,0.13)'; c2d.lineWidth = 1.5;
+        for (let x = 0; x < wW; x++) {
+          const y = midY - Math.sin((x / wW) * Math.PI * 2) * amp;
+          x === 0 ? c2d.moveTo(x, y) : c2d.lineTo(x, y);
+        }
+        c2d.stroke();
+
+        // Played-so-far (bright gold)
+        const dotX = Math.floor(lfoPhase * wW);
+        const dotY = Math.round(midY - lfoSin * amp);
+        if (dotX > 0) {
+          c2d.beginPath(); c2d.strokeStyle = '#c89020'; c2d.lineWidth = 2;
+          for (let x = 0; x <= dotX; x++) {
+            const y = midY - Math.sin((x / wW) * Math.PI * 2) * amp;
+            x === 0 ? c2d.moveTo(x, y) : c2d.lineTo(x, y);
+          }
+          c2d.stroke();
         }
 
-        // Glow pass
-        c2d.beginPath(); c2d.strokeStyle = 'rgba(200,144,32,0.13)'; c2d.lineWidth = 6;
-        for (let x = 0; x < W; x++) { x === 0 ? c2d.moveTo(x, wave(x)) : c2d.lineTo(x, wave(x)); }
-        c2d.stroke();
-
-        // Main line
-        c2d.beginPath(); c2d.strokeStyle = '#c89020'; c2d.lineWidth = 1.5;
-        for (let x = 0; x < W; x++) { x === 0 ? c2d.moveTo(x, wave(x)) : c2d.lineTo(x, wave(x)); }
-        c2d.stroke();
-
-        // LFO sweep bar (top 4px)
-        const lfoX = lfoPhase * W;
-        c2d.fillStyle = 'rgba(200,144,32,0.09)'; c2d.fillRect(0, 0, W, 4);
-        c2d.fillStyle = 'rgba(224,140,40,0.45)'; c2d.fillRect(0, 0, lfoX, 4);
+        // Position dot + halo
+        c2d.fillStyle = `rgba(200,144,32,${0.22 * (0.5 + 0.5 * openness)})`;
+        c2d.beginPath(); c2d.arc(dotX, dotY, 12, 0, Math.PI * 2); c2d.fill();
         c2d.fillStyle = '#e08830';
-        c2d.beginPath(); c2d.arc(Math.max(3, lfoX), 2, 3, 0, Math.PI * 2); c2d.fill();
+        c2d.beginPath(); c2d.arc(dotX, dotY, 4, 0, Math.PI * 2); c2d.fill();
 
-        // Labels
-        c2d.font = '10px monospace';
-        c2d.fillStyle = 'rgba(200,144,32,0.38)';
-        c2d.textAlign = 'left';   c2d.fillText(`${p.rootHz.toFixed(0)} Hz  root`,  7, H - 6);
-        c2d.textAlign = 'center'; c2d.fillText(`${(p.rootHz*1.5).toFixed(0)} Hz  fifth`, W/2, H - 6);
-        c2d.textAlign = 'right';  c2d.fillText(`${(p.rootHz*2).toFixed(0)} Hz  oct`, W - 7, H - 6);
-        c2d.fillStyle = 'rgba(200,144,32,0.55)';
-        c2d.textAlign = 'right';  c2d.fillText(`filter ${Math.round(cutoff)} Hz`, W - 7, 17);
+        // Divider
+        c2d.strokeStyle = 'rgba(200,144,32,0.07)'; c2d.lineWidth = 1;
+        c2d.beginPath(); c2d.moveTo(wW + 8, 8); c2d.lineTo(wW + 8, H - 8); c2d.stroke();
+
+        // Harmonic bars (right side): sub, root, fifth, octave
+        const voices = [
+          { hz: p.rootHz * 0.5, lbl: 'sub' },
+          { hz: p.rootHz,       lbl: 'root' },
+          { hz: p.rootHz * 1.5, lbl: '5th' },
+          { hz: p.rootHz * 2,   lbl: 'oct' },
+        ];
+        const bW = 13, bGap = 13, bX0 = wW + 22, bBot = H - 20, bMaxH = H * 0.62;
+        voices.forEach(({ hz, lbl }, i) => {
+          const inBand = Math.min(1, Math.max(0.04, Math.pow(cutoff / (hz * 2.8), 0.65)));
+          const bh = bMaxH * inBand * (0.35 + 0.65 * openness);
+          const al = 0.15 + 0.75 * inBand;
+          const x  = bX0 + i * (bW + bGap);
+          // Bar fill
+          c2d.fillStyle = `rgba(200,144,32,${al * 0.38})`;
+          c2d.fillRect(x, bBot - bh, bW, bh);
+          // Bar top cap
+          c2d.fillStyle = `rgba(200,144,32,${al})`;
+          c2d.fillRect(x, bBot - bh, bW, 2);
+          // Label
+          c2d.fillStyle = 'rgba(200,144,32,0.4)';
+          c2d.font = '9px monospace'; c2d.textAlign = 'center';
+          c2d.fillText(lbl,            x + bW / 2, bBot + 10);
+          c2d.fillText(Math.round(hz), x + bW / 2, bBot + 20);
+        });
+
+        // Caption
+        c2d.font = '10px monospace'; c2d.fillStyle = 'rgba(200,144,32,0.38)';
+        c2d.textAlign = 'left';
+        c2d.fillText(`LFO 30s · ${lfoSin > 0 ? 'open ↑' : 'close ↓'}`, 7, H - 7);
+        c2d.fillStyle = 'rgba(200,144,32,0.5)';
+        c2d.textAlign = 'center';
+        c2d.fillText(`filter  ${Math.round(cutoff)} Hz`, wW / 2, H - 7);
 
         droneCanvasRaf = requestAnimationFrame(draw);
       }
       draw();
     })();
 
-    /* Preview audio */
+    /* Preview audio — exposed refs for live slider control */
     let adminDroneAudioCtx = null;
     let adminDroneLfoTimer = null;
+    let adminDroneFilter   = null;  // live ref for resonance + filter-base
+    let adminDroneMaster   = null;  // live ref for volume
+    let adminDroneOscs     = [];    // live refs for waveform + spread
 
-    function startAdminDronePreview(p) {
+    function startAdminDronePreview() {
       if (adminDroneAudioCtx) { adminDroneAudioCtx.close().catch(() => {}); clearInterval(adminDroneLfoTimer); }
+      const p  = droneEditParams;
       const ac = new (window.AudioContext || window.webkitAudioContext)();
       adminDroneAudioCtx = ac;
-      const filter = ac.createBiquadFilter();
-      filter.type = 'lowpass'; filter.Q.value = 0.9; filter.frequency.value = p.filterBase;
-      const master = ac.createGain(); master.gain.value = 0;
-      [
-        { freq: p.rootHz,       g: 0.62 },
-        { freq: p.rootHz * 1.5, g: 0.36 },
-        { freq: p.rootHz * 2,   g: 0.18 },
-      ].forEach(({ freq, g }) => {
-        const osc = ac.createOscillator(); const gn = ac.createGain();
-        osc.type = 'sine'; osc.frequency.value = freq; gn.gain.value = g;
-        osc.connect(gn); gn.connect(filter); osc.start();
+
+      adminDroneFilter = ac.createBiquadFilter();
+      adminDroneFilter.type            = 'lowpass';
+      adminDroneFilter.Q.value         = p.resonance || 0.9;
+      adminDroneFilter.frequency.value = p.filterBase;
+
+      adminDroneMaster = ac.createGain();
+      adminDroneMaster.gain.value = 0;
+
+      const wt = p.waveform || 'sine';
+      const sp = p.spread   || 0;
+
+      // Two root voices (spread detune) + fifth (pure) + octave (pure)
+      adminDroneOscs = [
+        { freq: p.rootHz,       detune: -sp, g: 0.32, type: wt     },
+        { freq: p.rootHz,       detune: +sp, g: 0.32, type: wt     },
+        { freq: p.rootHz * 1.5, detune:   0, g: 0.34, type: 'sine' },
+        { freq: p.rootHz * 2,   detune:   0, g: 0.18, type: 'sine' },
+      ].map(({ freq, detune, g, type }) => {
+        const osc = ac.createOscillator();
+        const gn  = ac.createGain();
+        osc.type            = type;
+        osc.frequency.value = freq;
+        osc.detune.value    = detune;
+        gn.gain.value       = g;
+        osc.connect(gn); gn.connect(adminDroneFilter);
+        osc.start();
+        return osc;
       });
-      filter.connect(master); master.connect(ac.destination);
-      master.gain.linearRampToValueAtTime(p.vol, ac.currentTime + 2);
+
+      adminDroneFilter.connect(adminDroneMaster);
+      adminDroneMaster.connect(ac.destination);
+      adminDroneMaster.gain.linearRampToValueAtTime(p.vol, ac.currentTime + 2);
+
+      // LFO reads from droneEditParams live — slider changes take effect instantly
       adminDroneLfoTimer = setInterval(() => {
         if (!adminDroneAudioCtx) return;
-        const phase = ((Date.now() % 30000) / 30000) * Math.PI * 2;
-        const cutoff = Math.max(60, p.filterBase + Math.sin(phase) * p.lfoDepth);
-        filter.frequency.setTargetAtTime(cutoff, ac.currentTime, 0.35);
+        const phase  = ((Date.now() % 30000) / 30000) * Math.PI * 2;
+        const cutoff = Math.max(60, droneEditParams.filterBase + Math.sin(phase) * droneEditParams.lfoDepth);
+        adminDroneFilter.frequency.setTargetAtTime(cutoff, adminDroneAudioCtx.currentTime, 0.35);
       }, 100);
     }
 
     function stopAdminDronePreview() {
       clearInterval(adminDroneLfoTimer);
       if (adminDroneAudioCtx) { adminDroneAudioCtx.close().catch(() => {}); adminDroneAudioCtx = null; }
+      adminDroneFilter = null; adminDroneMaster = null; adminDroneOscs = [];
     }
 
     const dronePrevBtn = document.getElementById('lounge-drone-preview-btn');
     const droneStopBtn = document.getElementById('lounge-drone-stop-btn');
 
     dronePrevBtn.addEventListener('click', () => {
-      startAdminDronePreview(droneEditParams);
+      startAdminDronePreview();
       dronePrevBtn.style.display = 'none'; droneStopBtn.style.display = '';
     });
     droneStopBtn.addEventListener('click', () => {
@@ -3570,28 +3666,60 @@
     });
 
     /* Root note buttons */
-    document.querySelectorAll('.lounge-root-btn').forEach(btn => {
+    document.querySelectorAll('#lounge-root-btns .lounge-root-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         droneEditParams.rootHz   = +btn.dataset.hz;
         droneEditParams.rootName = btn.dataset.name;
-        document.querySelectorAll('.lounge-root-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('#lounge-root-btns .lounge-root-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        if (adminDroneAudioCtx) startAdminDronePreview(droneEditParams);
+        if (adminDroneAudioCtx) startAdminDronePreview();
       });
     });
 
-    /* Sliders */
+    /* Waveform buttons */
+    document.querySelectorAll('.lounge-wave-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        droneEditParams.waveform = btn.dataset.wave;
+        document.querySelectorAll('.lounge-wave-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        // Update running root oscs in-place (indices 0+1); no restart needed
+        if (adminDroneOscs.length) {
+          adminDroneOscs[0].type = btn.dataset.wave;
+          adminDroneOscs[1].type = btn.dataset.wave;
+        }
+      });
+    });
+
+    /* Sliders — all update droneEditParams AND live audio nodes */
     document.getElementById('lounge-param-filter').addEventListener('input', function () {
       droneEditParams.filterBase = +this.value;
       document.getElementById('lounge-param-filter-val').textContent = this.value + ' Hz';
+      // LFO timer picks up the new filterBase automatically on its next tick
+    });
+    document.getElementById('lounge-param-res').addEventListener('input', function () {
+      droneEditParams.resonance = +this.value;
+      document.getElementById('lounge-param-res-val').textContent = (+this.value).toFixed(1);
+      if (adminDroneFilter && adminDroneAudioCtx)
+        adminDroneFilter.Q.setTargetAtTime(+this.value, adminDroneAudioCtx.currentTime, 0.08);
     });
     document.getElementById('lounge-param-lfo').addEventListener('input', function () {
       droneEditParams.lfoDepth = +this.value;
       document.getElementById('lounge-param-lfo-val').textContent = this.value + ' Hz';
+      // LFO timer reads droneEditParams.lfoDepth — updates on next tick
+    });
+    document.getElementById('lounge-param-spread').addEventListener('input', function () {
+      droneEditParams.spread = +this.value;
+      document.getElementById('lounge-param-spread-val').textContent = this.value + ' ¢';
+      if (adminDroneOscs.length >= 2 && adminDroneAudioCtx) {
+        adminDroneOscs[0].detune.setTargetAtTime(-droneEditParams.spread, adminDroneAudioCtx.currentTime, 0.08);
+        adminDroneOscs[1].detune.setTargetAtTime(+droneEditParams.spread, adminDroneAudioCtx.currentTime, 0.08);
+      }
     });
     document.getElementById('lounge-param-vol').addEventListener('input', function () {
       droneEditParams.vol = +this.value;
       document.getElementById('lounge-param-vol-val').textContent = (+this.value).toFixed(2);
+      if (adminDroneMaster && adminDroneAudioCtx)
+        adminDroneMaster.gain.setTargetAtTime(+this.value, adminDroneAudioCtx.currentTime, 0.08);
     });
 
     /* Push drone config to landing page */
@@ -3619,7 +3747,7 @@
       droneHasOverride = false; updateOverrideTag();
       droneEditParams = adminDroneDefaults();
       syncDroneSliders(droneEditParams);
-      if (adminDroneAudioCtx) startAdminDronePreview(droneEditParams);
+      if (adminDroneAudioCtx) startAdminDronePreview();
       st.textContent = '○ reset to auto'; st.className = 'status-msg ok';
       setTimeout(() => { if (st.textContent.startsWith('○')) { st.textContent = ''; st.className = 'status-msg'; } }, 3000);
     });
