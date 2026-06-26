@@ -14,8 +14,8 @@
       height: 100%;
       background: #faf9f7;
       font-family: 'Courier New', Courier, monospace;
-      color: #1a1a1a;
-      font-size: 14px;
+      color: #111;
+      font-size: 15px;
     }
 
     /* ── Password gate ── */
@@ -36,8 +36,8 @@
       margin: 0 0.18em; position: relative; top: -1px;
     }
     .gate-sublabel {
-      font-size: 0.62rem; letter-spacing: 0.24em; text-transform: uppercase;
-      color: rgba(0,0,0,0.38); margin-bottom: 1.4rem;
+      font-size: 0.78rem; letter-spacing: 0.22em; text-transform: uppercase;
+      color: #444; margin-bottom: 1.4rem;
     }
     .gate-input {
       width: 100%; background: transparent; border: none;
@@ -84,20 +84,20 @@
     }
     nav { display: flex; flex-direction: column; gap: 0; }
     .nav-item {
-      font-size: 0.68rem; letter-spacing: 0.16em; text-transform: uppercase;
-      color: rgba(0,0,0,0.42); padding: 0.5rem 0;
+      font-size: 0.82rem; letter-spacing: 0.14em; text-transform: uppercase;
+      color: #444; padding: 0.5rem 0;
       cursor: pointer; border: none; background: none;
       text-align: left; font-family: 'Courier New', Courier, monospace;
       transition: color 0.15s;
     }
-    .nav-item:hover { color: rgba(0,0,0,0.72); }
-    .nav-item.active { color: #1a1a1a; font-weight: bold; }
+    .nav-item:hover { color: #111; }
+    .nav-item.active { color: #111; font-weight: bold; }
     .aside-footer {
-      margin-top: auto; font-size: 0.58rem;
-      letter-spacing: 0.06em; color: rgba(0,0,0,0.28);
+      margin-top: auto; font-size: 0.72rem;
+      letter-spacing: 0.06em; color: #555;
       cursor: pointer;
     }
-    .aside-footer:hover { color: rgba(0,0,0,0.5); }
+    .aside-footer:hover { color: #111; }
 
     /* ── Main ── */
     main { flex: 1; overflow-y: auto; padding: 2rem 2.4rem; }
@@ -111,49 +111,49 @@
       border-bottom: 1px solid rgba(0,0,0,0.08);
     }
     .sec-title {
-      font-size: 0.72rem; letter-spacing: 0.24em;
+      font-size: 0.84rem; letter-spacing: 0.24em;
       text-transform: uppercase; font-weight: bold;
     }
 
     /* ── Form elements ── */
     .form-group { display: flex; flex-direction: column; gap: 0.38rem; margin-bottom: 1rem; }
     .form-label {
-      font-size: 0.62rem; letter-spacing: 0.2em;
-      text-transform: uppercase; color: rgba(0,0,0,0.45);
+      font-size: 0.76rem; letter-spacing: 0.18em;
+      text-transform: uppercase; color: #333;
     }
     .form-input, .form-textarea, .form-select {
       background: transparent; border: none;
-      border-bottom: 1px solid rgba(0,0,0,0.13);
+      border-bottom: 1px solid rgba(0,0,0,0.22);
       padding: 0.28rem 0; outline: none; width: 100%;
       font-family: 'Courier New', Courier, monospace;
-      font-size: 0.85rem; color: #1a1a1a;
+      font-size: 0.9rem; color: #111;
       transition: border-color 0.15s;
     }
     .form-input:focus, .form-textarea:focus, .form-select:focus {
-      border-bottom-color: rgba(0,0,0,0.36);
+      border-bottom-color: rgba(0,0,0,0.55);
     }
     .form-textarea { resize: vertical; min-height: 64px; line-height: 1.5; }
     .form-select { cursor: pointer; }
-    .form-input::placeholder, .form-textarea::placeholder { color: rgba(0,0,0,0.2); }
+    .form-input::placeholder, .form-textarea::placeholder { color: rgba(0,0,0,0.35); }
 
     /* ── Buttons ── */
     .btn {
       font-family: 'Courier New', Courier, monospace;
-      font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase;
-      padding: 0.46rem 1rem; border: 1px solid rgba(0,0,0,0.18);
-      background: transparent; color: rgba(0,0,0,0.6);
+      font-size: 0.80rem; letter-spacing: 0.12em; text-transform: uppercase;
+      padding: 0.46rem 1rem; border: 1px solid rgba(0,0,0,0.32);
+      background: transparent; color: #222;
       cursor: pointer; transition: all 0.14s;
     }
-    .btn:hover { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.32); color: #1a1a1a; }
-    .btn-primary { background: #1a1a1a; color: #faf9f7; border-color: #1a1a1a; }
+    .btn:hover { background: rgba(0,0,0,0.05); border-color: rgba(0,0,0,0.55); color: #000; }
+    .btn-primary { background: #111; color: #faf9f7; border-color: #111; }
     .btn-primary:hover { background: #2e2e2e; border-color: #2e2e2e; }
-    .btn-danger { color: #b03020; border-color: rgba(176,48,32,0.28); }
-    .btn-danger:hover { background: rgba(176,48,32,0.05); border-color: rgba(176,48,32,0.48); }
-    .btn-sm { font-size: 0.62rem; padding: 0.3rem 0.7rem; }
+    .btn-danger { color: #b03020; border-color: rgba(176,48,32,0.55); }
+    .btn-danger:hover { background: rgba(176,48,32,0.06); border-color: rgba(176,48,32,0.78); }
+    .btn-sm { font-size: 0.75rem; padding: 0.3rem 0.7rem; }
     .btn-row { display: flex; gap: 0.55rem; align-items: center; flex-wrap: wrap; }
 
     /* ── Status message ── */
-    .status-msg { font-size: 0.7rem; letter-spacing: 0.04em; color: rgba(0,0,0,0.42); min-height: 1em; }
+    .status-msg { font-size: 0.80rem; letter-spacing: 0.04em; color: #444; min-height: 1em; }
     .status-msg.ok  { color: #2a7a38; }
     .status-msg.err { color: #b03020; }
 
@@ -163,8 +163,8 @@
       gap: 2.4rem; align-items: start;
     }
     .col-head {
-      font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase;
-      color: rgba(0,0,0,0.35); margin-bottom: 0.8rem;
+      font-size: 0.76rem; letter-spacing: 0.18em; text-transform: uppercase;
+      color: #333; margin-bottom: 0.8rem;
     }
 
     /* ── Session / Past-session cards ── */
@@ -176,42 +176,42 @@
     }
     .item-card:hover { border-color: rgba(0,0,0,0.2); background: rgba(0,0,0,0.014); }
     .item-card.selected { border-color: #1a1a1a; }
-    .card-title { font-size: 0.84rem; font-weight: bold; margin-bottom: 0.2rem; }
-    .card-meta  { font-size: 0.66rem; color: rgba(0,0,0,0.44); letter-spacing: 0.04em; }
+    .card-title { font-size: 0.88rem; font-weight: bold; margin-bottom: 0.2rem; color: #111; }
+    .card-meta  { font-size: 0.78rem; color: #444; letter-spacing: 0.04em; }
     .card-del {
       position: absolute; top: 0.55rem; right: 0.75rem;
-      font-size: 0.62rem; color: rgba(0,0,0,0.28); cursor: pointer;
+      font-size: 0.74rem; color: #666; cursor: pointer;
       background: none; border: none;
       font-family: 'Courier New', Courier, monospace; transition: color 0.14s;
     }
     .card-del:hover { color: #b03020; }
     .new-card-btn {
-      border: 1px dashed rgba(0,0,0,0.18); padding: 0.6rem 0.9rem;
-      font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase;
-      color: rgba(0,0,0,0.4); cursor: pointer; background: none;
+      border: 1px dashed rgba(0,0,0,0.32); padding: 0.6rem 0.9rem;
+      font-size: 0.78rem; letter-spacing: 0.12em; text-transform: uppercase;
+      color: #333; cursor: pointer; background: none;
       font-family: 'Courier New', Courier, monospace; width: 100%;
       text-align: left; transition: all 0.14s;
     }
-    .new-card-btn:hover { border-color: rgba(0,0,0,0.32); color: rgba(0,0,0,0.65); }
+    .new-card-btn:hover { border-color: rgba(0,0,0,0.55); color: #111; }
 
     /* ── Users table ── */
     .data-table { width: 100%; border-collapse: collapse; }
     .data-table th {
-      font-size: 0.6rem; letter-spacing: 0.18em; text-transform: uppercase;
-      color: rgba(0,0,0,0.4); padding: 0 0 0.6rem; text-align: left;
-      border-bottom: 1px solid rgba(0,0,0,0.08); font-weight: normal;
+      font-size: 0.76rem; letter-spacing: 0.16em; text-transform: uppercase;
+      color: #333; padding: 0 0 0.6rem; text-align: left;
+      border-bottom: 1px solid rgba(0,0,0,0.12); font-weight: bold;
     }
     .data-table td {
-      font-size: 0.8rem; padding: 0.55rem 0;
-      border-bottom: 1px solid rgba(0,0,0,0.05); color: rgba(0,0,0,0.72);
+      font-size: 0.88rem; padding: 0.55rem 0;
+      border-bottom: 1px solid rgba(0,0,0,0.07); color: #222;
       vertical-align: top;
     }
-    .data-table td.strong { color: #1a1a1a; font-weight: bold; }
+    .data-table td.strong { color: #111; font-weight: bold; }
     .table-count {
-      font-size: 0.66rem; letter-spacing: 0.08em; color: rgba(0,0,0,0.38);
+      font-size: 0.78rem; letter-spacing: 0.08em; color: #444;
     }
     .empty-state {
-      font-size: 0.78rem; color: rgba(0,0,0,0.32); font-style: italic; padding: 1.4rem 0;
+      font-size: 0.82rem; color: #555; font-style: italic; padding: 1.4rem 0;
     }
 
     /* ── Broadcast section ── */
@@ -224,8 +224,8 @@
     .bc-controls .form-group { margin-bottom: 0; flex: 1; min-width: 160px; }
     .live-badge {
       display: flex; align-items: center; gap: 0.4rem;
-      font-size: 0.62rem; letter-spacing: 0.18em; text-transform: uppercase;
-      color: rgba(0,0,0,0.32); padding-bottom: 0.3rem;
+      font-size: 0.78rem; letter-spacing: 0.16em; text-transform: uppercase;
+      color: #333; padding-bottom: 0.3rem;
     }
     .live-dot {
       width: 7px; height: 7px; border-radius: 50%;
@@ -240,10 +240,10 @@
     }
     .bc-panel { border: 1px solid rgba(0,0,0,0.08); overflow: hidden; }
     .bc-panel-label {
-      font-size: 0.6rem; letter-spacing: 0.18em; text-transform: uppercase;
-      color: rgba(0,0,0,0.35); padding: 0.48rem 0.8rem;
-      border-bottom: 1px solid rgba(0,0,0,0.06);
-      background: rgba(0,0,0,0.013);
+      font-size: 0.76rem; letter-spacing: 0.16em; text-transform: uppercase;
+      color: #333; padding: 0.48rem 0.8rem;
+      border-bottom: 1px solid rgba(0,0,0,0.1);
+      background: rgba(0,0,0,0.025);
     }
     .frame-wrap {
       position: relative; width: 100%; height: 0;
@@ -256,8 +256,8 @@
     .frame-placeholder {
       position: absolute; inset: 0; display: flex;
       align-items: center; justify-content: center;
-      font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase;
-      color: rgba(0,0,0,0.22);
+      font-size: 0.80rem; letter-spacing: 0.12em; text-transform: uppercase;
+      color: #555;
     }
 
     .timer-row {
@@ -266,15 +266,15 @@
       border: 1px solid rgba(0,0,0,0.08);
     }
     .timer-label {
-      font-size: 0.6rem; letter-spacing: 0.18em;
-      text-transform: uppercase; color: rgba(0,0,0,0.36);
+      font-size: 0.76rem; letter-spacing: 0.16em;
+      text-transform: uppercase; color: #333;
     }
     .timer-display {
-      font-size: 1.05rem; letter-spacing: 0.18em;
-      font-variant-numeric: tabular-nums; flex: 1;
+      font-size: 1.15rem; letter-spacing: 0.18em;
+      font-variant-numeric: tabular-nums; flex: 1; color: #111;
     }
     .bc-session-name {
-      font-size: 0.72rem; color: rgba(0,0,0,0.45);
+      font-size: 0.84rem; color: #444;
       font-style: italic; white-space: nowrap;
     }
 
@@ -286,7 +286,7 @@
     }
     .link-remove {
       background: none; border: none; cursor: pointer;
-      font-size: 0.75rem; color: rgba(0,0,0,0.28); padding: 0.28rem 0;
+      font-size: 0.78rem; color: #666; padding: 0.28rem 0;
       transition: color 0.14s;
     }
     .link-remove:hover { color: #b03020; }
@@ -299,8 +299,8 @@
       margin-top: 1rem;
     }
     .chat-clear-label {
-      font-size: 0.6rem; letter-spacing: 0.16em; text-transform: uppercase;
-      color: rgba(0,0,0,0.36); flex: 1;
+      font-size: 0.78rem; letter-spacing: 0.14em; text-transform: uppercase;
+      color: #333; flex: 1;
     }
 
     /* ── Audio Player ── */
@@ -339,13 +339,13 @@
     .arc-track-row.playing { background: rgba(0,0,0,0.05); }
     .arc-track-row.playing .arc-track-title { font-weight: bold; }
     .arc-track-title {
-      flex: 1; font-size: 0.74rem;
+      flex: 1; font-size: 0.84rem; color: #111;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
-    .arc-track-dur { font-size: 0.6rem; color: rgba(0,0,0,0.36); flex-shrink: 0; }
+    .arc-track-dur { font-size: 0.76rem; color: #555; flex-shrink: 0; }
     .arc-track-del {
       background: none; border: none; cursor: pointer;
-      font-size: 0.6rem; color: rgba(0,0,0,0.22); padding: 0; flex-shrink: 0;
+      font-size: 0.74rem; color: #666; padding: 0; flex-shrink: 0;
       transition: color 0.12s;
     }
     .arc-track-del:hover { color: #b03020; }
@@ -353,12 +353,12 @@
     .upload-label {
       display: inline-block;
       font-family: 'Courier New', Courier, monospace;
-      font-size: 0.62rem; letter-spacing: 0.14em; text-transform: uppercase;
-      color: rgba(0,0,0,0.46); border: 1px solid rgba(0,0,0,0.15);
+      font-size: 0.78rem; letter-spacing: 0.12em; text-transform: uppercase;
+      color: #222; border: 1px solid rgba(0,0,0,0.35);
       padding: 0.28rem 0.65rem; cursor: pointer; transition: all 0.14s;
       flex-shrink: 0;
     }
-    .upload-label:hover { border-color: rgba(0,0,0,0.3); color: #1a1a1a; }
+    .upload-label:hover { border-color: rgba(0,0,0,0.6); color: #000; }
 
     /* Cassette deck */
     .cassette-deck {
@@ -385,9 +385,9 @@
       background: rgba(0,0,0,0.02);
     }
     .cassette-track-name {
-      font-size: 0.72rem; letter-spacing: 0.04em;
+      font-size: 0.88rem; letter-spacing: 0.03em;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-      color: rgba(0,0,0,0.52); display: block;
+      color: #111; display: block;
     }
     .cassette-deck .arc-controls { display: flex; align-items: center; gap: 0.6rem; }
 
@@ -417,8 +417,8 @@
       border-radius: 50%; cursor: pointer; border: none;
     }
     .arc-time {
-      font-size: 0.6rem; letter-spacing: 0.08em;
-      color: rgba(0,0,0,0.36); font-variant-numeric: tabular-nums;
+      font-size: 0.78rem; letter-spacing: 0.08em;
+      color: #444; font-variant-numeric: tabular-nums;
     }
 
 
@@ -443,17 +443,17 @@
       flex-wrap: wrap;
     }
     .sb-strip-label {
-      font-size: 0.5rem; letter-spacing: 0.16em; text-transform: uppercase;
-      color: rgba(0,0,0,0.32); flex-shrink: 0;
+      font-size: 0.76rem; letter-spacing: 0.14em; text-transform: uppercase;
+      color: #333; flex-shrink: 0;
     }
     .sb-add-btn {
       font-family: 'Courier New', Courier, monospace;
-      font-size: 0.58rem; letter-spacing: 0.1em; text-transform: uppercase;
-      padding: 0.32rem 0.65rem; border: 1px dashed rgba(0,0,0,0.2);
-      background: transparent; color: rgba(0,0,0,0.46);
+      font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 0.34rem 0.75rem; border: 1px dashed rgba(0,0,0,0.38);
+      background: transparent; color: #222;
       cursor: pointer; transition: all 0.13s;
     }
-    .sb-add-btn:hover { border-color: rgba(0,0,0,0.36); color: #1a1a1a; background: rgba(0,0,0,0.02); }
+    .sb-add-btn:hover { border-color: rgba(0,0,0,0.62); color: #000; background: rgba(0,0,0,0.04); }
 
     #sb-canvas-wrap {
       flex: 1; position: relative;
@@ -461,6 +461,22 @@
       background: #0d1c15; border: 1px solid rgba(0,0,0,0.28);
       min-width: 0;
     }
+    /* Panel hidden: canvas fills full width */
+    #sb-wrap.panel-hidden #sb-right-panel { display: none; }
+    #sb-wrap.panel-hidden #sb-canvas-wrap { padding-top: calc(9/16 * 100%); }
+    /* Fullscreen host */
+    #sec-broadcast:fullscreen,
+    #sec-broadcast:-webkit-full-screen {
+      background: #f5f4f0; overflow-y: auto;
+      padding: 1rem 1.5rem 1.5rem; box-sizing: border-box;
+    }
+    /* Panel/fullscreen buttons */
+    .sb-view-btn {
+      font-size: 0.76rem; letter-spacing: 0.04em; padding: 0.24rem 0.65rem;
+      border: 1px solid rgba(0,0,0,0.36); background: transparent;
+      color: #222; cursor: pointer; font-family: inherit;
+    }
+    .sb-view-btn:hover { background: rgba(0,0,0,0.06); color: #000; border-color: rgba(0,0,0,0.6); }
     #sb-canvas {
       position: absolute; inset: 0;
       overflow: hidden;
@@ -468,8 +484,8 @@
     #sb-empty-hint {
       position: absolute; inset: 0;
       display: flex; align-items: center; justify-content: center;
-      font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase;
-      color: rgba(255,255,255,0.18); pointer-events: none;
+      font-size: 0.76rem; letter-spacing: 0.12em; text-transform: uppercase;
+      color: rgba(255,255,255,0.38); pointer-events: none;
     }
 
     .sb-module {
@@ -518,25 +534,25 @@
       background: rgba(0,0,0,0.6);
     }
     .sb-cam-ctl select {
-      width: 100%; font-size: 0.6rem;
-      background: rgba(255,255,255,0.08);
-      color: rgba(255,255,255,0.7);
-      border: 1px solid rgba(255,255,255,0.18);
-      padding: 0.2rem 0.3rem; border-radius: 0;
+      width: 100%; font-size: 0.76rem;
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.32);
+      padding: 0.22rem 0.3rem; border-radius: 0;
     }
     .sb-start-cam, .sb-start-scr {
       font-family: 'Courier New', Courier, monospace;
-      font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase;
-      padding: 0.3rem 0.7rem;
-      background: #1a1a1a; color: #faf9f7;
-      border: 1px solid rgba(255,255,255,0.18); cursor: pointer;
+      font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 0.34rem 0.8rem;
+      background: #1a1a1a; color: #fff;
+      border: 1px solid rgba(255,255,255,0.28); cursor: pointer;
       transition: opacity 0.14s;
     }
     .sb-start-cam:hover, .sb-start-scr:hover { opacity: 0.8; }
     .sb-vc-stop {
       position: absolute; bottom: 4px; right: 4px;
       font-family: 'Courier New', Courier, monospace;
-      font-size: 0.55rem; letter-spacing: 0.08em;
+      font-size: 0.70rem; letter-spacing: 0.08em;
       padding: 0.2rem 0.45rem;
       background: rgba(176,48,32,0.85); color: #fff;
       border: none; cursor: pointer; z-index: 2;
@@ -548,8 +564,8 @@
       align-items: center; justify-content: center; gap: 0.25rem;
       padding: 0.4rem; background: rgba(0,0,0,0.5);
     }
-    .sb-audio-track { font-size: 0.6rem; color: rgba(255,255,255,0.5); text-align: center; }
-    .sb-audio-state { font-size: 0.7rem; color: rgba(255,255,255,0.3); }
+    .sb-audio-track { font-size: 0.78rem; color: rgba(255,255,255,0.94); text-align: center; }
+    .sb-audio-state { font-size: 0.82rem; color: rgba(255,255,255,0.88); }
     .sb-audio-progress-wrap {
       width: 90%; height: 2px; background: rgba(255,255,255,0.12); position: relative;
     }
@@ -575,7 +591,7 @@
       margin-top: 0.7rem; flex-wrap: wrap;
     }
     #sb-save-status {
-      font-size: 0.62rem; color: rgba(0,0,0,0.36); letter-spacing: 0.04em;
+      font-size: 0.78rem; color: #444; letter-spacing: 0.04em;
     }
 
     /* ── Canvas monitor dot-grid (as bg so it doesn't cover modules) ── */
@@ -631,28 +647,28 @@
     }
     .bc-chat-messages::-webkit-scrollbar { display: none; }
     .bc-msg { display: flex; flex-direction: column; gap: 0.02rem; }
-    .bc-msg-sender { font-size: 0.5rem; color: #c89020; }
-    .bc-msg-text   { font-size: 0.6rem; color: #f0e0a8; line-height: 1.4; word-break: break-word; }
-    .bc-msg.bc-sys .bc-msg-sender { color: rgba(200,144,32,0.42); }
-    .bc-msg.bc-sys .bc-msg-text   { font-style: italic; color: rgba(240,224,168,0.4); font-size: 0.55rem; }
+    .bc-msg-sender { font-size: 0.64rem; color: #c89020; }
+    .bc-msg-text   { font-size: 0.72rem; color: #f0e0a8; line-height: 1.4; word-break: break-word; }
+    .bc-msg.bc-sys .bc-msg-sender { color: rgba(200,144,32,0.55); }
+    .bc-msg.bc-sys .bc-msg-text   { font-style: italic; color: rgba(240,224,168,0.58); font-size: 0.68rem; }
     .bc-chat-input-area {
       background: rgba(13,28,21,0.65);
       backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-      padding: 0.22rem 0.45rem;
+      padding: 0.28rem 0.45rem;
       display: flex; align-items: center; gap: 0.3rem;
-      border-top: 1px solid rgba(200,144,32,0.1);
+      border-top: 1px solid rgba(200,144,32,0.18);
     }
     .bc-chat-input-area input {
       flex: 1; background: transparent; border: none;
-      border-bottom: 1px solid rgba(200,144,32,0.32);
+      border-bottom: 1px solid rgba(200,144,32,0.42);
       outline: none; padding: 0.06rem 0;
       font-family: 'Courier New', Courier, monospace;
-      font-size: 0.6rem; font-style: italic; color: #f0e0a8;
+      font-size: 0.74rem; font-style: italic; color: #f0e0a8;
     }
-    .bc-chat-input-area input::placeholder { color: rgba(200,144,32,0.38); }
+    .bc-chat-input-area input::placeholder { color: rgba(200,144,32,0.55); }
     .bc-send-btn {
       background: none; border: none; padding: 0; flex-shrink: 0;
-      font-size: 0.7rem; color: #c89020; cursor: pointer; line-height: 1;
+      font-size: 0.82rem; color: #c89020; cursor: pointer; line-height: 1;
     }
     .bc-send-btn:hover { color: #f0e0a8; }
 
@@ -673,49 +689,49 @@
       flex-shrink: 0;
     }
     .sbr-label {
-      font-size: 0.49rem; letter-spacing: 0.16em; text-transform: uppercase;
-      color: rgba(255,255,255,0.26); margin-bottom: 0.45rem;
+      font-size: 0.74rem; letter-spacing: 0.14em; text-transform: uppercase;
+      color: rgba(255,255,255,0.92); margin-bottom: 0.45rem;
     }
     .sbr-signal-row {
       display: flex; align-items: center; gap: 0.45rem;
     }
     .sbr-onair {
       display: flex; align-items: center; gap: 0.38rem; flex: 1;
-      font-size: 0.6rem; color: rgba(255,255,255,0.38);
+      font-size: 0.78rem; color: rgba(255,255,255,0.94);
       font-family: 'Courier New', monospace; font-variant-numeric: tabular-nums;
     }
     .sbr-fader-row {
       display: flex; align-items: center; gap: 0.4rem; margin-top: 0.38rem;
     }
     .sbr-fader-row > .sbr-flabel {
-      font-size: 0.48rem; letter-spacing: 0.1em; text-transform: uppercase;
-      color: rgba(255,255,255,0.24); width: 2rem; flex-shrink: 0;
+      font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase;
+      color: rgba(255,255,255,0.90); width: 2rem; flex-shrink: 0;
     }
     .sbr-fader-row > .sbr-fpct {
-      font-size: 0.52rem; color: rgba(255,255,255,0.28);
+      font-size: 0.74rem; color: rgba(255,255,255,0.90);
       width: 2.4rem; text-align: right; flex-shrink: 0;
     }
     .sbr-fader-row input[type=range] {
       flex: 1; cursor: pointer; accent-color: #e07828;
     }
     .sbr-arc-track {
-      font-size: 0.63rem; color: rgba(255,255,255,0.52);
+      font-size: 0.80rem; color: rgba(255,255,255,0.96);
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
       margin-bottom: 0.32rem;
     }
     .sbr-btn-row { display: flex; gap: 0.35rem; margin-bottom: 0.32rem; }
     .sbr-btn {
-      font-family: 'Courier New', monospace; font-size: 0.56rem;
-      letter-spacing: 0.07em; padding: 0.28rem 0.5rem;
-      background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.58);
-      border: 1px solid rgba(255,255,255,0.11); cursor: pointer;
+      font-family: 'Courier New', monospace; font-size: 0.76rem;
+      letter-spacing: 0.06em; padding: 0.36rem 0.5rem;
+      background: rgba(255,255,255,0.08); color: #fff;
+      border: 1px solid rgba(255,255,255,0.28); cursor: pointer;
       flex: 1; text-align: center; transition: background 0.1s;
     }
-    .sbr-btn:hover { background: rgba(255,255,255,0.1); }
+    .sbr-btn:hover { background: rgba(255,255,255,0.16); }
     .sbr-btn.sbr-live { background: #b03020; color: #fff; border-color: #b03020; }
     .sbr-btn.sbr-golive { background: #1a6e3a; color: #c6f0d4; border-color: #1a6e3a; }
     .sbr-btn.sbr-golive:hover { background: #1f8047; }
-    .sbr-btn.sbr-save-draft { color: rgba(255,255,255,0.6); border-color: rgba(255,255,255,0.15); }
+    .sbr-btn.sbr-save-draft { color: rgba(255,255,255,0.92); border-color: rgba(255,255,255,0.32); }
     .sbr-seek-bar {
       width: 100%; height: 3px;
       background: rgba(255,255,255,0.12);
@@ -727,32 +743,32 @@
       transition: width 0.8s linear;
     }
     .sbr-time {
-      font-size: 0.52rem; color: rgba(255,255,255,0.2);
+      font-size: 0.74rem; color: rgba(255,255,255,0.88);
       font-family: 'Courier New', monospace; font-variant-numeric: tabular-nums;
     }
     .sbr-dev-select {
-      width: 100%; font-size: 0.56rem; margin-bottom: 0.38rem;
-      background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.52);
-      border: 1px solid rgba(255,255,255,0.09); padding: 0.2rem 0.28rem;
+      width: 100%; font-size: 0.76rem; margin-bottom: 0.38rem;
+      background: rgba(255,255,255,0.08); color: #fff;
+      border: 1px solid rgba(255,255,255,0.28); padding: 0.22rem 0.28rem;
     }
     .sbr-name-input {
-      width: 100%; background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.12);
-      color: #f0e0a8; padding: 0.28rem 0.4rem;
+      width: 100%; background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.28);
+      color: #f0e0a8; padding: 0.34rem 0.4rem;
       font-family: 'Courier New', Courier, monospace;
-      font-size: 0.65rem; outline: none;
+      font-size: 0.82rem; outline: none;
     }
-    .sbr-name-input::placeholder { color: rgba(200,144,32,0.3); }
-    .sbr-name-input:focus { border-color: rgba(200,144,32,0.35); }
+    .sbr-name-input::placeholder { color: rgba(200,144,32,0.60); }
+    .sbr-name-input:focus { border-color: rgba(200,144,32,0.70); }
     #sbr-text-fields textarea {
-      width: 100%; background: rgba(255,255,255,0.04); color: #f0e0a8;
-      border: 1px solid rgba(255,255,255,0.08); padding: 0.3rem 0.38rem;
-      font-size: 0.63rem; resize: vertical; min-height: 44px; box-sizing: border-box;
+      width: 100%; background: rgba(255,255,255,0.07); color: #f0e0a8;
+      border: 1px solid rgba(255,255,255,0.24); padding: 0.32rem 0.38rem;
+      font-size: 0.80rem; resize: vertical; min-height: 44px; box-sizing: border-box;
       margin-top: 0.22rem; font-family: inherit; line-height: 1.42;
     }
     .sbr-text-mod-label {
-      font-size: 0.47rem; letter-spacing: 0.12em; text-transform: uppercase;
-      color: rgba(255,255,255,0.18); margin-top: 0.45rem;
+      font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase;
+      color: rgba(255,255,255,0.88); margin-top: 0.45rem;
     }
     .sbr-text-mod-label:first-child { margin-top: 0; }
     #sbr-cam-preview, #sbr-scr-preview {
@@ -782,17 +798,17 @@
     <button class="gate-btn" id="gate-submit">Enter</button>
     <div class="gate-error" id="gate-error"></div>
     <details style="margin-top:1.8rem">
-      <summary style="font-size:0.62rem;letter-spacing:0.16em;text-transform:uppercase;color:rgba(0,0,0,0.32);cursor:pointer;list-style:none">
+      <summary style="font-size:0.74rem;letter-spacing:0.16em;text-transform:uppercase;color:rgba(0,0,0,0.56);cursor:pointer;list-style:none">
         ▸ Generate password hash
       </summary>
       <div style="margin-top:0.9rem;display:flex;flex-direction:column;gap:0.5rem">
         <input id="hash-input" type="password" placeholder="type new password"
-               style="background:transparent;border:none;border-bottom:1px solid rgba(0,0,0,0.12);padding:0.28rem 0;font-family:'Courier New',Courier,monospace;font-size:0.82rem;outline:none;width:100%"/>
-        <div style="font-size:0.62rem;letter-spacing:0.06em;color:rgba(0,0,0,0.38);word-break:break-all;min-height:1em" id="hash-output"></div>
-        <button id="hash-copy" style="display:none;align-self:flex-start;font-family:'Courier New',Courier,monospace;font-size:0.62rem;letter-spacing:0.14em;text-transform:uppercase;padding:0.32rem 0.7rem;border:1px solid rgba(0,0,0,0.18);background:transparent;color:rgba(0,0,0,0.55);cursor:pointer">
+               style="background:transparent;border:none;border-bottom:1px solid rgba(0,0,0,0.18);padding:0.28rem 0;font-family:'Courier New',Courier,monospace;font-size:0.86rem;outline:none;width:100%"/>
+        <div style="font-size:0.73rem;letter-spacing:0.06em;color:rgba(0,0,0,0.60);word-break:break-all;min-height:1em" id="hash-output"></div>
+        <button id="hash-copy" style="display:none;align-self:flex-start;font-family:'Courier New',Courier,monospace;font-size:0.74rem;letter-spacing:0.14em;text-transform:uppercase;padding:0.32rem 0.7rem;border:1px solid rgba(0,0,0,0.24);background:transparent;color:rgba(0,0,0,0.72);cursor:pointer">
           Copy hash
         </button>
-        <div style="font-size:0.62rem;color:rgba(0,0,0,0.35)">
+        <div style="font-size:0.73rem;color:rgba(0,0,0,0.58)">
           Paste this into <code>supabase-config.js</code> → <code>ADMIN_PASSWORD_HASH</code>
         </div>
       </div>
@@ -951,7 +967,11 @@
         <div id="scene-builder">
           <div class="sec-header" style="margin-bottom:0.7rem;padding-bottom:0.6rem">
             <span class="sec-title">Scene Builder</span>
-            <span class="status-msg" id="sb-save-status"></span>
+            <div style="display:flex;align-items:center;gap:0.5rem">
+              <span class="status-msg" id="sb-save-status"></span>
+              <button class="sb-view-btn" id="sb-panel-toggle">‹ hide panel</button>
+              <button class="sb-view-btn" id="sb-fullscreen-btn">⤢ fullscreen</button>
+            </div>
           </div>
           <div id="sb-wrap">
             <div id="sb-canvas-wrap">
@@ -2555,6 +2575,27 @@
       if (bcSessionId) await db.from('sessions').update({ scene_config: { modules: [] } }).eq('id', bcSessionId);
       sbSaveStatus.textContent = '✓ cleared';
       setTimeout(() => { if (sbSaveStatus.textContent === '✓ cleared') sbSaveStatus.textContent = ''; }, 2500);
+    });
+
+    /* ── Panel toggle ── */
+    const sbWrap = document.getElementById('sb-wrap');
+    document.getElementById('sb-panel-toggle').addEventListener('click', function () {
+      const hidden = sbWrap.classList.toggle('panel-hidden');
+      this.textContent = hidden ? '› show panel' : '‹ hide panel';
+    });
+
+    /* ── Fullscreen toggle ── */
+    const bcSection = document.getElementById('sec-broadcast');
+    document.getElementById('sb-fullscreen-btn').addEventListener('click', () => {
+      if (!document.fullscreenElement) {
+        bcSection.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen();
+      }
+    });
+    document.addEventListener('fullscreenchange', () => {
+      const btn = document.getElementById('sb-fullscreen-btn');
+      if (btn) btn.textContent = document.fullscreenElement ? '↙ exit fullscreen' : '⤢ fullscreen';
     });
 
     /* ═════════════════════════════════════════════════════
