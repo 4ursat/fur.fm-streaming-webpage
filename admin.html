@@ -788,8 +788,9 @@
     .lounge-drone-card {
       border: 1px solid rgba(0,0,0,0.09); padding: 1rem 1.2rem;
       background: rgba(0,0,0,0.012); margin-bottom: 1.4rem;
-      display: flex; align-items: flex-start; gap: 1.4rem;
+      display: flex; flex-direction: column; gap: 0;
     }
+    .lounge-drone-info-row { display: flex; align-items: flex-start; gap: 1.4rem; margin-bottom: 0.75rem; }
     .lounge-drone-left { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
     .lounge-drone-key {
       font-size: 2.2rem; font-weight: bold; color: #111;
@@ -804,10 +805,40 @@
       margin-bottom: 0.28rem;
     }
     .lounge-drone-detail {
-      font-size: 0.84rem; color: #444; margin-bottom: 0.3rem;
+      font-size: 0.84rem; color: #444; margin-bottom: 0.25rem;
     }
     .lounge-drone-desc {
       font-size: 0.74rem; color: #888; letter-spacing: 0.01em; line-height: 1.5;
+    }
+    .lounge-drone-override-tag {
+      font-size: 0.72rem; color: #c89020; letter-spacing: 0.06em; margin-bottom: 0.2rem;
+    }
+    #lounge-drone-canvas {
+      display: block; width: 100%; height: 88px;
+      background: #0d1c15; margin-bottom: 0.9rem;
+    }
+    .lounge-drone-section-head {
+      font-size: 0.65rem; letter-spacing: 0.18em; text-transform: uppercase;
+      color: #aaa; margin-bottom: 0.45rem;
+    }
+    .lounge-root-btns { display: flex; gap: 0.3rem; flex-wrap: wrap; margin-bottom: 0.7rem; }
+    .lounge-root-btn {
+      padding: 0.2rem 0.65rem; font-size: 0.73rem; cursor: pointer;
+      border: 1px solid rgba(0,0,0,0.22); background: transparent;
+      color: #555; font-family: inherit; letter-spacing: 0.04em;
+    }
+    .lounge-root-btn.active { background: #111; color: #fff; border-color: #111; }
+    .lounge-param-row {
+      display: flex; align-items: center; gap: 0.65rem; margin-bottom: 0.42rem;
+    }
+    .lounge-param-label {
+      font-size: 0.69rem; letter-spacing: 0.08em; text-transform: uppercase;
+      color: #888; width: 5.8rem; flex-shrink: 0;
+    }
+    .lounge-param-slider { flex: 1; accent-color: #c89020; cursor: pointer; height: 3px; }
+    .lounge-param-val {
+      font-size: 0.74rem; color: #444; width: 4.2rem; text-align: right;
+      font-variant-numeric: tabular-nums;
     }
 
     /* ── Responsive ── */
@@ -1342,16 +1373,56 @@
           <button class="btn btn-danger btn-sm" id="lounge-stop-btn" style="display:none">■ stop track · restore drone</button>
         </div>
 
-        <!-- Drone status card -->
+        <!-- Drone monitor + editor -->
         <div class="lounge-drone-card">
-          <div class="lounge-drone-left">
-            <div class="lounge-drone-key" id="lounge-drone-key">—</div>
-            <div class="lounge-drone-key-label">root key</div>
+          <div class="lounge-drone-info-row">
+            <div class="lounge-drone-left">
+              <div class="lounge-drone-key" id="lounge-drone-key">—</div>
+              <div class="lounge-drone-key-label">root key</div>
+            </div>
+            <div class="lounge-drone-right">
+              <div class="lounge-drone-title">drone synth</div>
+              <div class="lounge-drone-detail" id="lounge-drone-detail">shifts in —</div>
+              <div class="lounge-drone-override-tag" id="lounge-drone-override-tag" style="display:none">● custom params active</div>
+              <div class="lounge-drone-desc">generative · deterministic · time-locked · all visitors hear the same key</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:0.3rem;align-items:flex-end;flex-shrink:0">
+              <button class="btn btn-sm" id="lounge-drone-preview-btn">▶ preview</button>
+              <button class="btn btn-sm btn-danger" id="lounge-drone-stop-btn" style="display:none">■ stop</button>
+            </div>
           </div>
-          <div class="lounge-drone-right">
-            <div class="lounge-drone-title">drone synth</div>
-            <div class="lounge-drone-detail" id="lounge-drone-detail">shifts in —</div>
-            <div class="lounge-drone-desc">generative · deterministic · time-locked · all visitors hear the same key · no file needed</div>
+
+          <!-- Oscilloscope visualization -->
+          <canvas id="lounge-drone-canvas" width="800" height="88"></canvas>
+
+          <!-- Param editor -->
+          <div class="lounge-drone-section-head">Root Note</div>
+          <div class="lounge-root-btns" id="lounge-root-btns">
+            <button class="lounge-root-btn" data-hz="55.00" data-name="A">A<sub>1</sub> 55 Hz</button>
+            <button class="lounge-root-btn" data-hz="73.42" data-name="D">D<sub>1</sub> 73 Hz</button>
+            <button class="lounge-root-btn" data-hz="82.41" data-name="E">E<sub>1</sub> 82 Hz</button>
+            <button class="lounge-root-btn" data-hz="98.00" data-name="G">G<sub>1</sub> 98 Hz</button>
+            <button class="lounge-root-btn" data-hz="110.00" data-name="A">A<sub>2</sub> 110 Hz</button>
+          </div>
+          <div class="lounge-param-row">
+            <span class="lounge-param-label">Filter base</span>
+            <input type="range" class="lounge-param-slider" id="lounge-param-filter" min="100" max="800" step="5" value="380"/>
+            <span class="lounge-param-val" id="lounge-param-filter-val">380 Hz</span>
+          </div>
+          <div class="lounge-param-row">
+            <span class="lounge-param-label">LFO depth</span>
+            <input type="range" class="lounge-param-slider" id="lounge-param-lfo" min="0" max="250" step="5" value="120"/>
+            <span class="lounge-param-val" id="lounge-param-lfo-val">120 Hz</span>
+          </div>
+          <div class="lounge-param-row">
+            <span class="lounge-param-label">Volume</span>
+            <input type="range" class="lounge-param-slider" id="lounge-param-vol" min="0.05" max="0.30" step="0.01" value="0.15"/>
+            <span class="lounge-param-val" id="lounge-param-vol-val">0.15</span>
+          </div>
+          <div style="display:flex;gap:0.5rem;margin-top:0.7rem;flex-wrap:wrap;align-items:center">
+            <button class="btn btn-primary btn-sm" id="lounge-push-drone-btn">→ push to landing page</button>
+            <button class="btn btn-sm" id="lounge-reset-drone-btn">reset to auto</button>
+            <span class="status-msg" id="lounge-drone-push-status"></span>
           </div>
         </div>
 
@@ -3336,6 +3407,222 @@
         updateLoungeStatusBar(d);
       })
       .subscribe();
+
+    /* ── Drone editor ─────────────────────────────────────────────────── */
+    const ADMIN_ROOTS = [
+      { hz: 55.00,  name: 'A' }, { hz: 73.42, name: 'D' },
+      { hz: 82.41,  name: 'E' }, { hz: 98.00, name: 'G' },
+      { hz: 110.00, name: 'A' },
+    ];
+    function adminSeedRand(s, n) { const x = Math.sin(s*127.1+n*311.7)*43758.5453; return x-Math.floor(x); }
+    function adminDroneDefaults() {
+      const seed = Math.floor(Date.now() / (8 * 60 * 1000));
+      const ri = Math.floor(adminSeedRand(seed, 0) * ADMIN_ROOTS.length);
+      return {
+        rootHz:     ADMIN_ROOTS[ri].hz,
+        rootName:   ADMIN_ROOTS[ri].name,
+        filterBase: 220 + adminSeedRand(seed, 3) * 380,
+        lfoDepth:   70  + adminSeedRand(seed, 4) * 110,
+        vol:        0.12 + adminSeedRand(seed, 5) * 0.08,
+      };
+    }
+
+    let droneEditParams = adminDroneDefaults();
+    let droneHasOverride = false;
+
+    // If a config override is stored in scene, apply it
+    if (ls?.scene?.drone_config?.override) {
+      const dc = ls.scene.drone_config;
+      droneHasOverride = true;
+      if (dc.rootHz)     droneEditParams.rootHz     = dc.rootHz;
+      if (dc.rootName)   droneEditParams.rootName   = dc.rootName;
+      if (dc.filterBase) droneEditParams.filterBase = dc.filterBase;
+      if (dc.lfoDepth !== undefined) droneEditParams.lfoDepth = dc.lfoDepth;
+      if (dc.vol)        droneEditParams.vol        = dc.vol;
+    }
+
+    function syncDroneSliders(p) {
+      const fi = document.getElementById('lounge-param-filter');
+      const li = document.getElementById('lounge-param-lfo');
+      const vi = document.getElementById('lounge-param-vol');
+      if (fi) { fi.value = p.filterBase;  document.getElementById('lounge-param-filter-val').textContent = Math.round(p.filterBase) + ' Hz'; }
+      if (li) { li.value = p.lfoDepth;    document.getElementById('lounge-param-lfo-val').textContent    = Math.round(p.lfoDepth)   + ' Hz'; }
+      if (vi) { vi.value = p.vol.toFixed(2); document.getElementById('lounge-param-vol-val').textContent = p.vol.toFixed(2); }
+      document.querySelectorAll('.lounge-root-btn').forEach(btn => {
+        btn.classList.toggle('active', Math.abs(+btn.dataset.hz - p.rootHz) < 0.1);
+      });
+    }
+    syncDroneSliders(droneEditParams);
+
+    const overrideTag = document.getElementById('lounge-drone-override-tag');
+    function updateOverrideTag() { if (overrideTag) overrideTag.style.display = droneHasOverride ? '' : 'none'; }
+    updateOverrideTag();
+
+    /* Canvas oscilloscope */
+    let droneCanvasRaf = null;
+    (function startDroneCanvas() {
+      const canvas = document.getElementById('lounge-drone-canvas');
+      if (!canvas) return;
+      const c2d = canvas.getContext('2d');
+      function draw() {
+        const W = canvas.width, H = canvas.height;
+        const p = droneEditParams;
+        const t = Date.now() / 1000;
+        const lfoPhase = (t % 30) / 30;
+        const cutoff   = p.filterBase + Math.sin(lfoPhase * Math.PI * 2) * p.lfoDepth;
+
+        c2d.fillStyle = '#0d1c15';
+        c2d.fillRect(0, 0, W, H);
+
+        // Faint centerline
+        c2d.strokeStyle = 'rgba(200,144,32,0.07)';
+        c2d.lineWidth = 1;
+        c2d.beginPath(); c2d.moveTo(0, H/2); c2d.lineTo(W, H/2); c2d.stroke();
+
+        const displayDur = 4 / p.rootHz; // 4 cycles
+        function wave(x) {
+          const st = t + (x / W) * displayDur;
+          let s = 0.62 * Math.sin(2*Math.PI*p.rootHz*st)
+                + 0.36 * Math.sin(2*Math.PI*p.rootHz*1.5*st)
+                + 0.18 * Math.sin(2*Math.PI*p.rootHz*2*st);
+          s /= 1.16; // normalize
+          s *= (0.3 + 0.7 * Math.min(1, cutoff / 560)); // filter brightness
+          s *= p.vol / 0.16; // volume scale
+          return H/2 - s * H * 0.36;
+        }
+
+        // Glow pass
+        c2d.beginPath(); c2d.strokeStyle = 'rgba(200,144,32,0.13)'; c2d.lineWidth = 6;
+        for (let x = 0; x < W; x++) { x === 0 ? c2d.moveTo(x, wave(x)) : c2d.lineTo(x, wave(x)); }
+        c2d.stroke();
+
+        // Main line
+        c2d.beginPath(); c2d.strokeStyle = '#c89020'; c2d.lineWidth = 1.5;
+        for (let x = 0; x < W; x++) { x === 0 ? c2d.moveTo(x, wave(x)) : c2d.lineTo(x, wave(x)); }
+        c2d.stroke();
+
+        // LFO sweep bar (top 4px)
+        const lfoX = lfoPhase * W;
+        c2d.fillStyle = 'rgba(200,144,32,0.09)'; c2d.fillRect(0, 0, W, 4);
+        c2d.fillStyle = 'rgba(224,140,40,0.45)'; c2d.fillRect(0, 0, lfoX, 4);
+        c2d.fillStyle = '#e08830';
+        c2d.beginPath(); c2d.arc(Math.max(3, lfoX), 2, 3, 0, Math.PI * 2); c2d.fill();
+
+        // Labels
+        c2d.font = '10px monospace';
+        c2d.fillStyle = 'rgba(200,144,32,0.38)';
+        c2d.textAlign = 'left';   c2d.fillText(`${p.rootHz.toFixed(0)} Hz  root`,  7, H - 6);
+        c2d.textAlign = 'center'; c2d.fillText(`${(p.rootHz*1.5).toFixed(0)} Hz  fifth`, W/2, H - 6);
+        c2d.textAlign = 'right';  c2d.fillText(`${(p.rootHz*2).toFixed(0)} Hz  oct`, W - 7, H - 6);
+        c2d.fillStyle = 'rgba(200,144,32,0.55)';
+        c2d.textAlign = 'right';  c2d.fillText(`filter ${Math.round(cutoff)} Hz`, W - 7, 17);
+
+        droneCanvasRaf = requestAnimationFrame(draw);
+      }
+      draw();
+    })();
+
+    /* Preview audio */
+    let adminDroneAudioCtx = null;
+    let adminDroneLfoTimer = null;
+
+    function startAdminDronePreview(p) {
+      if (adminDroneAudioCtx) { adminDroneAudioCtx.close().catch(() => {}); clearInterval(adminDroneLfoTimer); }
+      const ac = new (window.AudioContext || window.webkitAudioContext)();
+      adminDroneAudioCtx = ac;
+      const filter = ac.createBiquadFilter();
+      filter.type = 'lowpass'; filter.Q.value = 0.9; filter.frequency.value = p.filterBase;
+      const master = ac.createGain(); master.gain.value = 0;
+      [
+        { freq: p.rootHz,       g: 0.62 },
+        { freq: p.rootHz * 1.5, g: 0.36 },
+        { freq: p.rootHz * 2,   g: 0.18 },
+      ].forEach(({ freq, g }) => {
+        const osc = ac.createOscillator(); const gn = ac.createGain();
+        osc.type = 'sine'; osc.frequency.value = freq; gn.gain.value = g;
+        osc.connect(gn); gn.connect(filter); osc.start();
+      });
+      filter.connect(master); master.connect(ac.destination);
+      master.gain.linearRampToValueAtTime(p.vol, ac.currentTime + 2);
+      adminDroneLfoTimer = setInterval(() => {
+        if (!adminDroneAudioCtx) return;
+        const phase = ((Date.now() % 30000) / 30000) * Math.PI * 2;
+        const cutoff = Math.max(60, p.filterBase + Math.sin(phase) * p.lfoDepth);
+        filter.frequency.setTargetAtTime(cutoff, ac.currentTime, 0.35);
+      }, 100);
+    }
+
+    function stopAdminDronePreview() {
+      clearInterval(adminDroneLfoTimer);
+      if (adminDroneAudioCtx) { adminDroneAudioCtx.close().catch(() => {}); adminDroneAudioCtx = null; }
+    }
+
+    const dronePrevBtn = document.getElementById('lounge-drone-preview-btn');
+    const droneStopBtn = document.getElementById('lounge-drone-stop-btn');
+
+    dronePrevBtn.addEventListener('click', () => {
+      startAdminDronePreview(droneEditParams);
+      dronePrevBtn.style.display = 'none'; droneStopBtn.style.display = '';
+    });
+    droneStopBtn.addEventListener('click', () => {
+      stopAdminDronePreview();
+      dronePrevBtn.style.display = ''; droneStopBtn.style.display = 'none';
+    });
+
+    /* Root note buttons */
+    document.querySelectorAll('.lounge-root-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        droneEditParams.rootHz   = +btn.dataset.hz;
+        droneEditParams.rootName = btn.dataset.name;
+        document.querySelectorAll('.lounge-root-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        if (adminDroneAudioCtx) startAdminDronePreview(droneEditParams);
+      });
+    });
+
+    /* Sliders */
+    document.getElementById('lounge-param-filter').addEventListener('input', function () {
+      droneEditParams.filterBase = +this.value;
+      document.getElementById('lounge-param-filter-val').textContent = this.value + ' Hz';
+    });
+    document.getElementById('lounge-param-lfo').addEventListener('input', function () {
+      droneEditParams.lfoDepth = +this.value;
+      document.getElementById('lounge-param-lfo-val').textContent = this.value + ' Hz';
+    });
+    document.getElementById('lounge-param-vol').addEventListener('input', function () {
+      droneEditParams.vol = +this.value;
+      document.getElementById('lounge-param-vol-val').textContent = (+this.value).toFixed(2);
+    });
+
+    /* Push drone config to landing page */
+    document.getElementById('lounge-push-drone-btn').addEventListener('click', async () => {
+      const st = document.getElementById('lounge-drone-push-status');
+      st.textContent = 'pushing…'; st.className = 'status-msg';
+      const { error } = await db.from('now_playing').update({
+        scene: { drone_config: { override: true, ...droneEditParams } },
+        updated_at: new Date().toISOString(),
+      }).eq('id', LOUNGE_NP_ID);
+      if (error) { st.textContent = error.message; st.className = 'status-msg err'; return; }
+      droneHasOverride = true; updateOverrideTag();
+      st.textContent = '✓ drone config live'; st.className = 'status-msg ok';
+      setTimeout(() => { if (st.textContent.startsWith('✓')) { st.textContent = ''; st.className = 'status-msg'; } }, 3000);
+    });
+
+    /* Reset drone to auto (clear override) */
+    document.getElementById('lounge-reset-drone-btn').addEventListener('click', async () => {
+      const st = document.getElementById('lounge-drone-push-status');
+      st.textContent = 'resetting…'; st.className = 'status-msg';
+      const { error } = await db.from('now_playing').update({
+        scene: null, updated_at: new Date().toISOString(),
+      }).eq('id', LOUNGE_NP_ID);
+      if (error) { st.textContent = error.message; st.className = 'status-msg err'; return; }
+      droneHasOverride = false; updateOverrideTag();
+      droneEditParams = adminDroneDefaults();
+      syncDroneSliders(droneEditParams);
+      if (adminDroneAudioCtx) startAdminDronePreview(droneEditParams);
+      st.textContent = '○ reset to auto'; st.className = 'status-msg ok';
+      setTimeout(() => { if (st.textContent.startsWith('○')) { st.textContent = ''; st.className = 'status-msg'; } }, 3000);
+    });
 
     /* Play / pause (admin preview) */
     const playBtn = document.getElementById('lounge-play-btn');

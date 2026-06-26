@@ -948,6 +948,23 @@
     }
   }
 
+  function applyDroneOverride(dc) {
+    if (!ctx || !filterNode || !masterNode || !oscNodes) return;
+    const t = ctx.currentTime;
+    const RAMP = 5;
+    if (dc.rootHz) {
+      oscNodes[0].osc.frequency.linearRampToValueAtTime(dc.rootHz,       t + RAMP);
+      oscNodes[1].osc.frequency.linearRampToValueAtTime(dc.rootHz * 1.5, t + RAMP);
+      oscNodes[2].osc.frequency.linearRampToValueAtTime(dc.rootHz * 2,   t + RAMP);
+      if (dc.rootName) currentParams.rootName = dc.rootName;
+      currentParams.rootHz = dc.rootHz;
+    }
+    if (dc.vol) { currentParams.vol = dc.vol; masterNode.gain.linearRampToValueAtTime(dc.vol, t + RAMP); }
+    if (dc.filterBase !== undefined) currentParams.filterBase = dc.filterBase;
+    if (dc.lfoDepth   !== undefined) currentParams.lfoDepth   = dc.lfoDepth;
+    updateDroneLabel();
+  }
+
   /* ── Tap overlay ───────────────────────────────────────────────────── */
   const tapOverlay = document.getElementById('tap-overlay');
   tapOverlay.addEventListener('click', async () => {
@@ -956,16 +973,21 @@
     tapOverlay.style.pointerEvents = 'none';
     setTimeout(() => tapOverlay.remove(), 600);
 
-    /* Check lounge override */
+    /* Check lounge state + drone config override */
     const { data: ls } = await db.from('now_playing')
-      .select('is_playing,audio_url,track_title,artist,playhead_pos')
+      .select('is_playing,audio_url,track_title,artist,playhead_pos,scene')
       .eq('id', LOUNGE_NP_ID).maybeSingle();
+
+    if (ls?.scene?.drone_config?.override) {
+      applyDroneOverride(ls.scene.drone_config);
+    }
     applyLoungeState(ls);
 
     /* Subscribe to lounge changes */
     db.channel('lounge-visitor')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'now_playing' }, ({ new: d }) => {
         if (d?.id !== LOUNGE_NP_ID) return;
+        if (d?.scene?.drone_config?.override) applyDroneOverride(d.scene.drone_config);
         applyLoungeState(d);
       })
       .subscribe();
