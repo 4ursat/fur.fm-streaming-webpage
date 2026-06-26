@@ -697,8 +697,9 @@
     });
 
   /* ── Drone synth ───────────────────────────────────────────────────── */
-  const SLOT_MS       = 8 * 60 * 1000;   // 8-minute drone slots
-  const LFO_PERIOD_MS = 30 * 1000;       // 30-second filter sweep
+  const SLOT_MS        = 8 * 60 * 1000;   // 8-minute drone slots
+  const LFO_PERIOD_MS  = 90 * 1000;       // 90-second filter sweep
+  const TREM_PERIOD_MS = 37 * 1000;       // 37-second breathing cycle (prime, offset from LFO)
 
   const ROOTS = [
     { hz: 55.00,  name: 'A' },
@@ -719,18 +720,18 @@
     return {
       rootHz:     ROOTS[ri].hz,
       rootName:   ROOTS[ri].name,
-      detune2:    (seedRand(seed, 1) * 16) - 8,     // ±8 cents on fifth
-      detune3:    (seedRand(seed, 2) * 16) - 8,     // ±8 cents on octave
-      filterBase: 220 + seedRand(seed, 3) * 380,    // 220–600 Hz
-      lfoDepth:   70  + seedRand(seed, 4) * 110,    // 70–180 Hz swing
-      vol:        0.12 + seedRand(seed, 5) * 0.08,  // 0.12–0.20
+      detune2:    (seedRand(seed, 1) * 4) - 2,      // ±2 cents — slow, gentle beating (~8–15s)
+      detune3:    (seedRand(seed, 2) * 4) - 2,      // ±2 cents
+      filterBase: 140 + seedRand(seed, 3) * 200,    // 140–340 Hz — dark and warm
+      lfoDepth:   20  + seedRand(seed, 4) * 40,     // 20–60 Hz — barely perceptible sweep
+      vol:        0.10 + seedRand(seed, 5) * 0.05,  // 0.10–0.15 — soft
     };
   }
 
   function lerp(a, b, t) { return a + (b - a) * t; }
 
   const droneLabelEl = document.getElementById('drone-label');
-  let ctx, oscNodes, filterNode, masterNode, lfoTimer, currentParams;
+  let ctx, oscNodes, filterNode, masterNode, tremoloNode, lfoTimer, tremoloTimer, currentParams;
 
   function updateDroneLabel() {
     if (!currentParams) return;
@@ -740,11 +741,10 @@
       `drone in ${currentParams.rootName} · shifting in ${mins < 2 ? 'soon' : mins + 'm'}`;
   }
 
-  // LFO runs on a setInterval so phase is locked to wall-clock time —
-  // all listeners at the same UTC moment compute the same phase.
+  // LFO phase locked to wall-clock — all listeners hear the same sweep moment.
   function startLFO(params, fromParams, transStart) {
     clearInterval(lfoTimer);
-    const TRANS_MS = 12000;
+    const TRANS_MS = 30000; // 30-second crossfade between slot params
     lfoTimer = setInterval(() => {
       let base  = params.filterBase;
       let depth = params.lfoDepth;
@@ -755,8 +755,19 @@
       }
       const phase  = ((Date.now() % LFO_PERIOD_MS) / LFO_PERIOD_MS) * Math.PI * 2;
       const cutoff = Math.max(60, base + Math.sin(phase) * depth);
-      filterNode.frequency.setTargetAtTime(cutoff, ctx.currentTime, 0.35);
-    }, 100);
+      filterNode.frequency.setTargetAtTime(cutoff, ctx.currentTime, 1.2); // slow response
+    }, 250);
+  }
+
+  // Slow amplitude tremolo — breath-like envelope, wall-clock phase.
+  function startTremolo() {
+    clearInterval(tremoloTimer);
+    tremoloTimer = setInterval(() => {
+      if (!tremoloNode) return;
+      const phase = ((Date.now() % TREM_PERIOD_MS) / TREM_PERIOD_MS) * Math.PI * 2;
+      const gain  = 1.0 + 0.06 * Math.sin(phase); // ±6% breathing
+      tremoloNode.gain.setTargetAtTime(gain, ctx.currentTime, 4); // very slow response
+    }, 300);
   }
 
   function scheduleDroneSlot() {
@@ -764,7 +775,7 @@
     setTimeout(() => {
       const newParams = droneParams(Math.floor(Date.now() / SLOT_MS));
       const t    = ctx.currentTime;
-      const RAMP = 12; // seconds to crossfade
+      const RAMP = 30; // 30-second glide between keys
       oscNodes[0].osc.frequency.linearRampToValueAtTime(newParams.rootHz,       t + RAMP);
       oscNodes[1].osc.frequency.linearRampToValueAtTime(newParams.rootHz * 1.5, t + RAMP);
       oscNodes[2].osc.frequency.linearRampToValueAtTime(newParams.rootHz * 2,   t + RAMP);
@@ -809,36 +820,41 @@
     filterNode.Q.value         = 0.9;
     filterNode.frequency.value = p.filterBase;
 
-    // Three comb-filter delays for a long reverb tail
+    // Four comb-filter delays — long, lush reverb tail
     function makeComb(dt, fb) {
-      const d  = ctx.createDelay(4); d.delayTime.value = dt;
+      const d  = ctx.createDelay(6); d.delayTime.value = dt;
       const fg = ctx.createGain();   fg.gain.value     = fb;
       d.connect(fg); fg.connect(d);
       return d;
     }
-    const c1 = makeComb(0.233, 0.70);
-    const c2 = makeComb(0.413, 0.65);
-    const c3 = makeComb(0.173, 0.60);
+    const c1 = makeComb(0.397, 0.80); // prime-ish delays avoid metallic flutter
+    const c2 = makeComb(0.601, 0.76);
+    const c3 = makeComb(0.253, 0.73);
+    const c4 = makeComb(0.467, 0.70);
 
-    const dryG = ctx.createGain();  dryG.gain.value  = 0.42;
-    const w1   = ctx.createGain();  w1.gain.value    = 0.28;
+    const dryG = ctx.createGain();  dryG.gain.value  = 0.28; // more wash
+    const w1   = ctx.createGain();  w1.gain.value    = 0.22;
     const w2   = ctx.createGain();  w2.gain.value    = 0.20;
-    const w3   = ctx.createGain();  w3.gain.value    = 0.14;
+    const w3   = ctx.createGain();  w3.gain.value    = 0.18;
+    const w4   = ctx.createGain();  w4.gain.value    = 0.15;
 
-    masterNode = ctx.createGain();
-    masterNode.gain.value = 0; // starts silent, fades in
+    masterNode  = ctx.createGain();  masterNode.gain.value  = 0; // fades in
+    tremoloNode = ctx.createGain();  tremoloNode.gain.value = 1;
 
     oscNodes.forEach(({ g }) => g.connect(filterNode));
     filterNode.connect(dryG); dryG.connect(masterNode);
     filterNode.connect(c1);   c1.connect(w1); w1.connect(masterNode);
     filterNode.connect(c2);   c2.connect(w2); w2.connect(masterNode);
     filterNode.connect(c3);   c3.connect(w3); w3.connect(masterNode);
-    masterNode.connect(ctx.destination);
+    filterNode.connect(c4);   c4.connect(w4); w4.connect(masterNode);
+    masterNode.connect(tremoloNode);
+    tremoloNode.connect(ctx.destination);
 
     oscNodes.forEach(({ osc }) => osc.start());
-    masterNode.gain.linearRampToValueAtTime(p.vol, ctx.currentTime + 3);
+    masterNode.gain.linearRampToValueAtTime(p.vol, ctx.currentTime + 8); // slow fade-in
 
     startLFO(currentParams);
+    startTremolo();
     updateDroneLabel();
     scheduleDroneSlot();
     setInterval(updateDroneLabel, 60000);
