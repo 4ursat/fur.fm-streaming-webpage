@@ -661,8 +661,9 @@
     }
     .sbr-btn:hover { background: rgba(255,255,255,0.1); }
     .sbr-btn.sbr-live { background: #b03020; color: #fff; border-color: #b03020; }
-    .sbr-btn.sbr-push { color: #f0e0a8; border-color: rgba(240,224,168,0.28); flex: unset; padding: 0.28rem 0.7rem; }
-    .sbr-btn.sbr-push:hover { background: rgba(240,224,168,0.1); }
+    .sbr-btn.sbr-golive { background: #1a6e3a; color: #c6f0d4; border-color: #1a6e3a; }
+    .sbr-btn.sbr-golive:hover { background: #1f8047; }
+    .sbr-btn.sbr-save-draft { color: rgba(255,255,255,0.6); border-color: rgba(255,255,255,0.15); }
     #sbr-arc-seek {
       width: 100%; cursor: pointer; margin: 0.28rem 0 0.12rem;
       accent-color: #e07828;
@@ -877,10 +878,6 @@
           <div class="timer-label">Session Timer</div>
           <div class="timer-display" id="bc-timer">00:00:00</div>
           <div class="bc-session-name" id="bc-sess-name">—</div>
-          <div class="btn-row">
-            <button class="btn btn-sm btn-primary" id="bc-timer-start">Start Timer</button>
-            <button class="btn btn-sm btn-danger" id="bc-timer-stop">Stop Timer</button>
-          </div>
         </div>
 
         <!-- ── Scene Builder ── -->
@@ -914,8 +911,13 @@
                     <div class="live-dot" id="sbr-dot"></div>
                     <span id="sbr-timer">00:00:00</span>
                   </div>
-                  <button class="sbr-btn sbr-push" id="sbr-push-btn">Push →</button>
                 </div>
+                <div class="sbr-btn-row" style="margin-top:0.4rem">
+                  <button class="sbr-btn sbr-save-draft" id="sbr-save-draft">Save Draft</button>
+                  <button class="sbr-btn sbr-golive" id="sbr-go-live">Go Live</button>
+                  <button class="sbr-btn sbr-live" id="sbr-end-stream" style="display:none">End Stream</button>
+                </div>
+                <div id="sbr-signal-status" style="font-size:0.58rem;color:rgba(255,255,255,0.45);min-height:0.9em;margin-top:0.25rem"></div>
               </div>
 
               <!-- Camera -->
@@ -1709,18 +1711,6 @@
       if (sbrTimer) sbrTimer.textContent = '00:00:00';
     }
 
-    document.getElementById('bc-timer-start').addEventListener('click', async () => {
-      if (!bcSessionId) { alert('No session found. Create a session first.'); return; }
-      const ts = new Date().toISOString();
-      await db.from('sessions').update({ stream_started_at: ts }).eq('id', bcSessionId);
-      startBcTimer(ts);
-    });
-
-    document.getElementById('bc-timer-stop').addEventListener('click', async () => {
-      if (!bcSessionId) return;
-      await db.from('sessions').update({ stream_started_at: null }).eq('id', bcSessionId);
-      stopBcTimer();
-    });
 
     function setupBcTimer() {
       db.channel('admin-sessions-timer')
@@ -2058,8 +2048,8 @@
         document.getElementById('sbr-dot').classList.add('on');
       });
 
-      /* Camera stop */
-      camStop.addEventListener('click', () => {
+      /* Camera stop (also called by End Stream) */
+      function stopCamera() {
         const iframe = document.getElementById('sbr-cam-iframe');
         if (iframe) { iframe.src = 'about:blank'; iframe.remove(); }
         camPreview.style.display = 'none';
@@ -2069,7 +2059,8 @@
         document.getElementById('bc-dot').classList.remove('on');
         document.getElementById('bc-status-label').textContent = 'Offline';
         document.getElementById('sbr-dot').classList.remove('on');
-      });
+      }
+      camStop.addEventListener('click', stopCamera);
 
       /* Screen share start — iframe in visible preview div for getDisplayMedia to work */
       scrStart.addEventListener('click', () => {
@@ -2090,27 +2081,67 @@
         scrStop.style.display  = '';
       });
 
-      /* Screen share stop */
-      scrStop.addEventListener('click', () => {
+      /* Screen share stop (also called by End Stream) */
+      function stopScreen() {
         const iframe = document.getElementById('sbr-scr-iframe');
         if (iframe) { iframe.src = 'about:blank'; iframe.remove(); }
         scrPreview.style.display = 'none';
         scrStart.style.display = '';
         scrStop.style.display  = 'none';
-      });
+      }
+      scrStop.addEventListener('click', stopScreen);
 
       /* Mic volume fader (visual — VDO.ninja manages actual mic gain) */
       document.getElementById('sbr-mic-vol').addEventListener('input', e => {
         document.getElementById('sbr-mic-pct').textContent = Math.round(e.target.value * 100) + '%';
       });
 
-      /* Push Live */
-      document.getElementById('sbr-push-btn').addEventListener('click', async () => {
-        const { error } = await db.from('now_playing')
+      const sbrSignalStatus = document.getElementById('sbr-signal-status');
+      function sbrMsg(txt, ms = 2500) {
+        sbrSignalStatus.textContent = txt;
+        if (ms) setTimeout(() => { if (sbrSignalStatus.textContent === txt) sbrSignalStatus.textContent = ''; }, ms);
+      }
+
+      /* Save Draft — immediate write of scene_config to the session */
+      document.getElementById('sbr-save-draft').addEventListener('click', async () => {
+        if (!bcSessionId) { sbrMsg('✕ no session'); return; }
+        const { error } = await db.from('sessions')
+          .update({ scene_config: { modules: sbModules } }).eq('id', bcSessionId);
+        sbrMsg(error ? '✕ save failed' : '✓ draft saved');
+      });
+
+      /* Go Live — push scene to listeners + start session timer */
+      document.getElementById('sbr-go-live').addEventListener('click', async () => {
+        if (!bcSessionId) { sbrMsg('✕ no session'); return; }
+        sbrMsg('pushing…', 0);
+        const { error: npErr } = await db.from('now_playing')
           .update({ scene: { modules: sbModules } })
           .eq('id', '00000000-0000-0000-0000-000000000001');
-        sbSaveStatus.textContent = error ? '✕ push failed' : '✓ pushed live';
-        if (!error) setTimeout(() => { if (sbSaveStatus.textContent === '✓ pushed live') sbSaveStatus.textContent = ''; }, 3000);
+        if (npErr) { sbrMsg('✕ push failed'); return; }
+        const ts = new Date().toISOString();
+        await db.from('sessions').update({ stream_started_at: ts }).eq('id', bcSessionId);
+        startBcTimer(ts);
+        document.getElementById('sbr-go-live').style.display = 'none';
+        document.getElementById('sbr-end-stream').style.display = '';
+        sbrMsg('✓ live');
+      });
+
+      /* End Stream — stop camera/screen, clear listener scene, stop timer */
+      document.getElementById('sbr-end-stream').addEventListener('click', async () => {
+        if (!bcSessionId) { sbrMsg('✕ no session'); return; }
+        sbrMsg('ending…', 0);
+        stopCamera();
+        stopScreen();
+        await db.from('now_playing')
+          .update({ scene: { modules: [] } })
+          .eq('id', '00000000-0000-0000-0000-000000000001');
+        const { error } = await db.from('sessions').update({ stream_started_at: null }).eq('id', bcSessionId);
+        if (error) { sbrMsg('✕ db error'); return; }
+        stopBcTimer();
+        document.getElementById('sbr-dot').classList.remove('on');
+        document.getElementById('sbr-go-live').style.display = '';
+        document.getElementById('sbr-end-stream').style.display = 'none';
+        sbrMsg('✓ stream ended');
       });
 
       /* Archive music controls */

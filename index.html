@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Fur FM</title>
+  <title>Fur.FM</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Hind:wght@400;500&family=Yatra+One&display=swap" rel="stylesheet">
   <script src="supabase-config.js"></script>
@@ -25,6 +25,14 @@
       font-family: 'Hind', sans-serif;
       color: #f0e0a8;
       -webkit-tap-highlight-color: transparent;
+    }
+
+    body::after {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background-image: radial-gradient(circle, rgba(200,144,32,0.045) 1px, transparent 1px);
+      background-size: 26px 26px;
+      pointer-events: none;
     }
 
     /* ── Floating layer ──────────────────────────────────────── */
@@ -81,7 +89,7 @@
     #live-link:hover { color: white; text-decoration: underline; }
 
     #notif-tray {
-      position: absolute; top: 1.5rem; right: 1.5rem;
+      position: absolute; top: 4.5rem; right: 1.5rem;
       display: flex; flex-direction: column; gap: 0.5rem;
       align-items: flex-end;
       pointer-events: auto;
@@ -210,24 +218,24 @@
     /* ── Brand ───────────────────────────────────────────────── */
     #brand {
       position: fixed;
-      left: 50%; top: 38%;
-      transform: translate(-50%, -50%);
-      z-index: 8;
-      text-align: center;
+      top: 1.4rem; right: 1.5rem;
+      z-index: 30;
+      text-align: right;
       pointer-events: none;
       user-select: none;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      gap: 0.6rem;
+      align-items: flex-end;
+      gap: 0.18rem;
     }
-    #brand svg { opacity: 0.22; }
+    #brand svg { opacity: 0.9; }
     #brand-tagline {
-      font-family: 'Yatra One', serif;
-      font-size: 0.78rem;
-      letter-spacing: 0.05em;
-      color: rgba(200,144,32,0.35);
-      margin-top: 0.1rem;
+      font-family: 'Hind', sans-serif;
+      font-size: 0.6rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(200,144,32,0.55);
+      margin-top: 0;
     }
 
     /* ── Tap overlay ─────────────────────────────────────────── */
@@ -323,28 +331,18 @@
 <body>
 
 <div id="brand">
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 108" width="220" height="85" fill="none">
-    <defs>
-      <clipPath id="logo-gap">
-        <rect x="-500" y="-5000" width="5000" height="5064"/>
-      </clipPath>
-    </defs>
-    <g clip-path="url(#logo-gap)">
-      <circle cx="138" cy="82" r="36" stroke="white" stroke-width="1.3"  opacity="0.65"/>
-      <circle cx="138" cy="82" r="54" stroke="white" stroke-width="1.0"  opacity="0.44"/>
-      <circle cx="138" cy="82" r="72" stroke="white" stroke-width="0.75" opacity="0.26"/>
-    </g>
-    <circle cx="138" cy="82" r="5" fill="white"/>
-    <text x="128" y="89" text-anchor="end"
-          font-family="'Courier New',Courier,monospace"
-          font-size="22" font-weight="bold" letter-spacing="4"
-          fill="white">FUR</text>
-    <text x="148" y="89" text-anchor="start"
-          font-family="'Courier New',Courier,monospace"
-          font-size="22" font-weight="bold" letter-spacing="4"
-          fill="white">FM</text>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 168 34" width="140" height="29" fill="none">
+    <text x="0" y="26"
+      font-family="'Courier New',Courier,monospace"
+      font-size="24" font-weight="700" letter-spacing="1"
+      fill="#f0e0a8">Fur</text>
+    <circle cx="72" cy="19" r="4.5" fill="#e07828"/>
+    <text x="81" y="26"
+      font-family="'Courier New',Courier,monospace"
+      font-size="24" font-weight="700" letter-spacing="1"
+      fill="#f0e0a8">.FM</text>
   </svg>
-  <div id="brand-tagline">A space for intentional listening</div>
+  <div id="brand-tagline">Intentional Listening Space</div>
 </div>
 
 <div id="floating-layer"></div>
