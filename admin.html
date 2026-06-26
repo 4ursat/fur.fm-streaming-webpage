@@ -303,13 +303,7 @@
       color: rgba(0,0,0,0.36); flex: 1;
     }
 
-    /* ── Archival Room Player ── */
-    .arc-header-row {
-      display: flex; align-items: center; gap: 0.75rem;
-      padding: 0.6rem 1rem; border-bottom: 1px solid rgba(0,0,0,0.07);
-      background: rgba(0,0,0,0.015); flex-shrink: 0;
-    }
-    .arc-header-input { flex: 1; font-size: 0.9rem; letter-spacing: 0.03em; }
+    /* ── Audio Player ── */
 
     .arc-grid {
       display: grid;
@@ -427,25 +421,9 @@
       color: rgba(0,0,0,0.36); font-variant-numeric: tabular-nums;
     }
 
-    .arc-image-area { flex: 1; display: flex; flex-direction: column; gap: 0.5rem; min-height: 0; }
-    .arc-image-preview {
-      flex: 1; min-height: 60px;
-      background: rgba(0,0,0,0.04) center/cover no-repeat;
-      border: 1px solid rgba(0,0,0,0.08);
-    }
-    .arc-image-preview.has-image { border-color: rgba(0,0,0,0.14); }
 
     .arc-meta { overflow-y: auto; }
     .arc-meta .form-group { margin-bottom: 0.75rem; flex-shrink: 0; }
-    .arc-meta-sep {
-      font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase;
-      color: rgba(0,0,0,0.3); padding-top: 0.6rem; margin-top: 0;
-      border-top: 1px solid rgba(0,0,0,0.07); flex-shrink: 0;
-    }
-    .arc-meta-grow {
-      flex: 1; display: flex; flex-direction: column; min-height: 80px;
-    }
-    .arc-meta-grow .form-textarea { flex: 1; min-height: 80px; }
 
     /* ── Scene Builder ── */
     #scene-builder {
@@ -583,6 +561,13 @@
     }
     .sb-audio-track { font-size: 0.6rem; color: rgba(255,255,255,0.5); text-align: center; }
     .sb-audio-state { font-size: 0.7rem; color: rgba(255,255,255,0.3); }
+    .sb-audio-progress-wrap {
+      width: 90%; height: 2px; background: rgba(255,255,255,0.12); position: relative;
+    }
+    .sb-audio-progress-fill {
+      position: absolute; left: 0; top: 0; bottom: 0;
+      background: #e07828; width: 0%; transition: width 0.8s linear;
+    }
 
     #sb-config-panel {
       margin-top: 0.7rem;
@@ -664,9 +649,15 @@
     .sbr-btn.sbr-golive { background: #1a6e3a; color: #c6f0d4; border-color: #1a6e3a; }
     .sbr-btn.sbr-golive:hover { background: #1f8047; }
     .sbr-btn.sbr-save-draft { color: rgba(255,255,255,0.6); border-color: rgba(255,255,255,0.15); }
-    #sbr-arc-seek {
-      width: 100%; cursor: pointer; margin: 0.28rem 0 0.12rem;
-      accent-color: #e07828;
+    .sbr-seek-bar {
+      width: 100%; height: 3px;
+      background: rgba(255,255,255,0.12);
+      position: relative; cursor: pointer; margin: 0.35rem 0 0.18rem;
+    }
+    .sbr-seek-fill {
+      position: absolute; left: 0; top: 0; bottom: 0;
+      background: #e07828; width: 0%;
+      transition: width 0.8s linear;
     }
     .sbr-time {
       font-size: 0.52rem; color: rgba(255,255,255,0.2);
@@ -948,15 +939,17 @@
                 <div id="sbr-scr-preview" style="display:none;margin-top:0.4rem;position:relative;overflow:hidden;background:#000;aspect-ratio:16/9"></div>
               </div>
 
-              <!-- Archive Music -->
-              <div class="sbr-section">
-                <div class="sbr-label">Archive Music</div>
+              <!-- Audio Player -->
+              <div class="sbr-section" id="sbr-audio-section" style="display:none">
+                <div class="sbr-label">Audio Player</div>
                 <div class="sbr-arc-track" id="sbr-arc-track">No track selected</div>
                 <div class="sbr-btn-row">
                   <button class="sbr-btn" id="sbr-arc-play">▶ Play</button>
                   <button class="sbr-btn" id="sbr-arc-stop">■ Stop</button>
                 </div>
-                <input type="range" id="sbr-arc-seek" min="0" max="100" step="0.1" value="0">
+                <div class="sbr-seek-bar" id="sbr-seek-bar">
+                  <div class="sbr-seek-fill" id="sbr-seek-fill"></div>
+                </div>
                 <div class="sbr-time" id="sbr-arc-time">0:00 / 0:00</div>
                 <div class="sbr-fader-row">
                   <span class="sbr-flabel">Vol</span>
@@ -966,11 +959,9 @@
               </div>
 
               <!-- Text Modules quick-edit -->
-              <div class="sbr-section">
+              <div class="sbr-section" id="sbr-text-section" style="display:none">
                 <div class="sbr-label">Text Modules</div>
-                <div id="sbr-text-fields">
-                  <div style="font-size:0.58rem;color:rgba(255,255,255,0.18)">No text modules in scene</div>
-                </div>
+                <div id="sbr-text-fields"></div>
               </div>
 
             </div><!-- /#sb-right-panel -->
@@ -984,28 +975,23 @@
         <!-- Hidden off-screen store for VDO.ninja push iframes (camera / screen) -->
         <div id="sb-push-store" style="position:fixed;left:-1200px;top:-1200px;width:320px;height:240px;overflow:hidden;pointer-events:none"></div>
 
-        <!-- ── Archival Room — hidden; teleported into audio module config panel when selected ── -->
+        <!-- ── Audio Player — hidden; teleported into audio module config panel when selected ── -->
         <div id="sb-arc-store" style="display:none"></div>
         <div id="bc-archival-block" style="display:none">
         <div class="sec-header" style="margin-top:1.6rem">
-          <span class="sec-title">Archival Room</span>
+          <span class="sec-title">Audio Player</span>
           <div class="live-badge">
             <div class="live-dot" id="arc-dot"></div>
             <span id="arc-status-text">Idle</span>
           </div>
         </div>
 
-        <div class="arc-header-row">
-          <span class="form-label" style="flex-shrink:0;min-width:max-content">Archive Header</span>
-          <input class="form-input arc-header-input" id="arc-header"
-                 placeholder="e.g. Alan Lomax Field Recordings, 1967" autocomplete="off"/>
-        </div>
+        <input type="hidden" id="arc-header" value=""/>
 
         <div class="arc-grid">
 
           <!-- Library -->
           <div class="arc-col">
-            <div class="col-head">Library</div>
             <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap">
               <label class="upload-label">
                 ↑ Upload
@@ -1018,9 +1004,8 @@
             </div>
           </div>
 
-          <!-- Cassette Player + Image -->
+          <!-- Player -->
           <div class="arc-col">
-            <div class="col-head">Player</div>
             <div class="cassette-deck" id="admin-cassette">
               <div class="cassette-body">
               <svg class="reel" viewBox="0 0 40 40" width="36" height="36" fill="none">
@@ -1049,40 +1034,24 @@
                 </div>
               </div>
             </div>
-            <div class="arc-image-area">
-              <div class="col-head" style="margin-bottom:0">Archive Image</div>
-              <div class="arc-image-preview" id="arc-image-preview"></div>
-              <label class="upload-label">
-                ↑ Image
-                <input type="file" id="arc-image-upload" accept="image/*" style="display:none"/>
-              </label>
-            </div>
           </div>
 
-          <!-- Metadata + Translation -->
+          <!-- Metadata -->
           <div class="arc-col arc-meta">
-            <div class="col-head">Metadata</div>
             <div class="form-group">
               <label class="form-label">Track Title</label>
               <input class="form-input" id="meta-title" autocomplete="off"/>
             </div>
             <div class="form-group">
-              <label class="form-label">Artist / Ensemble</label>
+              <label class="form-label">Artist</label>
               <input class="form-input" id="meta-artist" autocomplete="off"/>
             </div>
             <div class="form-group">
-              <label class="form-label">Archive Source</label>
-              <input class="form-input" id="meta-source" placeholder="e.g. Alan Lomax Archive, 1967" autocomplete="off"/>
+              <label class="form-label">Source</label>
+              <input class="form-input" id="meta-source" autocomplete="off"/>
             </div>
-            <div class="form-group">
-              <label class="form-label">Context Notes</label>
-              <textarea class="form-textarea" id="meta-notes" rows="3" style="min-height:52px;max-height:80px"></textarea>
-            </div>
-            <div class="arc-meta-sep">Translation</div>
-            <div class="arc-meta-grow">
-              <textarea class="form-textarea" id="meta-translation"
-                        placeholder="Type translation here as the track plays…"></textarea>
-            </div>
+            <textarea id="meta-notes" style="display:none"></textarea>
+            <textarea id="meta-translation" style="display:none"></textarea>
           </div>
 
         </div>
@@ -1623,7 +1592,6 @@
         sel.innerHTML = '<option value="">No session — create one in Session Manager</option>';
         bcSessNm.textContent = 'No session — create one in Session Manager';
         /* Clear all stale broadcast UI and wipe now_playing so listeners see nothing */
-        clearArcImg();
         ['meta-title','meta-artist','meta-source','meta-notes','meta-translation'].forEach(id => {
           const el = document.getElementById(id); if (el) el.value = '';
         });
@@ -1668,7 +1636,6 @@
 
       if (!isLive) {
         document.getElementById('arc-header').value = s.archive_header || '';
-        if (s.archive_image_url) setArcImg(s.archive_image_url); else clearArcImg();
         /* Clear stale track metadata from previous session */
         ['meta-title','meta-artist','meta-source','meta-notes','meta-translation'].forEach(id => {
           document.getElementById(id).value = '';
@@ -1729,9 +1696,11 @@
     const sbConfigPanel = document.getElementById('sb-config-panel');
     const sbSaveStatus  = document.getElementById('sb-save-status');
 
-    let sbModules    = [];
-    let sbSelectedId = null;
-    let sbSaveTimer  = null;
+    let sbModules     = [];
+    let sbSelectedId  = null;
+    let sbSaveTimer   = null;
+    let sbPushTimer   = null;
+    let bcStreamLive  = false;
 
     const MOD_DEFAULTS = {
       video:  { w: 50, h: 50, label: 'Video — Camera' },
@@ -1762,6 +1731,17 @@
         sbSaveStatus.textContent = error ? '✕ save failed' : '✓ saved';
         if (!error) setTimeout(() => { if (sbSaveStatus.textContent === '✓ saved') sbSaveStatus.textContent = ''; }, 2500);
       }, 500);
+      schedulePush();
+    }
+
+    function schedulePush() {
+      if (!bcStreamLive) return;
+      clearTimeout(sbPushTimer);
+      sbPushTimer = setTimeout(async () => {
+        await db.from('now_playing')
+          .update({ scene: { modules: sbModules } })
+          .eq('id', '00000000-0000-0000-0000-000000000001');
+      }, 150);
     }
 
     function clearConfigPanel() {
@@ -1866,7 +1846,7 @@
         block.style.display = '';
         sbConfigPanel.classList.add('visible');
         if (bcSessionId) loadTracks();
-        // keep audio state label in module body in sync
+        // keep audio state label + progress fill in module body in sync
         function syncAudioBody() {
           const el = getModuleEl(id);
           if (!el) return;
@@ -1875,6 +1855,8 @@
           if (trackEl) trackEl.textContent = document.getElementById('arc-now-track')?.textContent || 'no track';
           if (stateEl) stateEl.textContent  = arcPlaying ? '● playing' : '♪';
         }
+        /* expose so timeupdate can find it */
+        window._syncAudioBody = syncAudioBody;
         syncAudioBody();
         return; // classList.add('visible') already done above
       }
@@ -1910,6 +1892,7 @@
         bodyHtml = `<div class="sb-audio-body">
           <div class="sb-audio-state">♪</div>
           <div class="sb-audio-track">no track</div>
+          <div class="sb-audio-progress-wrap"><div class="sb-audio-progress-fill"></div></div>
         </div>`;
       }
 
@@ -1976,14 +1959,23 @@
       const sbrScreen = document.getElementById('sbr-screen');
       if (sbrScreen) sbrScreen.style.display = hasScreen ? '' : 'none';
 
+      /* Audio Player section: show only when an audio module is in the scene */
+      const hasAudio = sbModules.some(m => m.type === 'audio');
+      const sbrAudio = document.getElementById('sbr-audio-section');
+      if (sbrAudio) sbrAudio.style.display = hasAudio ? '' : 'none';
+      if (!hasAudio && arcPlaying) {
+        arcAudio.pause(); arcAudio.currentTime = 0; arcPlaying = false;
+        clearInterval(arcPHTimer); arcPHTimer = null;
+        writeNP({ is_playing: false, playhead_pos: 0 });
+      }
+
       /* Text quick-edit: one textarea per text module */
-      const textFieldsEl = document.getElementById('sbr-text-fields');
+      const sbrTextSection = document.getElementById('sbr-text-section');
+      const textFieldsEl   = document.getElementById('sbr-text-fields');
       if (!textFieldsEl) return;
       const textMods = sbModules.filter(m => m.type === 'text');
-      if (!textMods.length) {
-        textFieldsEl.innerHTML = '<div style="font-size:0.58rem;color:rgba(255,255,255,0.18)">No text modules in scene</div>';
-        return;
-      }
+      if (sbrTextSection) sbrTextSection.style.display = textMods.length ? '' : 'none';
+      if (!textMods.length) return;
       textFieldsEl.innerHTML = '';
       textMods.forEach((mod, i) => {
         const lbl = document.createElement('div');
@@ -2121,6 +2113,7 @@
         const ts = new Date().toISOString();
         await db.from('sessions').update({ stream_started_at: ts }).eq('id', bcSessionId);
         startBcTimer(ts);
+        bcStreamLive = true;
         document.getElementById('sbr-go-live').style.display = 'none';
         document.getElementById('sbr-end-stream').style.display = '';
         sbrMsg('✓ live');
@@ -2137,6 +2130,7 @@
           .eq('id', '00000000-0000-0000-0000-000000000001');
         const { error } = await db.from('sessions').update({ stream_started_at: null }).eq('id', bcSessionId);
         if (error) { sbrMsg('✕ db error'); return; }
+        bcStreamLive = false;
         stopBcTimer();
         document.getElementById('sbr-dot').classList.remove('on');
         document.getElementById('sbr-go-live').style.display = '';
@@ -2144,10 +2138,11 @@
         sbrMsg('✓ stream ended');
       });
 
-      /* Archive music controls */
+      /* Audio player controls */
       const sbrArcPlay  = document.getElementById('sbr-arc-play');
       const sbrArcStop  = document.getElementById('sbr-arc-stop');
-      const sbrArcSeek  = document.getElementById('sbr-arc-seek');
+      const sbrSeekBar  = document.getElementById('sbr-seek-bar');
+      const sbrSeekFill = document.getElementById('sbr-seek-fill');
       const sbrArcVol   = document.getElementById('sbr-arc-vol');
       const sbrArcPct   = document.getElementById('sbr-arc-pct');
       const sbrArcTime  = document.getElementById('sbr-arc-time');
@@ -2193,20 +2188,13 @@
         writeNP({ is_playing: false, playhead_pos: 0 });
       });
 
-      /* Seek bar (0-100%) ↔ arcAudio.currentTime */
-      let sbrSeeking = false;
-      sbrArcSeek.addEventListener('mousedown',  () => { sbrSeeking = true; });
-      sbrArcSeek.addEventListener('touchstart', () => { sbrSeeking = true; }, { passive: true });
-      sbrArcSeek.addEventListener('input', () => {
+      /* Seek bar — click to seek */
+      sbrSeekBar.addEventListener('click', e => {
         if (!arcAudio.duration) return;
-        const t = parseFloat(sbrArcSeek.value) / 100 * arcAudio.duration;
-        arcAudio.currentTime = t;
-        document.getElementById('arc-seek').value = t;
-      });
-      document.addEventListener('mouseup', () => {
-        if (!sbrSeeking) return;
-        sbrSeeking = false;
-        if (arcAudio.duration) writeNP({ playhead_pos: arcAudio.currentTime });
+        const rect = sbrSeekBar.getBoundingClientRect();
+        const pct = (e.clientX - rect.left) / rect.width;
+        arcAudio.currentTime = pct * arcAudio.duration;
+        writeNP({ playhead_pos: arcAudio.currentTime });
       });
 
       /* Volume fader → arcAudio.volume */
@@ -2215,10 +2203,14 @@
         sbrArcPct.textContent = Math.round(sbrArcVol.value * 100) + '%';
       });
 
-      /* Sync time display from arcAudio timeupdate */
+      /* Sync seek fill + time display from arcAudio timeupdate */
       arcAudio.addEventListener('timeupdate', () => {
-        if (!sbrSeeking && arcAudio.duration) {
-          sbrArcSeek.value = (arcAudio.currentTime / arcAudio.duration) * 100;
+        if (arcAudio.duration) {
+          const pct = (arcAudio.currentTime / arcAudio.duration * 100) + '%';
+          sbrSeekFill.style.width = pct;
+          /* also update the canvas audio module tile */
+          const canvasFill = sbCanvas.querySelector('.sb-audio-progress-fill');
+          if (canvasFill) canvasFill.style.width = pct;
         }
         sbrArcTime.textContent = `${fmtDur(arcAudio.currentTime)} / ${fmtDur(arcAudio.duration)}`;
       });
@@ -2458,7 +2450,6 @@
       document.getElementById('meta-source').value      = data.archive_source || '';
       document.getElementById('meta-notes').value       = data.context_notes  || '';
       document.getElementById('meta-translation').value = data.translation     || '';
-      if (data.image_url) setArcImg(data.image_url);
       if (data.audio_url) {
         arcCurUrl = data.audio_url;
         arcAudio.src = data.audio_url;
@@ -2642,7 +2633,6 @@
       titleEl.value = t.name; npFields.track_title = t.name;
       if (!artistEl.value.trim() && t.tag_artist) { artistEl.value = t.tag_artist; npFields.artist = t.tag_artist; }
       if (!sourceEl.value.trim() && t.tag_album)  { sourceEl.value = t.tag_album;  npFields.archive_source = t.tag_album; }
-      if (t.tag_picture_url) { setArcImg(t.tag_picture_url); npFields.image_url = t.tag_picture_url; }
 
       writeNP(npFields);
       loadTracks();
@@ -2682,27 +2672,6 @@
         e.target.value = ''; loadTracks();
       });
 
-      document.getElementById('arc-image-upload').addEventListener('change', async e => {
-        const file = e.target.files[0]; if (!file) return;
-        const path = `${Date.now()}-${file.name.replace(/\s+/g,'_')}`;
-        const { error } = await db.storage.from('fur-fm-images').upload(path, file);
-        if (error) return;
-        const { data: { publicUrl } } = db.storage.from('fur-fm-images').getPublicUrl(path);
-        setArcImg(publicUrl); writeNP({ image_url: publicUrl });
-        e.target.value = '';
-      });
-    }
-
-    function setArcImg(url) {
-      const el = document.getElementById('arc-image-preview');
-      el.style.backgroundImage = `url("${url.replace(/"/g,'%22')}")`;
-      el.classList.add('has-image');
-    }
-
-    function clearArcImg() {
-      const el = document.getElementById('arc-image-preview');
-      el.style.backgroundImage = '';
-      el.classList.remove('has-image');
     }
 
     function arcGetDur(file) {

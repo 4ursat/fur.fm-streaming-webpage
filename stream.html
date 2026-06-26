@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Fur FM</title>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Hind:wght@400;500&family=Cormorant+Garamond:ital,wght@0,300;1,300&display=swap" rel="stylesheet">
   <script src="supabase-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js"></script>
@@ -13,417 +13,396 @@
 
     html, body {
       width: 100%; height: 100%;
-      background: #141414;
-      font-family: 'Courier New', Courier, monospace;
       overflow: hidden;
+      background: #0d1c15;
+      font-family: 'Courier New', Courier, monospace;
+      color: #f0e0a8;
+      -webkit-tap-highlight-color: transparent;
     }
 
-    /* ── Full-page centring shell ── */
-    .page-wrap {
+    /* Dot-grid texture — matches landing page */
+    body::after {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background-image: radial-gradient(circle, rgba(200,144,32,0.045) 1px, transparent 1px);
+      background-size: 26px 26px;
+      pointer-events: none;
+    }
+
+    /* ── Stage: full viewport ── */
+    .stage {
       position: fixed;
       inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 1.8rem 2.5rem;
-    }
-
-    /* ── Column: above + stage + below, all same width ── */
-    .content-col {
-      display: flex;
-      flex-direction: column;
-      gap: 0.85rem;
-      width: 88vw;
-      /* max-width: tallest possible stage given vh, plus strip heights + gaps */
-      max-width: calc((100vh - 9rem) * 1.7778);
-    }
-
-    /* ── Above-video strip ── */
-    .above {
-      display: flex;
-      justify-content: flex-end;
-    }
-
-    .session-notice {
-      font-size: 0.84rem; letter-spacing: 0.03em;
-      color: rgba(255,255,255,0.8);
-      line-height: 1.5;
-    }
-
-    /* ── Contained video stage ── */
-    .stage {
-      position: relative;
-      width: 100%;
-      height: 0;
-      padding-top: 56.25%; /* 16:9 */
       overflow: hidden;
-      outline: 1px solid rgba(255,255,255,0.07);
-      flex-shrink: 0;
+      z-index: 1;
     }
 
     #obs-player {
-      position: absolute;
-      top: 0; left: 0;
+      position: absolute; top: 0; left: 0;
       width: 100%; height: 100%;
       border: none; display: block;
     }
 
-    /* ── Overlays — absolutely positioned inside .stage ── */
+    /* ── Overlays — absolute inside stage (= fixed to viewport) ── */
     .ov {
       position: absolute;
       z-index: 10;
       pointer-events: none;
     }
 
-    /* Top-left: Logo */
-    .ov-tl { top: 1.2rem; left: 1.4rem; }
+    /* Top-left: Logo only */
+    .ov-tl { top: 2rem; left: 1.8rem; }
 
-    .logo { display: flex; align-items: flex-start; gap: 0.5rem; }
+    .logo { display: flex; align-items: center; gap: 0.55rem; }
     .logo-name {
-      font-size: 1.05rem; font-weight: bold; letter-spacing: 0.07em;
-      color: rgba(255,255,255,0.95); line-height: 1;
-      text-shadow: 0 1px 12px rgba(0,0,0,0.8);
+      font-size: 1.15rem; font-weight: bold; letter-spacing: 0.09em;
+      color: #f0e0a8; line-height: 1;
     }
     .logo-dot {
-      display: inline-block; width: 3px; height: 3px;
-      background: rgba(255,255,255,0.85); border-radius: 50%;
-      vertical-align: middle; margin: 0 0.18em;
+      display: inline-block; width: 4px; height: 4px;
+      background: #e07828; border-radius: 50%;
+      vertical-align: middle; margin: 0 0.16em;
       position: relative; top: -1px;
     }
 
-    /* Live rings */
-    #ring-inner  { opacity: 0.65; }
-    #ring-mid    { opacity: 0.44; }
-    #ring-outer  { opacity: 0.26; }
+    /* Live rings — match landing page stroke colours */
+    #ring-inner  { opacity: 0.55; }
+    #ring-mid    { opacity: 0.35; }
+    #ring-outer  { opacity: 0.18; }
     .logo.is-live #ring-inner { animation: ring-broadcast 2.4s ease-in-out infinite; }
     .logo.is-live #ring-mid   { animation: ring-broadcast 2.4s ease-in-out 0.5s infinite; }
     .logo.is-live #ring-outer { animation: ring-broadcast 2.4s ease-in-out 1s infinite; }
     @keyframes ring-broadcast {
-      0%, 100% { opacity: 0.06; }
-      40%      { opacity: 0.9; }
+      0%, 100% { opacity: 0.04; }
+      40%      { opacity: 0.85; }
     }
 
     /* Top-right: Session info */
-    .ov-tr { top: 1.2rem; right: 1.4rem; text-align: right; max-width: 50%; }
+    .ov-tr { top: 2rem; right: 1.8rem; text-align: right; max-width: 46%; }
     .session-title {
       font-family: 'Cormorant Garamond', Georgia, serif;
-      font-size: 1.05rem; font-weight: 300; font-style: italic;
-      color: rgba(255,255,255,0.95);
+      font-size: 1.1rem; font-weight: 300; font-style: italic;
+      color: #f0e0a8;
     }
     .session-timer {
-      font-size: 1.0rem; letter-spacing: 0.14em;
-      color: rgba(255,255,255,0.95);
-      margin-top: 0.3rem; text-align: right;
+      font-size: 0.88rem; letter-spacing: 0.14em;
+      color: rgba(200,144,32,0.65);
+      margin-top: 0.2rem;
       font-variant-numeric: tabular-nums;
     }
 
-    /* Bottom-left: Listener count */
-    .ov-bl { bottom: 1.3rem; left: 1.4rem; }
-    .listener-count {
-      font-size: 0.86rem; letter-spacing: 0.06em;
-      color: rgba(255,255,255,0.85); font-style: italic;
+    /* Bottom-left: Listener count + leave */
+    .ov-bl {
+      bottom: 1.8rem; left: 1.8rem;
+      display: flex; flex-direction: column; gap: 0.45rem;
     }
+    .listener-count {
+      font-size: 0.75rem; letter-spacing: 0.05em;
+      color: #c89020; font-style: italic;
+    }
+    .nav-leave {
+      background: none; border: none; padding: 0;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase;
+      color: rgba(200,144,32,0.35); cursor: pointer;
+      transition: color 0.2s; pointer-events: all; text-align: left;
+    }
+    .nav-leave:hover { color: #f0e0a8; }
 
-    /* Bottom-right: Chat overlay */
+    /* Bottom-right: Chat */
     .ov-br {
-      bottom: 1.3rem; right: 1.4rem;
-      width: min(240px, calc(50% - 1.8rem));
+      bottom: 1.8rem; right: 1.8rem;
+      width: min(250px, calc(44% - 1.8rem));
       pointer-events: all;
       display: flex; flex-direction: column;
     }
     .messages {
-      max-height: 190px; overflow-y: auto;
-      display: flex; flex-direction: column; gap: 0.65rem;
+      max-height: 180px; overflow-y: auto;
+      display: flex; flex-direction: column; gap: 0.55rem;
       padding: 0.65rem 0.75rem 0.55rem;
-      background: rgba(0,0,0,0.22);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
+      background: rgba(13,28,21,0.52);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       scrollbar-width: none;
     }
     .messages::-webkit-scrollbar { display: none; }
     .msg { display: flex; flex-direction: column; gap: 0.04rem; }
     .msg-sender {
-      font-size: 0.72rem; letter-spacing: 0.06em;
-      color: rgba(255,255,255,0.72);
+      font-size: 0.7rem; letter-spacing: 0.06em;
+      color: #c89020;
     }
     .msg-text {
-      font-size: 0.82rem; color: rgba(255,255,255,0.92);
+      font-size: 0.84rem; color: #f0e0a8;
       line-height: 1.45; word-break: break-word;
     }
-    .msg.system .msg-sender { color: rgba(255,255,255,0.45); }
+    .msg.system .msg-sender { color: rgba(200,144,32,0.42); }
     .msg.system .msg-text {
-      font-style: italic; color: rgba(255,255,255,0.6); font-size: 0.72rem;
+      font-style: italic; color: rgba(240,224,168,0.45); font-size: 0.72rem;
     }
     .chat-input-area {
-      background: rgba(0,0,0,0.28);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      padding: 0.4rem 0.75rem 0.5rem;
-      display: flex; align-items: center; gap: 0.55rem;
-      border-top: 1px solid rgba(255,255,255,0.05);
+      background: rgba(13,28,21,0.62);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      padding: 0.42rem 0.75rem 0.48rem;
+      display: flex; align-items: center; gap: 0.5rem;
+      border-top: 1px solid rgba(200,144,32,0.1);
     }
     .chat-input-area input {
       flex: 1; background: transparent; border: none;
-      border-bottom: 1px solid rgba(255,255,255,0.18);
-      outline: none; padding: 0.15rem 0;
+      border-bottom: 1px solid rgba(200,144,32,0.32);
+      outline: none; padding: 0.14rem 0;
       font-family: 'Courier New', Courier, monospace;
-      font-size: 0.76rem; font-style: italic;
-      color: rgba(255,255,255,0.88);
+      font-size: 0.8rem; font-style: italic;
+      color: #f0e0a8;
     }
-    .chat-input-area input::placeholder { color: rgba(255,255,255,0.5); }
+    .chat-input-area input::placeholder { color: rgba(200,144,32,0.38); }
     .send-btn {
       background: none; border: none; padding: 0; flex-shrink: 0;
-      font-family: 'Courier New', Courier, monospace;
-      font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase;
-      color: rgba(255,255,255,0.65); cursor: pointer; transition: color 0.2s;
+      font-size: 0.9rem; color: #c89020; cursor: pointer;
+      transition: color 0.2s; line-height: 1;
     }
-    .send-btn:hover { color: rgba(255,255,255,0.9); }
+    .send-btn:hover { color: #f0e0a8; }
 
-    /* ── Below-video strip ── */
-    .below {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .nav-link {
-      font-size: 0.9rem; letter-spacing: 0.08em; text-transform: uppercase;
-      color: rgba(255,255,255,0.75); text-decoration: none;
+    /* Fullscreen — subtle, bottom-right below chat would overlap, so top of chat area */
+    .nav-fullscreen {
       background: none; border: none; padding: 0;
       font-family: 'Courier New', Courier, monospace;
-      cursor: pointer; transition: color 0.2s;
+      font-size: 0.6rem; letter-spacing: 0.08em; text-transform: uppercase;
+      color: rgba(200,144,32,0.3); cursor: pointer; transition: color 0.2s;
+      pointer-events: all; display: block; text-align: right;
+      margin-bottom: 0.35rem;
     }
-    .nav-link:hover { color: rgba(255,255,255,0.95); }
+    .nav-fullscreen:hover { color: #f0e0a8; }
 
-    /* ── Now Playing bar (archival) ── */
+    /* ── Now Playing — top-centre, aligned with logo/timer ── */
     .np-bar {
-      position: absolute; bottom: 0; left: 0; right: 0;
+      position: absolute;
+      top: 2rem; left: 50%; transform: translateX(-50%);
       z-index: 9; pointer-events: none;
-      background: linear-gradient(to top, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0) 100%);
-      padding: 2.2rem 1.4rem 0.9rem;
-      display: none; flex-direction: column; gap: 0.3rem;
+      display: none; flex-direction: column; align-items: center;
+      gap: 0.2rem; text-align: center;
+      width: min(380px, 42vw);
     }
     .np-bar.visible { display: flex; }
     .np-track-line {
-      font-size: 0.8rem; font-weight: bold; letter-spacing: 0.04em;
-      color: rgba(255,255,255,0.95);
+      font-size: 0.95rem; font-weight: bold; letter-spacing: 0.03em;
+      color: #f0e0a8;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      width: 100%;
     }
     .np-meta-line {
-      font-size: 0.68rem; letter-spacing: 0.06em;
-      color: rgba(255,255,255,0.65);
+      font-size: 0.72rem; letter-spacing: 0.06em;
+      color: #c89020;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      width: 100%;
     }
     .np-translation {
       font-size: 0.72rem; font-style: italic;
-      color: rgba(255,255,255,0.78); line-height: 1.5;
-      margin-top: 0.15rem;
+      color: rgba(240,224,168,0.6); line-height: 1.5;
       display: -webkit-box; -webkit-line-clamp: 2;
       -webkit-box-orient: vertical; overflow: hidden;
+      width: 100%;
     }
-    /* Archive image overlay (when no video) */
+    .np-player-row {
+      display: flex; align-items: center; gap: 0.65rem;
+      margin-top: 0.2rem; width: 100%;
+    }
+    .np-progress-wrap {
+      flex: 1; height: 3px;
+      background: rgba(200,144,32,0.18);
+      position: relative; overflow: hidden;
+    }
+    .np-progress-fill {
+      position: absolute; left: 0; top: 0; bottom: 0;
+      background: #e07828; width: 0%;
+      transition: width 0.8s linear;
+    }
+    .np-time {
+      font-size: 0.64rem; color: rgba(200,144,32,0.6);
+      font-variant-numeric: tabular-nums; letter-spacing: 0.06em;
+      white-space: nowrap; flex-shrink: 0;
+    }
+
+    /* Archive image bg */
     .np-image-bg {
       position: absolute; inset: 0; z-index: 0;
       background-size: cover; background-position: center;
       opacity: 0; transition: opacity 0.6s;
     }
-    .np-image-bg.show { opacity: 0.35; }
+    .np-image-bg.show { opacity: 0.28; }
+
+    /* ── Standby screen ── */
+    #standby-screen {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: #0d1c15; z-index: 1;
+    }
+    .standby-inner {
+      text-align: center;
+      color: rgba(200,144,32,0.25);
+      letter-spacing: 0.2em;
+    }
+    .standby-inner .s-name {
+      font-size: 1.1rem; font-weight: 700; margin-bottom: 0.55rem;
+    }
+    .standby-inner .s-sub {
+      font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.24em;
+    }
 
     /* ── Join toast ── */
     .join-toast {
-      position: fixed; bottom: 2.2rem; left: 50%;
+      position: fixed; bottom: 2.5rem; left: 50%;
       transform: translateX(-50%) translateY(8px);
-      z-index: 20; pointer-events: none;
-      font-size: 0.68rem; letter-spacing: 0.12em;
-      color: rgba(255,255,255,0.68);
-      background: rgba(0,0,0,0.52);
-      backdrop-filter: blur(6px);
-      border: 1px solid rgba(255,255,255,0.06);
-      padding: 0.36rem 0.9rem;
+      z-index: 50; pointer-events: none;
+      font-size: 0.64rem; letter-spacing: 0.1em;
+      color: rgba(240,224,168,0.75);
+      background: rgba(13,28,21,0.82);
+      border: 1px solid rgba(200,144,32,0.18);
+      padding: 0.32rem 0.85rem;
       opacity: 0; white-space: nowrap;
       transition: opacity 0.35s ease, transform 0.35s ease;
     }
-    .join-toast.visible {
-      opacity: 1; transform: translateX(-50%) translateY(0);
-    }
+    .join-toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
 
     /* ── Audio unlock prompt ── */
     .audio-prompt {
-      position: fixed; bottom: 1.4rem; left: 50%;
+      position: fixed; bottom: 1.8rem; left: 50%;
       transform: translateX(-50%);
       z-index: 80; display: none; align-items: center; gap: 0.5rem;
-      background: rgba(255,255,255,0.95); color: #000;
-      font-family: 'Courier New', Courier, monospace;
-      font-size: 0.64rem; letter-spacing: 0.12em; text-transform: uppercase;
-      padding: 0.55rem 1.1rem; cursor: pointer;
+      background: rgba(13,28,21,0.95);
+      border: 1px solid rgba(200,144,32,0.28);
+      color: #f0e0a8;
+      font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase;
+      padding: 0.5rem 1rem; cursor: pointer;
     }
     .audio-prompt.visible { display: flex; }
 
-    /* ── iOS tap-to-watch overlay ── */
+    /* ── iOS tap-to-watch ── */
     .tap-overlay {
-      position: absolute; inset: 0;
-      z-index: 5;
+      position: absolute; inset: 0; z-index: 5;
       display: flex; align-items: center; justify-content: center;
-      background: rgba(0,0,0,0.55);
-      cursor: pointer;
+      background: rgba(13,28,21,0.65); cursor: pointer;
       -webkit-tap-highlight-color: transparent;
     }
     .tap-overlay span {
-      font-size: 0.78rem; letter-spacing: 0.22em; text-transform: uppercase;
-      color: rgba(255,255,255,0.85);
-      border: 1px solid rgba(255,255,255,0.3);
-      padding: 0.55rem 1.4rem;
+      font-size: 0.76rem; letter-spacing: 0.22em; text-transform: uppercase;
+      color: rgba(240,224,168,0.85);
+      border: 1px solid rgba(200,144,32,0.3);
+      padding: 0.5rem 1.3rem;
     }
 
-    /* ── Responsive ── */
-
-    /* Tablet (portrait iPad etc.) */
-    @media (max-width: 768px) {
-      .content-col { width: 94vw; }
-      .page-wrap { padding: 1.4rem 1.2rem; }
-    }
-
-    /* Phone */
+    /* ── Mobile ── */
     @media (max-width: 600px) {
-      .content-col { width: 98vw; }
-      .page-wrap { padding: 0.9rem 0.6rem; }
-
-      /* tighter overlay insets */
-      .ov-tl { top: 0.6rem; left: 0.7rem; }
-      .ov-tr { top: 0.6rem; right: 0.7rem; max-width: 56%; }
-      .ov-bl { bottom: 0.65rem; left: 0.7rem; }
-      .ov-br { bottom: 0.65rem; right: 0.7rem;
-               width: min(190px, calc(55% - 0.7rem)); }
-
-      /* overlay text */
-      .logo-name    { font-size: 0.88rem; }
-      .session-title { font-size: 0.82rem; }
-      .session-timer { font-size: 0.8rem; letter-spacing: 0.08em; }
-      .listener-count { font-size: 0.74rem; }
-
-      /* shorter chat so it doesn't dominate the small video */
-      .messages { max-height: 100px; }
-      .msg-text { font-size: 0.72rem; }
-      .msg-sender { font-size: 0.62rem; }
-      .chat-input-area { padding: 0.3rem 0.55rem 0.35rem; }
-      .chat-input-area input { font-size: 0.68rem; }
-      .send-btn { font-size: 0.65rem; }
-
-      /* strips outside video */
-      .session-notice { font-size: 0.74rem; }
-      .nav-link { font-size: 0.78rem; }
-      .content-col { gap: 0.6rem; }
+      .ov-tl { top: 1.2rem; left: 1rem; }
+      .ov-tr { top: 1.2rem; right: 1rem; }
+      .ov-bl { bottom: 1rem; left: 1rem; }
+      .ov-br { bottom: 1rem; right: 1rem; width: min(190px, calc(56% - 1rem)); }
+      .messages { max-height: 90px; }
+      .np-bar { width: min(260px, 64vw); top: 1.2rem; }
+      .np-track-line { font-size: 0.82rem; }
+      .session-title { font-size: 0.9rem; }
+      .session-timer { font-size: 0.74rem; }
+      .logo-name { font-size: 0.95rem; }
     }
 
-    /* Landscape phone — maximize video height */
     @media (max-height: 480px) and (orientation: landscape) {
-      .page-wrap { padding: 0.5rem; }
-      .content-col { gap: 0.45rem; }
-      .above, .below { display: none; }  /* hide strips, give video full space */
-      .content-col { max-width: calc(100vh * 1.7778); width: 100vw; }
+      .ov-br { bottom: 0.5rem; }
+      .ov-bl { bottom: 0.5rem; }
     }
   </style>
 </head>
 <body>
 
-<div class="page-wrap">
-  <div class="content-col">
+<!-- Full-viewport stage -->
+<div class="stage">
 
-    <!-- Above video: notice right-aligned -->
-    <div class="above">
-      <div class="session-notice">This session will not be recorded.</div>
+  <div id="standby-screen">
+    <div class="standby-inner">
+      <div class="s-name">FUR · FM</div>
+      <div class="s-sub">not currently live</div>
     </div>
+  </div>
 
-    <!-- Video stage with overlays inside -->
-    <div class="stage">
+  <iframe
+    id="obs-player"
+    src="https://vdo.ninja/?view=xYuuWBy&label=ffm_listening_room&cleanoutput&autoplay"
+    allow="autoplay;camera;microphone;fullscreen;picture-in-picture;display-capture;midi;encrypted-media"
+    allowfullscreen
+    title="Fur FM live stream"
+    style="display:none"
+  ></iframe>
 
-      <div id="standby-screen" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#0a0a0a;z-index:1">
-        <div style="text-align:center;color:rgba(255,255,255,0.18);font-family:'Hind',sans-serif;letter-spacing:0.1em">
-          <div style="font-size:1.4rem;font-weight:600;margin-bottom:0.4rem">FURSAT FM</div>
-          <div style="font-size:0.75rem;text-transform:uppercase">Not currently live</div>
-        </div>
+  <!-- iOS tap-to-watch -->
+  <div class="tap-overlay" id="tap-overlay" style="display:none">
+    <span>tap to watch</span>
+  </div>
+
+  <!-- Scene layer -->
+  <div id="scene-layer" style="display:none; position:absolute; inset:0; z-index:3; pointer-events:none; overflow:hidden;"></div>
+
+  <!-- Archive image background -->
+  <div class="np-image-bg" id="np-image-bg"></div>
+
+  <!-- Now Playing bar (bottom gradient overlay) -->
+  <div class="np-bar" id="np-bar">
+    <div class="np-track-line" id="np-track-line"></div>
+    <div class="np-meta-line" id="np-meta-line"></div>
+    <div class="np-player-row" id="np-player-row" style="display:none">
+      <div class="np-progress-wrap">
+        <div class="np-progress-fill" id="np-progress-fill"></div>
       </div>
-      <iframe
-        id="obs-player"
-        src="https://vdo.ninja/?view=xYuuWBy&label=ffm_listening_room&cleanoutput&autoplay"
-        allow="autoplay;camera;microphone;fullscreen;picture-in-picture;display-capture;midi;encrypted-media"
-        allowfullscreen
-        title="Fur FM live stream"
-        style="display:none"
-      ></iframe>
-
-      <!-- iOS tap-to-watch (hidden on non-iOS) -->
-      <div class="tap-overlay" id="tap-overlay" style="display:none">
-        <span>tap to watch</span>
-      </div>
-
-      <!-- Scene layer: rendered by admin scene builder, overlays the VDO.ninja frame -->
-      <div id="scene-layer" style="display:none; position:absolute; inset:0; z-index:15; pointer-events:none; overflow:hidden;"></div>
-
-      <!-- Archive image background (shown during archival sessions) -->
-      <div class="np-image-bg" id="np-image-bg"></div>
-
-      <!-- Now Playing bar (archival, bottom of stage) -->
-      <div class="np-bar" id="np-bar">
-        <div class="np-track-line" id="np-track-line"></div>
-        <div class="np-meta-line" id="np-meta-line"></div>
-        <div class="np-translation" id="np-translation" style="display:none"></div>
-      </div>
-
-      <!-- Top-left: Logo -->
-      <div class="ov ov-tl">
-        <div class="logo" id="live-badge">
-          <svg viewBox="0 0 36 20" width="26" height="15" fill="none">
-            <defs>
-              <clipPath id="ov-rings-clip">
-                <rect x="-500" y="-1000" width="1000" height="1014"/>
-              </clipPath>
-            </defs>
-            <g clip-path="url(#ov-rings-clip)">
-              <circle id="ring-inner" cx="18" cy="11" r="6"  stroke="#fff" stroke-width="1.3"/>
-              <circle id="ring-mid"   cx="18" cy="11" r="11" stroke="#fff" stroke-width="1.0"/>
-              <circle id="ring-outer" cx="18" cy="11" r="16" stroke="#fff" stroke-width="0.75"/>
-            </g>
-            <circle cx="18" cy="11" r="2.2" fill="#fff"/>
-          </svg>
-          <div class="logo-name">FUR<span class="logo-dot"></span>FM</div>
-        </div>
-      </div>
-
-      <!-- Top-right: Session info -->
-      <div class="ov ov-tr">
-        <div class="session-title" id="prog-title">Live Session</div>
-        <div class="session-timer" id="session-timer">00:00:00</div>
-      </div>
-
-      <!-- Bottom-left: Listener count -->
-      <div class="ov ov-bl">
-        <div class="listener-count" id="listener-count">—</div>
-      </div>
-
-      <!-- Bottom-right: Chat overlay -->
-      <div class="ov ov-br">
-        <div class="messages" id="chat-messages" role="log" aria-live="polite"></div>
-        <div class="chat-input-area">
-          <input type="text" id="chat-input" placeholder=""
-                 maxlength="200" autocomplete="off" />
-          <button class="send-btn" id="send-btn">send →</button>
-        </div>
-      </div>
-
-    </div><!-- /.stage -->
-
-    <!-- Below video -->
-    <div class="below">
-      <button class="nav-link nav-leave">leave quietly</button>
-      <button class="nav-link nav-fullscreen">⤢ fullscreen</button>
+      <span class="np-time" id="np-time">0:00 / 0:00</span>
     </div>
+    <div class="np-translation" id="np-translation" style="display:none"></div>
+  </div>
 
-  </div><!-- /.content-col -->
-</div><!-- /.page-wrap -->
+  <!-- Top-left: Logo -->
+  <div class="ov ov-tl">
+    <div class="logo" id="live-badge">
+      <svg viewBox="0 0 36 20" width="22" height="13" fill="none">
+        <defs>
+          <clipPath id="ov-rings-clip">
+            <rect x="-500" y="-1000" width="1000" height="1014"/>
+          </clipPath>
+        </defs>
+        <g clip-path="url(#ov-rings-clip)">
+          <circle id="ring-inner" cx="18" cy="11" r="6"  stroke="#f0e0a8" stroke-width="1.3"/>
+          <circle id="ring-mid"   cx="18" cy="11" r="11" stroke="#f0e0a8" stroke-width="1.0"/>
+          <circle id="ring-outer" cx="18" cy="11" r="16" stroke="#f0e0a8" stroke-width="0.75"/>
+        </g>
+        <circle cx="18" cy="11" r="2.2" fill="#e07828"/>
+      </svg>
+      <div class="logo-name">FUR<span class="logo-dot"></span>FM</div>
+    </div>
+  </div>
+
+  <!-- Top-right: Session info -->
+  <div class="ov ov-tr">
+    <div class="session-title" id="prog-title">Live Session</div>
+    <div class="session-timer" id="session-timer">00:00:00</div>
+  </div>
+
+  <!-- Bottom-left: Listener count + leave -->
+  <div class="ov ov-bl">
+    <div class="listener-count" id="listener-count">—</div>
+    <button class="nav-leave">leave quietly</button>
+  </div>
+
+  <!-- Bottom-right: Chat + fullscreen -->
+  <div class="ov ov-br">
+    <button class="nav-fullscreen">⤢ fullscreen</button>
+    <div class="messages" id="chat-messages" role="log" aria-live="polite"></div>
+    <div class="chat-input-area">
+      <input type="text" id="chat-input" placeholder=""
+             maxlength="200" autocomplete="off" />
+      <button class="send-btn" id="send-btn">→</button>
+    </div>
+  </div>
+
+</div><!-- /.stage -->
 
 <audio id="np-audio" style="display:none" preload="auto"></audio>
-<div class="audio-prompt" id="audio-prompt">🔈 Tap to enable audio</div>
+<div class="audio-prompt" id="audio-prompt">tap to enable audio</div>
 
 <script>
 (async () => {
@@ -615,7 +594,7 @@
     timerEl.parentElement.style.pointerEvents = 'all';
     timerEl.style.pointerEvents = 'all';
     timerEl.style.cursor = 'pointer';
-    timerEl.style.outline = '1px solid rgba(255,255,255,0.25)';
+    timerEl.style.outline = '1px solid rgba(200,144,32,0.3)';
     timerEl.style.padding = '0.1rem 0.3rem';
     timerEl.title = 'click to start / stop';
     timerEl.addEventListener('click', async () => {
@@ -633,13 +612,28 @@
   }
 
   /* ── Archival now-playing ── */
-  const npBar        = document.getElementById('np-bar');
-  const npTrackLine  = document.getElementById('np-track-line');
-  const npMetaLine   = document.getElementById('np-meta-line');
-  const npTranslation = document.getElementById('np-translation');
-  const npImageBg    = document.getElementById('np-image-bg');
-  const npAudio      = document.getElementById('np-audio');
-  const audioPrompt  = document.getElementById('audio-prompt');
+  const npBar          = document.getElementById('np-bar');
+  const npTrackLine    = document.getElementById('np-track-line');
+  const npMetaLine     = document.getElementById('np-meta-line');
+  const npTranslation  = document.getElementById('np-translation');
+  const npImageBg      = document.getElementById('np-image-bg');
+  const npAudio        = document.getElementById('np-audio');
+  const audioPrompt    = document.getElementById('audio-prompt');
+  const npPlayerRow    = document.getElementById('np-player-row');
+  const npProgressFill = document.getElementById('np-progress-fill');
+  const npTimeEl       = document.getElementById('np-time');
+
+  function fmtDur(s) {
+    if (!s || isNaN(s)) return '0:00';
+    const m = Math.floor(s / 60), sec = Math.floor(s % 60);
+    return `${m}:${String(sec).padStart(2, '0')}`;
+  }
+
+  npAudio.addEventListener('timeupdate', () => {
+    if (!npAudio.duration) return;
+    npProgressFill.style.width = (npAudio.currentTime / npAudio.duration * 100) + '%';
+    npTimeEl.textContent = `${fmtDur(npAudio.currentTime)} / ${fmtDur(npAudio.duration)}`;
+  });
 
   /* ── Synced audio playback (archival tracks) ── */
   let wantPlaying = false;
@@ -682,39 +676,73 @@
   }, true);
   audioPrompt.addEventListener('click', () => attemptPlay());
 
-  /* ── Scene renderer ── */
-  const sceneLayer  = document.getElementById('scene-layer');
-  const obsPlayer   = document.getElementById('obs-player');
-  let _lastSceneJson = null;
-
+  /* ── Scene renderer (incremental — never destroys live iframes) ── */
+  const sceneLayer    = document.getElementById('scene-layer');
+  const obsPlayer     = document.getElementById('obs-player');
   const standbyScreen = document.getElementById('standby-screen');
+  const _sceneEls     = new Map(); // moduleId → DOM element
+
+  function buildModuleEl(m) {
+    const el = document.createElement('div');
+    el.dataset.modId   = m.id;
+    el.dataset.modType = m.type;
+    el.style.cssText   = `position:absolute;left:${m.x}%;top:${m.y}%;width:${m.w}%;height:${m.h}%;overflow:hidden;`;
+    if (m.type === 'video') {
+      el.innerHTML = `<iframe src="https://vdo.ninja/?view=xYuuWBy&label=ffm_listening_room&cleanoutput&autoplay" style="width:100%;height:100%;border:none;display:block" allow="autoplay;camera;microphone" allowfullscreen></iframe>`;
+    } else if (m.type === 'screen') {
+      el.innerHTML = `<iframe src="https://vdo.ninja/?view=xYuuWBysc&cleanoutput&autoplay" style="width:100%;height:100%;border:none;display:block" allow="autoplay" allowfullscreen></iframe>`;
+    } else if (m.type === 'text') {
+      el.style.cssText += `color:#f0e0a8;white-space:pre-wrap;word-break:break-word;font-size:${m.config?.fontSize||16}px;padding:0.5em;font-family:'Hind',sans-serif;`;
+      el.textContent = m.config?.content || '';
+    } else if (m.type === 'image') {
+      el.innerHTML = `<img src="${esc(m.config?.url||'')}" style="width:100%;height:100%;object-fit:contain;display:block;" alt=""/>`;
+    }
+    return el;
+  }
+
   function renderScene(scene) {
-    const json = JSON.stringify(scene ?? null);
-    if (json === _lastSceneJson) return;
-    _lastSceneJson = json;
     const mods = scene?.modules ?? [];
+
     if (!mods.length) {
       sceneLayer.style.display = 'none';
       if (standbyScreen) standbyScreen.style.display = '';
+      _sceneEls.forEach(el => el.remove());
+      _sceneEls.clear();
       return;
     }
+
     if (standbyScreen) standbyScreen.style.display = 'none';
     sceneLayer.style.display = 'block';
-    sceneLayer.innerHTML = '';
+
+    const incoming = new Set(mods.map(m => m.id));
+
+    /* Remove elements no longer in scene */
+    _sceneEls.forEach((el, id) => {
+      if (!incoming.has(id)) { el.remove(); _sceneEls.delete(id); }
+    });
+
+    /* Add or update each module */
     for (const m of mods) {
-      const el = document.createElement('div');
-      el.style.cssText = `position:absolute;left:${m.x}%;top:${m.y}%;width:${m.w}%;height:${m.h}%;overflow:hidden;`;
-      if (m.type === 'video') {
-        el.innerHTML = `<iframe src="https://vdo.ninja/?view=xYuuWBy&label=ffm_listening_room&cleanoutput&autoplay" style="width:100%;height:100%;border:none;display:block" allow="autoplay;camera;microphone" allowfullscreen></iframe>`;
-      } else if (m.type === 'screen') {
-        el.innerHTML = `<iframe src="https://vdo.ninja/?view=xYuuWBysc&cleanoutput&autoplay" style="width:100%;height:100%;border:none;display:block" allow="autoplay" allowfullscreen></iframe>`;
-      } else if (m.type === 'text') {
-        el.style.cssText += `color:#f0e0a8;white-space:pre-wrap;word-break:break-word;font-size:${m.config?.fontSize||16}px;padding:0.5em;font-family:'Hind',sans-serif;`;
-        el.textContent = m.config?.content || '';
-      } else if (m.type === 'image') {
-        el.innerHTML = `<img src="${esc(m.config?.url||'')}" style="width:100%;height:100%;object-fit:contain;display:block;" alt=""/>`;
+      let el = _sceneEls.get(m.id);
+
+      if (!el || el.dataset.modType !== m.type) {
+        /* New or type-changed module — create fresh */
+        if (el) el.remove();
+        el = buildModuleEl(m);
+        sceneLayer.appendChild(el);
+        _sceneEls.set(m.id, el);
+      } else {
+        /* Existing module — update position/size only, never touch iframes */
+        el.style.left   = m.x + '%';
+        el.style.top    = m.y + '%';
+        el.style.width  = m.w + '%';
+        el.style.height = m.h + '%';
+
+        if (m.type === 'text') {
+          const content = m.config?.content || '';
+          if (el.textContent !== content) el.textContent = content;
+        }
       }
-      sceneLayer.appendChild(el);
     }
   }
 
@@ -722,7 +750,10 @@
     if (!d) return;
     if ('scene' in d) renderScene(d.scene);
     syncAudio(d);
-    const hasContent = d.track_title || d.artist;
+
+    const hasAudioModule = Array.isArray(d.scene?.modules) &&
+                           d.scene.modules.some(m => m.type === 'audio');
+    const hasContent = hasAudioModule && (d.track_title || d.artist);
     npBar.classList.toggle('visible', !!hasContent);
 
     const track = [d.track_title, d.artist].filter(Boolean).join(' — ');
@@ -744,6 +775,8 @@
     } else {
       npImageBg.classList.remove('show');
     }
+
+    npPlayerRow.style.display = (hasAudioModule && d.is_playing && d.audio_url) ? '' : 'none';
   }
 
   (async () => {
