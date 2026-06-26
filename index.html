@@ -220,22 +220,23 @@
       position: fixed;
       top: 1.4rem; right: 1.5rem;
       z-index: 30;
-      text-align: right;
       pointer-events: none;
       user-select: none;
       display: flex;
       flex-direction: column;
-      align-items: flex-end;
+      align-items: stretch;
       gap: 0.18rem;
     }
-    #brand svg { opacity: 0.9; }
+    #brand svg { opacity: 0.9; width: 100%; height: auto; }
     #brand-tagline {
       font-family: 'Hind', sans-serif;
       font-size: 0.6rem;
-      letter-spacing: 0.14em;
+      letter-spacing: 0.13em;
       text-transform: uppercase;
       color: rgba(200,144,32,0.55);
       margin-top: 0;
+      white-space: nowrap;
+      text-align: right;
     }
 
     /* ── Tap overlay ─────────────────────────────────────────── */
@@ -336,7 +337,7 @@
       font-family="'Courier New',Courier,monospace"
       font-size="24" font-weight="700" letter-spacing="1"
       fill="#f0e0a8">Fur</text>
-    <circle cx="72" cy="19" r="4.5" fill="#e07828"/>
+    <circle cx="63" cy="19" r="4.5" fill="#e07828"/>
     <text x="81" y="26"
       font-family="'Courier New',Courier,monospace"
       font-size="24" font-weight="700" letter-spacing="1"
