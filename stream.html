@@ -751,9 +751,7 @@
     if ('scene' in d) renderScene(d.scene);
     syncAudio(d);
 
-    const hasAudioModule = Array.isArray(d.scene?.modules) &&
-                           d.scene.modules.some(m => m.type === 'audio');
-    const hasContent = hasAudioModule && (d.track_title || d.artist);
+    const hasContent = d.track_title || d.artist;
     npBar.classList.toggle('visible', !!hasContent);
 
     const track = [d.track_title, d.artist].filter(Boolean).join(' — ');
@@ -776,7 +774,7 @@
       npImageBg.classList.remove('show');
     }
 
-    npPlayerRow.style.display = (hasAudioModule && d.is_playing && d.audio_url) ? '' : 'none';
+    npPlayerRow.style.display = (d.is_playing && d.audio_url) ? '' : 'none';
   }
 
   (async () => {

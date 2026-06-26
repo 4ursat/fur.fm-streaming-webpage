@@ -435,23 +435,30 @@
       display: flex; gap: 0; align-items: flex-start;
       margin-top: 0.9rem;
     }
-    #sb-palette {
-      display: flex; flex-direction: column; gap: 0.35rem;
-      flex-shrink: 0; width: 100px; padding-right: 0.5rem;
+    /* ── Module add strip (horizontal, below canvas) ── */
+    #sb-module-strip {
+      display: flex; align-items: center; gap: 0.5rem;
+      padding: 0.4rem 0; margin-top: 0.5rem;
+      border-top: 1px solid rgba(0,0,0,0.06);
+      flex-wrap: wrap;
+    }
+    .sb-strip-label {
+      font-size: 0.5rem; letter-spacing: 0.16em; text-transform: uppercase;
+      color: rgba(0,0,0,0.32); flex-shrink: 0;
     }
     .sb-add-btn {
       font-family: 'Courier New', Courier, monospace;
       font-size: 0.58rem; letter-spacing: 0.1em; text-transform: uppercase;
-      padding: 0.38rem 0.5rem; border: 1px dashed rgba(0,0,0,0.2);
+      padding: 0.32rem 0.65rem; border: 1px dashed rgba(0,0,0,0.2);
       background: transparent; color: rgba(0,0,0,0.46);
-      cursor: pointer; text-align: left; transition: all 0.13s;
+      cursor: pointer; transition: all 0.13s;
     }
     .sb-add-btn:hover { border-color: rgba(0,0,0,0.36); color: #1a1a1a; background: rgba(0,0,0,0.02); }
 
     #sb-canvas-wrap {
       flex: 1; position: relative;
-      padding-top: calc((9/16) * (100% - 360px)); /* 16:9: subtract palette(100)+right-panel(260) */
-      background: #111; border: 1px solid rgba(0,0,0,0.18);
+      padding-top: calc((9/16) * (100% - 260px)); /* 16:9: subtract right-panel(260) only */
+      background: #0d1c15; border: 1px solid rgba(0,0,0,0.28);
       min-width: 0;
     }
     #sb-canvas {
@@ -589,6 +596,84 @@
       font-size: 0.62rem; color: rgba(0,0,0,0.36); letter-spacing: 0.04em;
     }
 
+    /* ── Canvas monitor dot-grid (as bg so it doesn't cover modules) ── */
+    #sb-canvas {
+      background-image: radial-gradient(circle, rgba(200,144,32,0.04) 1px, transparent 1px);
+      background-size: 22px 22px;
+    }
+
+    /* ── Canvas overlay elements (mirroring stream.html) ── */
+    .bc-ov {
+      position: absolute; z-index: 20; pointer-events: none;
+      font-family: 'Courier New', Courier, monospace;
+    }
+    .bc-ov-tl { top: 5%; left: 3%; }
+    .bc-ov-tr { top: 5%; right: 3%; text-align: right; }
+    .bc-ov-bl { bottom: 5%; left: 3%; display: flex; flex-direction: column; gap: 0.2rem; }
+    .bc-ov-br {
+      position: absolute; bottom: 5%; right: 3%;
+      width: 34%; z-index: 20; pointer-events: all;
+      display: flex; flex-direction: column;
+      font-family: 'Courier New', Courier, monospace;
+    }
+    .bc-logo { display: flex; align-items: center; gap: 0.35rem; }
+    .bc-logo-name { font-size: 0.75rem; font-weight: bold; color: #f0e0a8; letter-spacing: 0.09em; }
+    .bc-logo-dot { display: inline-block; width: 3px; height: 3px; background: #e07828; border-radius: 50%; vertical-align: middle; }
+    .bc-session-title { font-size: 0.68rem; color: #f0e0a8; }
+    .bc-session-timer { font-size: 0.58rem; letter-spacing: 0.14em; color: rgba(200,144,32,0.65); font-variant-numeric: tabular-nums; margin-top: 0.1rem; }
+    .bc-listener-count { font-size: 0.62rem; color: #c89020; font-style: italic; }
+
+    /* Canvas NP bar */
+    .bc-np-bar {
+      position: absolute; top: 5%; left: 50%; transform: translateX(-50%);
+      z-index: 19; pointer-events: none;
+      display: none; flex-direction: column; align-items: center;
+      text-align: center; width: 42%; gap: 0.1rem;
+    }
+    .bc-np-bar.visible { display: flex; }
+    .bc-np-track { font-size: 0.72rem; font-weight: bold; color: #f0e0a8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
+    .bc-np-meta  { font-size: 0.58rem; color: #c89020; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
+    .bc-np-player-row { display: flex; align-items: center; gap: 0.45rem; margin-top: 0.1rem; width: 100%; }
+    .bc-np-progress-wrap { flex: 1; height: 2px; background: rgba(200,144,32,0.18); position: relative; overflow: hidden; }
+    .bc-np-progress-fill { position: absolute; left: 0; top: 0; bottom: 0; background: #e07828; width: 0%; transition: width 0.8s linear; }
+    .bc-np-time { font-size: 0.5rem; color: rgba(200,144,32,0.6); font-variant-numeric: tabular-nums; white-space: nowrap; flex-shrink: 0; }
+
+    /* Canvas chat */
+    .bc-chat-messages {
+      max-height: 95px; overflow-y: auto;
+      display: flex; flex-direction: column; gap: 0.28rem;
+      padding: 0.38rem 0.45rem;
+      background: rgba(13,28,21,0.52);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      scrollbar-width: none;
+    }
+    .bc-chat-messages::-webkit-scrollbar { display: none; }
+    .bc-msg { display: flex; flex-direction: column; gap: 0.02rem; }
+    .bc-msg-sender { font-size: 0.5rem; color: #c89020; }
+    .bc-msg-text   { font-size: 0.6rem; color: #f0e0a8; line-height: 1.4; word-break: break-word; }
+    .bc-msg.bc-sys .bc-msg-sender { color: rgba(200,144,32,0.42); }
+    .bc-msg.bc-sys .bc-msg-text   { font-style: italic; color: rgba(240,224,168,0.4); font-size: 0.55rem; }
+    .bc-chat-input-area {
+      background: rgba(13,28,21,0.65);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      padding: 0.22rem 0.45rem;
+      display: flex; align-items: center; gap: 0.3rem;
+      border-top: 1px solid rgba(200,144,32,0.1);
+    }
+    .bc-chat-input-area input {
+      flex: 1; background: transparent; border: none;
+      border-bottom: 1px solid rgba(200,144,32,0.32);
+      outline: none; padding: 0.06rem 0;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.6rem; font-style: italic; color: #f0e0a8;
+    }
+    .bc-chat-input-area input::placeholder { color: rgba(200,144,32,0.38); }
+    .bc-send-btn {
+      background: none; border: none; padding: 0; flex-shrink: 0;
+      font-size: 0.7rem; color: #c89020; cursor: pointer; line-height: 1;
+    }
+    .bc-send-btn:hover { color: #f0e0a8; }
+
     /* ── Broadcast Right Panel ── */
     #sb-right-panel {
       width: 260px; flex-shrink: 0;
@@ -668,6 +753,15 @@
       background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.52);
       border: 1px solid rgba(255,255,255,0.09); padding: 0.2rem 0.28rem;
     }
+    .sbr-name-input {
+      width: 100%; background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: #f0e0a8; padding: 0.28rem 0.4rem;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.65rem; outline: none;
+    }
+    .sbr-name-input::placeholder { color: rgba(200,144,32,0.3); }
+    .sbr-name-input:focus { border-color: rgba(200,144,32,0.35); }
     #sbr-text-fields textarea {
       width: 100%; background: rgba(255,255,255,0.04); color: #f0e0a8;
       border: 1px solid rgba(255,255,255,0.08); padding: 0.3rem 0.38rem;
@@ -878,22 +972,63 @@
             <span class="status-msg" id="sb-save-status"></span>
           </div>
           <div id="sb-wrap">
-            <div id="sb-palette">
-              <div style="font-size:0.55rem;letter-spacing:0.16em;text-transform:uppercase;color:rgba(0,0,0,0.32);margin-bottom:0.2rem">Add module</div>
-              <button class="sb-add-btn" data-type="video">▶ Video</button>
-              <button class="sb-add-btn" data-type="screen">⬡ Screen</button>
-              <button class="sb-add-btn" data-type="text">T Text</button>
-              <button class="sb-add-btn" data-type="image">⬜ Image</button>
-              <button class="sb-add-btn" data-type="audio">♪ Audio</button>
-            </div>
             <div id="sb-canvas-wrap">
               <div id="sb-canvas">
-                <div id="sb-empty-hint">canvas — add modules from the left</div>
+
+                <!-- Canvas monitor overlays — mirror of stream.html -->
+                <div class="bc-np-bar" id="bc-np-bar">
+                  <div class="bc-np-track" id="bc-np-track"></div>
+                  <div class="bc-np-meta"  id="bc-np-meta"></div>
+                  <div class="bc-np-player-row" id="bc-np-player-row" style="display:none">
+                    <div class="bc-np-progress-wrap"><div class="bc-np-progress-fill" id="bc-np-progress-fill"></div></div>
+                    <span class="bc-np-time" id="bc-np-time">0:00 / 0:00</span>
+                  </div>
+                </div>
+
+                <div class="bc-ov bc-ov-tl">
+                  <div class="bc-logo">
+                    <svg viewBox="0 0 36 20" width="15" height="9" fill="none">
+                      <defs><clipPath id="bc-rings-clip"><rect x="-500" y="-1000" width="1000" height="1014"/></clipPath></defs>
+                      <g clip-path="url(#bc-rings-clip)">
+                        <circle cx="18" cy="11" r="6"  stroke="#f0e0a8" stroke-width="1.3" opacity="0.55"/>
+                        <circle cx="18" cy="11" r="11" stroke="#f0e0a8" stroke-width="1.0" opacity="0.35"/>
+                        <circle cx="18" cy="11" r="16" stroke="#f0e0a8" stroke-width="0.75" opacity="0.18"/>
+                      </g>
+                      <circle cx="18" cy="11" r="2.2" fill="#e07828"/>
+                    </svg>
+                    <div class="bc-logo-name">FUR<span class="bc-logo-dot"></span>FM</div>
+                  </div>
+                </div>
+
+                <div class="bc-ov bc-ov-tr">
+                  <div class="bc-session-title" id="bc-canvas-title">Live Session</div>
+                  <div class="bc-session-timer" id="bc-canvas-timer">00:00:00</div>
+                </div>
+
+                <div class="bc-ov bc-ov-bl">
+                  <div class="bc-listener-count" id="bc-canvas-count">— listening</div>
+                </div>
+
+                <div class="bc-ov-br">
+                  <div class="bc-chat-messages" id="bc-chat-log"></div>
+                  <div class="bc-chat-input-area">
+                    <input type="text" id="bc-chat-input" placeholder="send a message…" maxlength="200" autocomplete="off"/>
+                    <button class="bc-send-btn" id="bc-send-btn">→</button>
+                  </div>
+                </div>
+
+                <div id="sb-empty-hint">canvas — add modules below</div>
               </div>
             </div>
 
             <!-- ── Broadcast Strip ── -->
             <div id="sb-right-panel">
+
+              <!-- Chat identity -->
+              <div class="sbr-section">
+                <div class="sbr-label">Your name in chat</div>
+                <input type="text" class="sbr-name-input" id="sbr-dj-name" placeholder="DJ name…" maxlength="32" autocomplete="off" spellcheck="false"/>
+              </div>
 
               <!-- Signal -->
               <div class="sbr-section">
@@ -939,9 +1074,12 @@
                 <div id="sbr-scr-preview" style="display:none;margin-top:0.4rem;position:relative;overflow:hidden;background:#000;aspect-ratio:16/9"></div>
               </div>
 
-              <!-- Audio Player -->
+              <!-- Audio Player (shown when audio module in scene) -->
               <div class="sbr-section" id="sbr-audio-section" style="display:none">
-                <div class="sbr-label">Audio Player</div>
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.45rem">
+                  <div class="sbr-label" style="margin-bottom:0">Audio Player</div>
+                  <button id="sbr-audio-remove" title="Remove audio player" style="background:none;border:none;color:rgba(255,255,255,0.28);cursor:pointer;font-size:0.62rem;padding:0;line-height:1;font-family:inherit">✕ remove</button>
+                </div>
                 <div class="sbr-arc-track" id="sbr-arc-track">No track selected</div>
                 <div class="sbr-btn-row">
                   <button class="sbr-btn" id="sbr-arc-play">▶ Play</button>
@@ -966,6 +1104,17 @@
 
             </div><!-- /#sb-right-panel -->
           </div><!-- /#sb-wrap -->
+
+          <!-- ── Module add strip (horizontal) ── -->
+          <div id="sb-module-strip">
+            <span class="sb-strip-label">Add module</span>
+            <button class="sb-add-btn" data-type="video">▶ Video</button>
+            <button class="sb-add-btn" data-type="screen">⬡ Screen</button>
+            <button class="sb-add-btn" data-type="text">T Text</button>
+            <button class="sb-add-btn" data-type="image">⬜ Image</button>
+            <button class="sb-add-btn" data-type="audio">♪ Audio</button>
+          </div>
+
           <div id="sb-config-panel"></div>
           <div id="sb-actions">
             <button class="btn btn-sm" id="sb-clear-btn">Clear Scene</button>
@@ -1628,6 +1777,8 @@
       bcSessionId = id;
       document.getElementById('bc-session-select').value = id;
       bcSessNm.textContent = s.title || 'Untitled session';
+      const canvasTitle = document.getElementById('bc-canvas-title');
+      if (canvasTitle) canvasTitle.textContent = s.title || 'Live Session';
       if (s.stream_started_at) startBcTimer(s.stream_started_at);
       else stopBcTimer();
 
@@ -1666,6 +1817,8 @@
         bcTimerEl.textContent = fmt;
         const sbrTimer = document.getElementById('sbr-timer');
         if (sbrTimer) sbrTimer.textContent = fmt;
+        const canvasTimer = document.getElementById('bc-canvas-timer');
+        if (canvasTimer) canvasTimer.textContent = fmt;
       }
       tick();
       bcInterval = setInterval(tick, 1000);
@@ -1676,6 +1829,8 @@
       bcTimerEl.textContent = '00:00:00';
       const sbrTimer = document.getElementById('sbr-timer');
       if (sbrTimer) sbrTimer.textContent = '00:00:00';
+      const canvasTimer = document.getElementById('bc-canvas-timer');
+      if (canvasTimer) canvasTimer.textContent = '00:00:00';
     }
 
 
@@ -1721,6 +1876,23 @@
     function getModuleById(id) { return sbModules.find(m => m.id === id); }
     function getModuleEl(id)   { return sbCanvas.querySelector(`.sb-module[data-id="${CSS.escape(id)}"]`); }
 
+    function updateBcNpBar() {
+      const bcNpBar       = document.getElementById('bc-np-bar');
+      const bcNpTrack     = document.getElementById('bc-np-track');
+      const bcNpMeta      = document.getElementById('bc-np-meta');
+      const bcNpPlayerRow = document.getElementById('bc-np-player-row');
+      if (!bcNpBar) return;
+      const hasAudio   = sbModules.some(m => m.type === 'audio');
+      const trackName  = document.getElementById('arc-now-track')?.textContent || '';
+      const hasContent = hasAudio && trackName && trackName !== 'No track selected' && trackName !== '—';
+      bcNpBar.classList.toggle('visible', !!hasContent);
+      if (bcNpTrack) bcNpTrack.textContent = hasContent ? trackName : '';
+      if (bcNpMeta)  bcNpMeta.textContent  = document.getElementById('meta-artist')?.value || '';
+      if (bcNpPlayerRow) {
+        bcNpPlayerRow.style.display = arcPlaying ? '' : 'none';
+      }
+    }
+
     function scheduleSave() {
       clearTimeout(sbSaveTimer);
       sbSaveStatus.textContent = '• saving…';
@@ -1745,11 +1917,6 @@
     }
 
     function clearConfigPanel() {
-      const block = document.getElementById('bc-archival-block');
-      if (block && block.parentElement === sbConfigPanel) {
-        document.getElementById('sb-arc-store').appendChild(block);
-        block.style.display = 'none';
-      }
       sbConfigPanel.innerHTML = '';
       sbConfigPanel.classList.remove('visible');
     }
@@ -1839,30 +2006,13 @@
         sbConfigPanel.innerHTML = `<div style="font-size:0.72rem;color:rgba(0,0,0,0.45);line-height:1.7">
           Screen share — the VDO.ninja room <em>xYuuWBysc</em> is shown to listeners at this position.<br>
           Start a screen-share push to room <code>xYuuWBysc</code> from a separate browser tab using VDO.ninja.</div>`;
-      } else if (mod.type === 'audio') {
-        const block = document.getElementById('bc-archival-block');
-        sbConfigPanel.innerHTML = '';
-        sbConfigPanel.appendChild(block);
-        block.style.display = '';
-        sbConfigPanel.classList.add('visible');
-        if (bcSessionId) loadTracks();
-        // keep audio state label + progress fill in module body in sync
-        function syncAudioBody() {
-          const el = getModuleEl(id);
-          if (!el) return;
-          const trackEl = el.querySelector('.sb-audio-track');
-          const stateEl = el.querySelector('.sb-audio-state');
-          if (trackEl) trackEl.textContent = document.getElementById('arc-now-track')?.textContent || 'no track';
-          if (stateEl) stateEl.textContent  = arcPlaying ? '● playing' : '♪';
-        }
-        /* expose so timeupdate can find it */
-        window._syncAudioBody = syncAudioBody;
-        syncAudioBody();
-        return; // classList.add('visible') already done above
       }
     }
 
     function buildModuleEl(mod) {
+      /* Audio has no canvas tile — it lives only in the right panel controls */
+      if (mod.type === 'audio') return null;
+
       const el = document.createElement('div');
       el.className     = 'sb-module';
       el.dataset.id    = mod.id;
@@ -1959,14 +2109,18 @@
       const sbrScreen = document.getElementById('sbr-screen');
       if (sbrScreen) sbrScreen.style.display = hasScreen ? '' : 'none';
 
-      /* Audio Player section: show only when an audio module is in the scene */
+      /* Audio Player section + archival block: show only when an audio module is in the scene */
       const hasAudio = sbModules.some(m => m.type === 'audio');
       const sbrAudio = document.getElementById('sbr-audio-section');
       if (sbrAudio) sbrAudio.style.display = hasAudio ? '' : 'none';
-      if (!hasAudio && arcPlaying) {
-        arcAudio.pause(); arcAudio.currentTime = 0; arcPlaying = false;
-        clearInterval(arcPHTimer); arcPHTimer = null;
-        writeNP({ is_playing: false, playhead_pos: 0 });
+      const arcBlock = document.getElementById('bc-archival-block');
+      if (arcBlock) {
+        if (hasAudio && arcBlock.parentElement !== sbConfigPanel) {
+          arcBlock.style.display = '';
+          if (bcSessionId) loadTracks();
+        } else if (!hasAudio) {
+          arcBlock.style.display = 'none';
+        }
       }
 
       /* Text quick-edit: one textarea per text module */
@@ -1997,6 +2151,7 @@
         textFieldsEl.appendChild(lbl);
         textFieldsEl.appendChild(ta);
       });
+      updateBcNpBar();
     }
 
     /* ── Broadcast strip wiring (called once after initBroadcast) ── */
@@ -2138,6 +2293,25 @@
         sbrMsg('✓ stream ended');
       });
 
+      /* Audio module remove button */
+      document.getElementById('sbr-audio-remove')?.addEventListener('click', () => {
+        sbModules = sbModules.filter(m => m.type !== 'audio');
+        if (arcPlaying) {
+          arcAudio.pause(); arcAudio.currentTime = 0; arcPlaying = false;
+          clearInterval(arcPHTimer); arcPHTimer = null;
+          writeNP({ is_playing: false, playhead_pos: 0 });
+          document.getElementById('arc-play-btn').textContent = '▶';
+          document.getElementById('admin-cassette').classList.remove('playing');
+          document.getElementById('arc-dot').classList.remove('on');
+          document.getElementById('arc-status-text').textContent = 'Idle';
+          document.getElementById('sbr-arc-play').textContent = '▶ Play';
+          document.getElementById('sbr-dot').classList.remove('on');
+        }
+        syncEmptyHint();
+        renderRightPanel();
+        scheduleSave();
+      });
+
       /* Audio player controls */
       const sbrArcPlay  = document.getElementById('sbr-arc-play');
       const sbrArcStop  = document.getElementById('sbr-arc-stop');
@@ -2162,6 +2336,7 @@
           document.getElementById('arc-dot').classList.remove('on');
           document.getElementById('arc-status-text').textContent = 'Paused';
           document.getElementById('sbr-dot').classList.remove('on');
+          updateBcNpBar();
         } else {
           try { await arcAudio.play(); } catch (_) { return; }
           arcPlaying = true;
@@ -2173,6 +2348,7 @@
           document.getElementById('sbr-dot').classList.add('on');
           writeNP({ is_playing: true, playhead_pos: arcAudio.currentTime });
           arcPHTimer = setInterval(() => writeNP({ is_playing: true, playhead_pos: arcAudio.currentTime }), 2000);
+          updateBcNpBar();
         }
       });
 
@@ -2186,6 +2362,7 @@
         document.getElementById('arc-status-text').textContent = 'Idle';
         document.getElementById('sbr-dot').classList.remove('on');
         writeNP({ is_playing: false, playhead_pos: 0 });
+        updateBcNpBar();
       });
 
       /* Seek bar — click to seek */
@@ -2211,15 +2388,98 @@
           /* also update the canvas audio module tile */
           const canvasFill = sbCanvas.querySelector('.sb-audio-progress-fill');
           if (canvasFill) canvasFill.style.width = pct;
+          /* update canvas NP bar progress */
+          const bcFill = document.getElementById('bc-np-progress-fill');
+          if (bcFill) bcFill.style.width = pct;
         }
         sbrArcTime.textContent = `${fmtDur(arcAudio.currentTime)} / ${fmtDur(arcAudio.duration)}`;
+        const bcTime = document.getElementById('bc-np-time');
+        if (bcTime) bcTime.textContent = `${fmtDur(arcAudio.currentTime)} / ${fmtDur(arcAudio.duration)}`;
       });
 
       /* Track name: watch #arc-now-track for changes */
       const nowTrackEl = document.getElementById('arc-now-track');
       sbrArcTrack.textContent = nowTrackEl.textContent;
-      new MutationObserver(() => { sbrArcTrack.textContent = nowTrackEl.textContent; })
-        .observe(nowTrackEl, { childList: true, characterData: true, subtree: true });
+      new MutationObserver(() => {
+        sbrArcTrack.textContent = nowTrackEl.textContent;
+        updateBcNpBar();
+      }).observe(nowTrackEl, { childList: true, characterData: true, subtree: true });
+
+      /* Artist meta: watch #meta-artist for changes */
+      const metaArtistEl = document.getElementById('meta-artist');
+      if (metaArtistEl) {
+        metaArtistEl.addEventListener('input', () => updateBcNpBar());
+      }
+
+      /* ── Canvas listener count via Supabase Realtime presence ── */
+      const bcCountEl = document.getElementById('bc-canvas-count');
+      const bcPresence = db.channel('fur-fm:room');
+      bcPresence
+        .on('presence', { event: 'sync' }, () => {
+          const n = Object.keys(bcPresence.presenceState()).length;
+          if (bcCountEl) bcCountEl.textContent = n === 1 ? '1 listening' : `${n} listening`;
+        })
+        .subscribe();
+
+      /* ── Canvas chat: subscribe + send ── */
+      const bcChatLog   = document.getElementById('bc-chat-log');
+      const bcChatInput = document.getElementById('bc-chat-input');
+      const bcSendBtn   = document.getElementById('bc-send-btn');
+      const bcChatSessId = new Date().toISOString().slice(0, 10);
+
+      function bcEsc(s) {
+        return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+      }
+
+      function bcAppendMsg(sender, text, type = 'user') {
+        if (!bcChatLog) return;
+        const msg = document.createElement('div');
+        msg.className = `bc-msg${type === 'system' ? ' bc-sys' : ''}`;
+        msg.innerHTML = `<span class="bc-msg-sender">${bcEsc(sender)}</span><span class="bc-msg-text">${bcEsc(text)}</span>`;
+        bcChatLog.appendChild(msg);
+        bcChatLog.scrollTop = bcChatLog.scrollHeight;
+      }
+
+      /* Load recent chat history */
+      db.from('chat_messages')
+        .select('username, content')
+        .eq('session_id', bcChatSessId)
+        .order('created_at', { ascending: true })
+        .limit(40)
+        .then(({ data }) => {
+          if (data?.length && bcChatLog) {
+            bcChatLog.innerHTML = '';
+            data.forEach(m => bcAppendMsg(m.username || 'Listener', m.content));
+          }
+        });
+
+      /* Subscribe to incoming messages */
+      db.channel(`admin-chat:${bcChatSessId}`)
+        .on('postgres_changes', {
+          event: 'INSERT', schema: 'public', table: 'chat_messages',
+          filter: `session_id=eq.${bcChatSessId}`,
+        }, payload => {
+          bcAppendMsg(payload.new.username || 'Listener', payload.new.content);
+        })
+        .subscribe();
+
+      /* Broadcaster send */
+      async function bcSend() {
+        if (!bcChatInput) return;
+        const text = bcChatInput.value.trim();
+        if (!text) return;
+        const djName = document.getElementById('sbr-dj-name')?.value.trim() || 'DJ';
+        bcAppendMsg(djName, text);
+        bcChatInput.value = '';
+        await db.from('chat_messages').insert({
+          user_id: null, username: djName,
+          content: text, session_id: bcChatSessId,
+        });
+      }
+      if (bcSendBtn) bcSendBtn.addEventListener('click', bcSend);
+      if (bcChatInput) bcChatInput.addEventListener('keydown', e => {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); bcSend(); }
+      });
     }
 
     function populateCanvas(sceneConfig) {
@@ -2227,7 +2487,7 @@
       clearConfigPanel();
       sbSelectedId = null;
       sbModules = (sceneConfig?.modules || []).map(m => ({ ...m, config: m.config || {} }));
-      sbModules.forEach(mod => sbCanvas.appendChild(buildModuleEl(mod)));
+      sbModules.forEach(mod => { const el = buildModuleEl(mod); if (el) sbCanvas.appendChild(el); });
       syncEmptyHint();
       renderRightPanel();
     }
@@ -2244,10 +2504,11 @@
           config: {},
         };
         sbModules.push(mod);
-        sbCanvas.appendChild(buildModuleEl(mod));
+        const modEl = buildModuleEl(mod);
+        if (modEl) sbCanvas.appendChild(modEl);
         syncEmptyHint();
         renderRightPanel();
-        selectModule(mod.id);
+        if (modEl) selectModule(mod.id);
         scheduleSave();
       });
     });
@@ -2491,6 +2752,7 @@
         if (sbrPlay) sbrPlay.textContent = playing ? '⏸ Pause' : '▶ Play';
         const sbrDot = document.getElementById('sbr-dot');
         if (sbrDot) sbrDot.classList.toggle('on', playing);
+        updateBcNpBar();
       }
 
       arcAudio.addEventListener('loadedmetadata', () => {
