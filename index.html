@@ -924,13 +924,51 @@
   joinVerifyBtn.addEventListener('click', verifyOtp);
   joinOtpEl.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); verifyOtp(); } });
 
+  /* ── Lounge state (drone vs track override) ───────────────────────── */
+  const LOUNGE_NP_ID = '00000000-0000-0000-0000-000000000002';
+  let loungeAudioEl  = null;
+
+  function applyLoungeState(d) {
+    const droneLabel = document.getElementById('drone-label');
+    if (d?.is_playing && d?.audio_url) {
+      if (!loungeAudioEl) loungeAudioEl = new Audio();
+      if (loungeAudioEl.src !== d.audio_url) {
+        loungeAudioEl.src = d.audio_url;
+        if (d.playhead_pos > 0) loungeAudioEl.currentTime = d.playhead_pos;
+      }
+      loungeAudioEl.play().catch(() => {});
+      if (masterNode && ctx) masterNode.gain.setTargetAtTime(0, ctx.currentTime, 1.2);
+      if (droneLabel) droneLabel.textContent = d.track_title
+        ? `♪ ${d.track_title}${d.artist ? ' · ' + d.artist : ''}`
+        : '♪ lounge track';
+    } else {
+      if (loungeAudioEl) { loungeAudioEl.pause(); loungeAudioEl.src = ''; loungeAudioEl = null; }
+      if (masterNode && ctx) masterNode.gain.setTargetAtTime(currentParams?.vol || 0.15, ctx.currentTime, 2);
+      if (typeof updateDroneLabel === 'function') updateDroneLabel();
+    }
+  }
+
   /* ── Tap overlay ───────────────────────────────────────────────────── */
   const tapOverlay = document.getElementById('tap-overlay');
-  tapOverlay.addEventListener('click', () => {
+  tapOverlay.addEventListener('click', async () => {
     buildDrone();
-    tapOverlay.style.opacity      = '0';
+    tapOverlay.style.opacity       = '0';
     tapOverlay.style.pointerEvents = 'none';
     setTimeout(() => tapOverlay.remove(), 600);
+
+    /* Check lounge override */
+    const { data: ls } = await db.from('now_playing')
+      .select('is_playing,audio_url,track_title,artist,playhead_pos')
+      .eq('id', LOUNGE_NP_ID).maybeSingle();
+    applyLoungeState(ls);
+
+    /* Subscribe to lounge changes */
+    db.channel('lounge-visitor')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'now_playing' }, ({ new: d }) => {
+        if (d?.id !== LOUNGE_NP_ID) return;
+        applyLoungeState(d);
+      })
+      .subscribe();
   }, { once: true });
 
 })();

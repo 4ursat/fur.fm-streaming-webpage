@@ -775,6 +775,41 @@
       position: relative;  /* needed for absolute iframe fill */
     }
 
+    /* ── Lounge ── */
+    .lounge-status-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.7rem 1rem; border: 1px solid rgba(0,0,0,0.09);
+      background: rgba(0,0,0,0.018); margin-bottom: 1.4rem; flex-wrap: wrap; gap: 0.5rem;
+    }
+    .lounge-now {
+      display: flex; align-items: center; gap: 0.55rem;
+      font-size: 0.84rem; color: #222; font-variant-numeric: tabular-nums;
+    }
+    .lounge-drone-card {
+      border: 1px solid rgba(0,0,0,0.09); padding: 1rem 1.2rem;
+      background: rgba(0,0,0,0.012); margin-bottom: 1.4rem;
+      display: flex; align-items: flex-start; gap: 1.4rem;
+    }
+    .lounge-drone-left { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
+    .lounge-drone-key {
+      font-size: 2.2rem; font-weight: bold; color: #111;
+      letter-spacing: 0.05em; line-height: 1;
+    }
+    .lounge-drone-key-label {
+      font-size: 0.62rem; letter-spacing: 0.16em; text-transform: uppercase; color: #888; margin-top: 0.2rem;
+    }
+    .lounge-drone-right { flex: 1; }
+    .lounge-drone-title {
+      font-size: 0.76rem; letter-spacing: 0.18em; text-transform: uppercase; color: #333;
+      margin-bottom: 0.28rem;
+    }
+    .lounge-drone-detail {
+      font-size: 0.84rem; color: #444; margin-bottom: 0.3rem;
+    }
+    .lounge-drone-desc {
+      font-size: 0.74rem; color: #888; letter-spacing: 0.01em; line-height: 1.5;
+    }
+
     /* ── Responsive ── */
     @media (max-width: 900px) {
       .bc-panels { grid-template-columns: 1fr; }
@@ -826,6 +861,7 @@
       <nav>
         <button class="nav-item active" data-sec="sessions">Sessions</button>
         <button class="nav-item" data-sec="broadcast">Broadcast</button>
+        <button class="nav-item" data-sec="lounge">Lounge</button>
         <button class="nav-item" data-sec="users">Users</button>
         <button class="nav-item" data-sec="past">Past Sessions</button>
       </nav>
@@ -1290,6 +1326,95 @@
         </div>
       </section>
 
+      <!-- ── LOUNGE ── -->
+      <section id="sec-lounge">
+        <div class="sec-header">
+          <span class="sec-title">Lounge</span>
+          <span class="status-msg" id="lounge-status"></span>
+        </div>
+
+        <!-- Status bar: what's currently playing on the landing page -->
+        <div class="lounge-status-bar">
+          <div class="lounge-now">
+            <span class="live-dot" id="lounge-dot"></span>
+            <span id="lounge-now-text">loading…</span>
+          </div>
+          <button class="btn btn-danger btn-sm" id="lounge-stop-btn" style="display:none">■ stop track · restore drone</button>
+        </div>
+
+        <!-- Drone status card -->
+        <div class="lounge-drone-card">
+          <div class="lounge-drone-left">
+            <div class="lounge-drone-key" id="lounge-drone-key">—</div>
+            <div class="lounge-drone-key-label">root key</div>
+          </div>
+          <div class="lounge-drone-right">
+            <div class="lounge-drone-title">drone synth</div>
+            <div class="lounge-drone-detail" id="lounge-drone-detail">shifts in —</div>
+            <div class="lounge-drone-desc">generative · deterministic · time-locked · all visitors hear the same key · no file needed</div>
+          </div>
+        </div>
+
+        <!-- Track library + player -->
+        <div class="col-head" style="margin-bottom:0.7rem">Track Override</div>
+        <div class="arc-grid" style="height:340px">
+
+          <!-- col 1: track list -->
+          <div class="arc-col">
+            <div class="arc-track-list" id="lounge-track-list">
+              <div class="empty-state">No lounge tracks yet.</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:0.5rem;flex-shrink:0;margin-top:0.4rem">
+              <label class="upload-label">
+                + Upload
+                <input type="file" id="lounge-upload" accept=".mp3,.wav,.flac,.aac,.ogg" multiple style="display:none"/>
+              </label>
+              <span class="status-msg" id="lounge-upload-status"></span>
+            </div>
+          </div>
+
+          <!-- col 2: cassette player -->
+          <div class="arc-col">
+            <div class="col-head">Player</div>
+            <div class="cassette-deck" id="lounge-cassette">
+              <div class="cassette-body">
+                <svg class="reel" viewBox="0 0 22 22" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="9"/><circle cx="11" cy="11" r="3.5"/><line x1="11" y1="2" x2="11" y2="6"/><line x1="11" y1="16" x2="11" y2="20"/><line x1="2" y1="11" x2="6" y2="11"/><line x1="16" y1="11" x2="20" y2="11"/></svg>
+                <div class="cassette-window" style="flex:1;min-width:0">
+                  <span class="cassette-track-name" id="lounge-track-name">no track selected</span>
+                </div>
+                <svg class="reel" viewBox="0 0 22 22" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="9"/><circle cx="11" cy="11" r="3.5"/><line x1="11" y1="2" x2="11" y2="6"/><line x1="11" y1="16" x2="11" y2="20"/><line x1="2" y1="11" x2="6" y2="11"/><line x1="16" y1="11" x2="20" y2="11"/></svg>
+              </div>
+              <div class="arc-controls">
+                <button class="arc-play-btn" id="lounge-play-btn" disabled>▶</button>
+                <div class="arc-seek-wrap">
+                  <input type="range" class="arc-seek" id="lounge-seek" value="0" min="0" max="100" step="0.1"/>
+                  <span class="arc-time" id="lounge-time">0:00 / 0:00</span>
+                </div>
+              </div>
+            </div>
+            <div class="btn-row" style="margin-top:0.7rem">
+              <button class="btn btn-primary" id="lounge-go-live-btn" disabled>→ send to lounge</button>
+            </div>
+            <span class="status-msg" id="lounge-play-status" style="margin-top:0.35rem;display:block"></span>
+          </div>
+
+          <!-- col 3: track info -->
+          <div class="arc-col arc-meta">
+            <div class="col-head">Track Info</div>
+            <div class="form-group">
+              <label class="form-label">Title</label>
+              <input class="form-input" id="lounge-meta-title" placeholder="Track title"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Artist</label>
+              <input class="form-input" id="lounge-meta-artist" placeholder="Artist"/>
+            </div>
+            <button class="btn btn-sm" id="lounge-meta-save">Save Info</button>
+          </div>
+
+        </div>
+      </section>
+
     </main>
   </div>
 </div>
@@ -1402,6 +1527,7 @@
       navItems.forEach(b => b.classList.toggle('active', b.dataset.sec === name));
       sections.forEach(s => s.classList.toggle('active', s.id === `sec-${name}`));
       if (name === 'broadcast') initBroadcast();
+      if (name === 'lounge')    loadLounge();
       if (name === 'users')     loadUsers();
       if (name === 'past')      loadPastSessions();
     }
@@ -3052,6 +3178,286 @@
         return publicUrl;
       } catch (_) { return null; }
     }
+
+    /* ═════════════════════════════════════════════════════
+       SECTION 4 — LOUNGE
+    ═════════════════════════════════════════════════════ */
+    const LOUNGE_NP_ID  = '00000000-0000-0000-0000-000000000002';
+  const LOUNGE_SES_ID = 'lounge';
+
+  let loungeLoaded       = false;
+  let loungeCurrentTrack = null;
+  let loungeAudio        = new Audio();
+  let loungeIsLive       = false;
+  let loungeArcPlaying   = false;
+
+  const LOUNGE_ROOTS = [
+    { hz: 55.00, name: 'A' }, { hz: 73.42, name: 'D' },
+    { hz: 82.41, name: 'E' }, { hz: 98.00, name: 'G' },
+    { hz: 110.00, name: 'A' },
+  ];
+  function loungeDroneKey() {
+    const SLOT_MS = 8 * 60 * 1000;
+    const seed = Math.floor(Date.now() / SLOT_MS);
+    function sr(s, n) { const x = Math.sin(s*127.1+n*311.7)*43758.5453; return x-Math.floor(x); }
+    return LOUNGE_ROOTS[Math.floor(sr(seed,0)*LOUNGE_ROOTS.length)].name;
+  }
+  function loungeFmt(s) {
+    if (!s || isNaN(s) || !isFinite(s)) return '0:00';
+    return `${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,'0')}`;
+  }
+
+  function updateLoungeDroneDisplay() {
+    const SLOT_MS = 8 * 60 * 1000;
+    const key  = loungeDroneKey();
+    const ms   = SLOT_MS - (Date.now() % SLOT_MS);
+    const mins = Math.ceil(ms / 60000);
+    const keyEl    = document.getElementById('lounge-drone-key');
+    const detailEl = document.getElementById('lounge-drone-detail');
+    if (keyEl)    keyEl.textContent = key;
+    if (detailEl) detailEl.textContent = `shifts in ${mins < 2 ? 'soon' : mins + 'm'}`;
+  }
+
+  function updateLoungeStatusBar(d) {
+    const dotEl  = document.getElementById('lounge-dot');
+    const nowEl  = document.getElementById('lounge-now-text');
+    const stopEl = document.getElementById('lounge-stop-btn');
+    const stEl   = document.getElementById('lounge-status');
+    if (!nowEl) return;
+    if (d?.is_playing && d?.audio_url) {
+      if (dotEl) dotEl.classList.add('on');
+      nowEl.textContent = `track playing · ${d.track_title || 'lounge track'}${d.artist ? ' · ' + d.artist : ''}`;
+      if (stopEl) stopEl.style.display = '';
+      if (stEl) { stEl.textContent = '● track live'; stEl.className = 'status-msg ok'; }
+    } else {
+      if (dotEl) dotEl.classList.remove('on');
+      const key  = loungeDroneKey();
+      const SLOT_MS = 8 * 60 * 1000;
+      const mins = Math.ceil((SLOT_MS - (Date.now() % SLOT_MS)) / 60000);
+      nowEl.textContent = `drone · ${key} · shifts in ${mins < 2 ? 'soon' : mins + 'm'}`;
+      if (stopEl) stopEl.style.display = 'none';
+      if (stEl) { stEl.textContent = ''; }
+    }
+  }
+
+  async function loadLoungeTracks() {
+    const { data: tracks } = await db.from('tracks')
+      .select('*').eq('session_id', LOUNGE_SES_ID)
+      .order('uploaded_at', { ascending: false });
+    renderLoungeTracks(tracks || []);
+  }
+
+  function renderLoungeTracks(tracks) {
+    const list = document.getElementById('lounge-track-list');
+    if (!list) return;
+    if (!tracks.length) {
+      list.innerHTML = '<div class="empty-state">No lounge tracks yet — upload one.</div>';
+      return;
+    }
+    list.innerHTML = '';
+    tracks.forEach(t => {
+      const row = document.createElement('div');
+      row.className = 'arc-track-row' + (loungeCurrentTrack?.id === t.id ? ' playing' : '');
+      row.dataset.id = String(t.id);
+      row.innerHTML = `
+        <span class="arc-track-title">${t.track_title || t.filename}</span>
+        <span class="arc-track-dur">${loungeFmt(t.duration)}</span>
+        <button class="arc-track-del" title="Delete">✕</button>`;
+      row.addEventListener('click', e => {
+        if (e.target.classList.contains('arc-track-del')) return;
+        selectLoungeTrack(t);
+      });
+      row.querySelector('.arc-track-del').addEventListener('click', async e => {
+        e.stopPropagation();
+        if (!confirm('Delete this lounge track?')) return;
+        await db.storage.from('fur-fm-tracks').remove([t.storage_path]);
+        await db.from('tracks').delete().eq('id', t.id);
+        if (loungeCurrentTrack?.id === t.id) clearLoungePlayer();
+        await loadLoungeTracks();
+      });
+      list.appendChild(row);
+    });
+  }
+
+  function clearLoungePlayer() {
+    loungeCurrentTrack = null;
+    loungeAudio.pause(); loungeAudio.src = '';
+    loungeArcPlaying = false;
+    const pb = document.getElementById('lounge-play-btn');
+    if (pb) { pb.disabled = true; pb.textContent = '▶'; }
+    const glb = document.getElementById('lounge-go-live-btn');
+    if (glb) glb.disabled = true;
+    const tn = document.getElementById('lounge-track-name');
+    if (tn) tn.textContent = 'no track selected';
+    const cas = document.getElementById('lounge-cassette');
+    if (cas) cas.classList.remove('playing');
+  }
+
+  function selectLoungeTrack(t) {
+    loungeCurrentTrack = t;
+    loungeAudio.pause();
+    loungeAudio.src = t.url;
+    loungeArcPlaying = false;
+
+    document.getElementById('lounge-track-name').textContent = t.track_title || t.filename;
+    const pb = document.getElementById('lounge-play-btn');
+    pb.disabled = false; pb.textContent = '▶';
+    document.getElementById('lounge-go-live-btn').disabled = false;
+    document.getElementById('lounge-cassette').classList.remove('playing');
+    document.getElementById('lounge-time').textContent = `0:00 / ${loungeFmt(t.duration)}`;
+    document.getElementById('lounge-seek').value = 0;
+    document.getElementById('lounge-meta-title').value = t.track_title || '';
+    document.getElementById('lounge-meta-artist').value = t.artist || '';
+
+    document.querySelectorAll('#lounge-track-list .arc-track-row').forEach(r => {
+      r.classList.toggle('playing', r.dataset.id === String(t.id));
+    });
+  }
+
+  async function loadLounge() {
+    if (loungeLoaded) return;
+    loungeLoaded = true;
+
+    /* Initial lounge now_playing state */
+    const { data: ls } = await db.from('now_playing')
+      .select('*').eq('id', LOUNGE_NP_ID).maybeSingle();
+    loungeIsLive = !!(ls?.is_playing && ls?.audio_url);
+    updateLoungeDroneDisplay();
+    updateLoungeStatusBar(ls || {});
+    setInterval(() => { updateLoungeDroneDisplay(); if (!loungeIsLive) updateLoungeStatusBar({}); }, 30000);
+
+    await loadLoungeTracks();
+
+    /* Realtime: lounge now_playing changes */
+    db.channel('lounge-state-admin')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'now_playing' }, ({ new: d }) => {
+        if (d?.id !== LOUNGE_NP_ID) return;
+        loungeIsLive = !!(d.is_playing && d.audio_url);
+        updateLoungeStatusBar(d);
+      })
+      .subscribe();
+
+    /* Play / pause (admin preview) */
+    const playBtn = document.getElementById('lounge-play-btn');
+    const seekEl  = document.getElementById('lounge-seek');
+    playBtn.addEventListener('click', () => {
+      if (!loungeCurrentTrack || !loungeAudio.src) return;
+      if (loungeArcPlaying) {
+        loungeAudio.pause();
+        loungeArcPlaying = false;
+        playBtn.textContent = '▶';
+        document.getElementById('lounge-cassette').classList.remove('playing');
+      } else {
+        loungeAudio.play().catch(() => {});
+        loungeArcPlaying = true;
+        playBtn.textContent = '⏸';
+        document.getElementById('lounge-cassette').classList.add('playing');
+      }
+    });
+
+    seekEl.addEventListener('input', () => {
+      if (loungeAudio.src && isFinite(loungeAudio.duration))
+        loungeAudio.currentTime = +seekEl.value;
+    });
+
+    loungeAudio.addEventListener('timeupdate', () => {
+      const cur = loungeAudio.currentTime;
+      const dur = isFinite(loungeAudio.duration) ? loungeAudio.duration : (loungeCurrentTrack?.duration || 0);
+      document.getElementById('lounge-time').textContent = `${loungeFmt(cur)} / ${loungeFmt(dur)}`;
+      if (dur > 0) { seekEl.max = dur; seekEl.value = cur; }
+    });
+    loungeAudio.addEventListener('ended', () => {
+      loungeArcPlaying = false;
+      playBtn.textContent = '▶';
+      document.getElementById('lounge-cassette').classList.remove('playing');
+    });
+
+    /* Send to lounge */
+    document.getElementById('lounge-go-live-btn').addEventListener('click', async () => {
+      if (!loungeCurrentTrack) return;
+      const title  = document.getElementById('lounge-meta-title').value.trim() || loungeCurrentTrack.track_title || loungeCurrentTrack.filename;
+      const artist = document.getElementById('lounge-meta-artist').value.trim() || loungeCurrentTrack.artist || '';
+      const st = document.getElementById('lounge-play-status');
+      st.textContent = 'sending…'; st.className = 'status-msg';
+
+      const { error } = await db.from('now_playing').upsert({
+        id: LOUNGE_NP_ID, is_playing: true,
+        audio_url: loungeCurrentTrack.url,
+        track_title: title, artist,
+        duration: loungeCurrentTrack.duration || null,
+        playhead_pos: loungeAudio.currentTime || 0,
+        updated_at: new Date().toISOString(),
+      });
+
+      if (error) { st.textContent = error.message; st.className = 'status-msg err'; return; }
+      st.textContent = '✓ playing in lounge'; st.className = 'status-msg ok';
+      setTimeout(() => { if (st.textContent.startsWith('✓')) { st.textContent = ''; st.className = 'status-msg'; } }, 3000);
+      loungeIsLive = true;
+      updateLoungeStatusBar({ is_playing: true, audio_url: loungeCurrentTrack.url, track_title: title, artist });
+
+      if (!loungeArcPlaying && loungeAudio.src) {
+        loungeAudio.play().catch(() => {});
+        loungeArcPlaying = true;
+        playBtn.textContent = '⏸';
+        document.getElementById('lounge-cassette').classList.add('playing');
+      }
+    });
+
+    /* Stop track — restore drone */
+    document.getElementById('lounge-stop-btn').addEventListener('click', async () => {
+      await db.from('now_playing').upsert({
+        id: LOUNGE_NP_ID, is_playing: false,
+        audio_url: null, track_title: null, artist: null,
+        updated_at: new Date().toISOString(),
+      });
+      loungeIsLive = false;
+      updateLoungeStatusBar({});
+      const st = document.getElementById('lounge-status');
+      if (st) { st.textContent = '○ drone restored'; setTimeout(() => { st.textContent = ''; }, 2500); }
+    });
+
+    /* Upload tracks */
+    document.getElementById('lounge-upload').addEventListener('change', async e => {
+      const files = Array.from(e.target.files);
+      if (!files.length) return;
+      const st = document.getElementById('lounge-upload-status');
+      for (const file of files) {
+        st.textContent = `uploading ${file.name}…`; st.className = 'status-msg';
+        const dur = await new Promise(res => {
+          const a = new Audio(); a.preload = 'metadata';
+          a.onloadedmetadata = () => res(a.duration);
+          a.onerror = () => res(null);
+          a.src = URL.createObjectURL(file);
+        });
+        const safeName = file.name.replace(/[^a-z0-9._-]/gi, '_');
+        const path = `lounge/${Date.now()}_${safeName}`;
+        const { error: upErr } = await db.storage.from('fur-fm-tracks').upload(path, file);
+        if (upErr) { st.textContent = upErr.message; st.className = 'status-msg err'; continue; }
+        const { data: { publicUrl } } = db.storage.from('fur-fm-tracks').getPublicUrl(path);
+        await db.from('tracks').insert({
+          session_id: LOUNGE_SES_ID, filename: file.name,
+          storage_path: path, url: publicUrl, duration: dur,
+        });
+      }
+      st.textContent = '✓ uploaded'; st.className = 'status-msg ok';
+      setTimeout(() => { st.textContent = ''; st.className = 'status-msg'; }, 3000);
+      e.target.value = '';
+      await loadLoungeTracks();
+    });
+
+    /* Save track meta */
+    document.getElementById('lounge-meta-save').addEventListener('click', async () => {
+      if (!loungeCurrentTrack) return;
+      const title  = document.getElementById('lounge-meta-title').value.trim();
+      const artist = document.getElementById('lounge-meta-artist').value.trim();
+      await db.from('tracks').update({ track_title: title, artist }).eq('id', loungeCurrentTrack.id);
+      loungeCurrentTrack.track_title = title;
+      loungeCurrentTrack.artist      = artist;
+      document.getElementById('lounge-track-name').textContent = title || loungeCurrentTrack.filename;
+      await loadLoungeTracks();
+      selectLoungeTrack(loungeCurrentTrack);
+    });
+  }
 
     /* Load first section */
     loadSessions();
