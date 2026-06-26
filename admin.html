@@ -474,33 +474,15 @@
 
     .sb-module {
       position: absolute;
-      border: 1px solid rgba(255,255,255,0.25);
-      background: rgba(20,20,20,0.9);
       min-width: 80px; min-height: 60px;
       box-sizing: border-box;
       cursor: move;
       user-select: none;
-      display: flex; flex-direction: column;
+      overflow: hidden;
     }
-    .sb-module.selected { border-color: rgba(255,200,50,0.7); }
-    .sb-mod-header {
-      display: flex; align-items: center;
-      padding: 0.2rem 0.35rem; gap: 0.3rem;
-      background: rgba(255,255,255,0.06);
-      flex-shrink: 0; cursor: move;
-    }
-    .sb-mod-type {
-      font-size: 0.55rem; letter-spacing: 0.1em; text-transform: uppercase;
-      color: rgba(255,255,255,0.5); flex: 1;
-    }
-    .sb-mod-del {
-      font-size: 0.6rem; color: rgba(255,255,255,0.28);
-      background: none; border: none; cursor: pointer; padding: 0; line-height: 1;
-      font-family: inherit;
-    }
-    .sb-mod-del:hover { color: #e05040; }
+    .sb-module.selected { outline: 1.5px solid rgba(255,200,50,0.55); outline-offset: -1px; }
     .sb-mod-body {
-      flex: 1; overflow: hidden; position: relative; min-height: 0;
+      position: absolute; inset: 0; overflow: hidden;
     }
     .sb-mod-body iframe {
       width: 100%; height: 100%; border: none; display: block;
@@ -522,9 +504,9 @@
       color: rgba(255,255,255,0.35);
     }
     .sb-resize {
-      position: absolute; bottom: 0; right: 0;
-      width: 12px; height: 12px; cursor: se-resize;
-      background: rgba(255,255,255,0.15);
+      position: absolute; bottom: 0; right: 0; z-index: 10;
+      width: 10px; height: 10px; cursor: se-resize;
+      background: rgba(255,255,255,0.2);
     }
 
     /* Video / Screen module controls */
@@ -1046,9 +1028,12 @@
                 <div id="sbr-signal-status" style="font-size:0.58rem;color:rgba(255,255,255,0.45);min-height:0.9em;margin-top:0.25rem"></div>
               </div>
 
-              <!-- Camera -->
-              <div class="sbr-section">
-                <div class="sbr-label">Camera</div>
+              <!-- Camera (shown when video module in scene) -->
+              <div class="sbr-section" id="sbr-video" style="display:none">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.45rem">
+                  <div class="sbr-label" style="margin-bottom:0">Camera</div>
+                  <button id="sbr-video-remove" style="background:none;border:none;color:rgba(255,255,255,0.28);cursor:pointer;font-size:0.62rem;padding:0;line-height:1;font-family:inherit">✕ remove</button>
+                </div>
                 <select class="sbr-dev-select" id="sbr-audio-dev"></select>
                 <div class="sbr-btn-row">
                   <button class="sbr-btn" id="sbr-cam-start">▶ Start</button>
@@ -1065,13 +1050,22 @@
 
               <!-- Screen (shown only when screen module exists) -->
               <div class="sbr-section" id="sbr-screen" style="display:none">
-                <div class="sbr-label">Screen Share</div>
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.45rem">
+                  <div class="sbr-label" style="margin-bottom:0">Screen Share</div>
+                  <button id="sbr-screen-remove" style="background:none;border:none;color:rgba(255,255,255,0.28);cursor:pointer;font-size:0.62rem;padding:0;line-height:1;font-family:inherit">✕ remove</button>
+                </div>
                 <div class="sbr-btn-row">
                   <button class="sbr-btn" id="sbr-scr-start">⬡ Start</button>
                   <button class="sbr-btn sbr-live" id="sbr-scr-stop" style="display:none">■ Stop</button>
                 </div>
                 <!-- Push iframe lives here so browser can access screen share -->
                 <div id="sbr-scr-preview" style="display:none;margin-top:0.4rem;position:relative;overflow:hidden;background:#000;aspect-ratio:16/9"></div>
+              </div>
+
+              <!-- Images (shown when image module(s) in scene) -->
+              <div class="sbr-section" id="sbr-image-section" style="display:none">
+                <div class="sbr-label">Images</div>
+                <div id="sbr-image-fields"></div>
               </div>
 
               <!-- Audio Player (shown when audio module in scene) -->
@@ -2046,27 +2040,10 @@
         </div>`;
       }
 
-      el.innerHTML = `
-        <div class="sb-mod-header">
-          <span class="sb-mod-type">${MOD_DEFAULTS[mod.type]?.label || mod.type}</span>
-          <button class="sb-mod-del" title="Remove">✕</button>
-        </div>
-        <div class="sb-mod-body">${bodyHtml}</div>
-        <div class="sb-resize"></div>`;
-
-      el.querySelector('.sb-mod-del').addEventListener('click', e => {
-        e.stopPropagation();
-        sbModules = sbModules.filter(m => m.id !== mod.id);
-        el.remove();
-        if (sbSelectedId === mod.id) { sbSelectedId = null; renderConfigPanel(null); }
-        syncEmptyHint();
-        renderRightPanel();
-        scheduleSave();
-      });
+      el.innerHTML = `<div class="sb-mod-body">${bodyHtml}</div><div class="sb-resize"></div>`;
 
       el.addEventListener('mousedown', e => {
-        if (e.target.classList.contains('sb-mod-del') ||
-            e.target.classList.contains('sb-resize')) return;
+        if (e.target.classList.contains('sb-resize')) return;
         selectModule(mod.id);
         e.preventDefault();
         const cRect = sbCanvas.getBoundingClientRect();
@@ -2102,8 +2079,24 @@
       return el;
     }
 
+    /* Helper: remove a module by id, clean up canvas element + config panel */
+    function removeModule(id) {
+      const el = getModuleEl(id);
+      if (el) el.remove();
+      sbModules = sbModules.filter(m => m.id !== id);
+      if (sbSelectedId === id) { sbSelectedId = null; clearConfigPanel(); }
+      syncEmptyHint();
+      renderRightPanel();
+      scheduleSave();
+    }
+
     /* ── Right-panel dynamic sections ── */
     function renderRightPanel() {
+      /* Video / Camera section: show only when a video module is in the scene */
+      const hasVideo = sbModules.some(m => m.type === 'video');
+      const sbrVideo = document.getElementById('sbr-video');
+      if (sbrVideo) sbrVideo.style.display = hasVideo ? '' : 'none';
+
       /* Screen Share section: show only when a screen module is in the scene */
       const hasScreen = sbModules.some(m => m.type === 'screen');
       const sbrScreen = document.getElementById('sbr-screen');
@@ -2123,18 +2116,47 @@
         }
       }
 
-      /* Text quick-edit: one textarea per text module */
+      /* Image modules: list with remove buttons */
+      const imageMods = sbModules.filter(m => m.type === 'image');
+      const sbrImageSection = document.getElementById('sbr-image-section');
+      const imageFieldsEl   = document.getElementById('sbr-image-fields');
+      if (sbrImageSection) sbrImageSection.style.display = imageMods.length ? '' : 'none';
+      if (imageFieldsEl) {
+        imageFieldsEl.innerHTML = '';
+        imageMods.forEach((mod, i) => {
+          const row = document.createElement('div');
+          row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:0.1rem 0';
+          const lbl = document.createElement('span');
+          lbl.style.cssText = 'font-size:0.62rem;color:rgba(255,255,255,0.45)';
+          lbl.textContent = `Image ${i + 1}`;
+          const del = document.createElement('button');
+          del.style.cssText = 'background:none;border:none;color:rgba(255,255,255,0.28);cursor:pointer;font-size:0.6rem;padding:0;line-height:1;font-family:inherit';
+          del.textContent = '✕ remove';
+          del.addEventListener('click', () => removeModule(mod.id));
+          row.appendChild(lbl); row.appendChild(del);
+          imageFieldsEl.appendChild(row);
+        });
+      }
+
+      /* Text quick-edit: one textarea per text module, each with a remove button */
       const sbrTextSection = document.getElementById('sbr-text-section');
       const textFieldsEl   = document.getElementById('sbr-text-fields');
       if (!textFieldsEl) return;
       const textMods = sbModules.filter(m => m.type === 'text');
       if (sbrTextSection) sbrTextSection.style.display = textMods.length ? '' : 'none';
-      if (!textMods.length) return;
+      if (!textMods.length) { updateBcNpBar(); return; }
       textFieldsEl.innerHTML = '';
       textMods.forEach((mod, i) => {
-        const lbl = document.createElement('div');
+        const header = document.createElement('div');
+        header.style.cssText = 'display:flex;align-items:center;justify-content:space-between;margin-bottom:0.15rem';
+        const lbl = document.createElement('span');
         lbl.className = 'sbr-text-mod-label';
         lbl.textContent = `Text ${i + 1}`;
+        const del = document.createElement('button');
+        del.style.cssText = 'background:none;border:none;color:rgba(255,255,255,0.28);cursor:pointer;font-size:0.6rem;padding:0;line-height:1;font-family:inherit';
+        del.textContent = '✕';
+        del.addEventListener('click', () => removeModule(mod.id));
+        header.appendChild(lbl); header.appendChild(del);
         const ta = document.createElement('textarea');
         ta.value = mod.config.content || '';
         ta.dataset.modId = mod.id;
@@ -2148,7 +2170,7 @@
           if (cfgTa && sbSelectedId === mod.id) cfgTa.value = ta.value;
           scheduleSave();
         });
-        textFieldsEl.appendChild(lbl);
+        textFieldsEl.appendChild(header);
         textFieldsEl.appendChild(ta);
       });
       updateBcNpBar();
@@ -2237,6 +2259,18 @@
         scrStop.style.display  = 'none';
       }
       scrStop.addEventListener('click', stopScreen);
+
+      /* Video module remove — also stops camera */
+      document.getElementById('sbr-video-remove')?.addEventListener('click', () => {
+        sbModules.filter(m => m.type === 'video').forEach(m => removeModule(m.id));
+        stopCamera();
+      });
+
+      /* Screen module remove — also stops screen share */
+      document.getElementById('sbr-screen-remove')?.addEventListener('click', () => {
+        sbModules.filter(m => m.type === 'screen').forEach(m => removeModule(m.id));
+        stopScreen();
+      });
 
       /* Mic volume fader (visual — VDO.ninja manages actual mic gain) */
       document.getElementById('sbr-mic-vol').addEventListener('input', e => {
