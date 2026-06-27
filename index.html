@@ -583,14 +583,9 @@
       scDate.textContent  = 'sessions coming soon';
     }
 
-    // Wire join button — skip modal if already authed
-    const { data: { session: existing } } = await db.auth.getSession();
+    // Always require OTP to enter the room
     scJoinBtn.textContent = 'enter room →';
-    if (existing) {
-      scJoinBtn.addEventListener('click', () => window.open('stream.html', '_blank'));
-    } else {
-      scJoinBtn.addEventListener('click', () => openJoinModal());
-    }
+    scJoinBtn.addEventListener('click', () => openJoinModal());
 
     startDrift();
 
