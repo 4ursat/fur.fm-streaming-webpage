@@ -789,11 +789,12 @@
     }, msUntilNext);
   }
 
-  function buildDrone() {
+  async function buildDrone() {
     const seed = Math.floor(Date.now() / SLOT_MS);
     currentParams = droneParams(seed);
     const p = currentParams;
 
+    // AudioContext created synchronously — required for iOS gesture unlock
     ctx = new (window.AudioContext || window.webkitAudioContext)();
 
     // Root + fifth + octave, each slightly detuned for warmth
@@ -827,21 +828,40 @@
       d.connect(fg); fg.connect(d);
       return d;
     }
-    const c1 = makeComb(0.397, 0.80); // prime-ish delays avoid metallic flutter
+    const c1 = makeComb(0.397, 0.80);
     const c2 = makeComb(0.601, 0.76);
     const c3 = makeComb(0.253, 0.73);
     const c4 = makeComb(0.467, 0.70);
 
-    const dryG = ctx.createGain();  dryG.gain.value  = 0.28; // more wash
+    const dryG = ctx.createGain();  dryG.gain.value  = 0.28;
     const w1   = ctx.createGain();  w1.gain.value    = 0.22;
     const w2   = ctx.createGain();  w2.gain.value    = 0.20;
     const w3   = ctx.createGain();  w3.gain.value    = 0.18;
     const w4   = ctx.createGain();  w4.gain.value    = 0.15;
 
-    masterNode  = ctx.createGain();  masterNode.gain.value  = 0; // fades in
+    masterNode  = ctx.createGain();  masterNode.gain.value  = 0;
     tremoloNode = ctx.createGain();  tremoloNode.gain.value = 1;
 
-    oscNodes.forEach(({ g }) => g.connect(filterNode));
+    // ── Granular synthesis layer ─────────────────────────────────────────
+    // Oscillators → granular worklet → filter → reverb → master → tremolo
+    // Falls back to direct oscillator → filter if worklet can't load
+    // (e.g. file:// access without a server, or older browser)
+    let oscTarget = filterNode; // default: direct connection
+    try {
+      await ctx.audioWorklet.addModule('drone-worklet.js');
+      const granular = new AudioWorkletNode(ctx, 'granular-drone', {
+        numberOfInputs:    1,
+        numberOfOutputs:   1,
+        outputChannelCount:[2],  // stereo output — grains are panned L/R
+      });
+      granular.connect(filterNode);
+      oscTarget = granular;
+    } catch (_) {
+      // AudioWorklet unavailable (file:// or older browser) — direct chain
+    }
+    oscNodes.forEach(({ g }) => g.connect(oscTarget));
+    // ─────────────────────────────────────────────────────────────────────
+
     filterNode.connect(dryG); dryG.connect(masterNode);
     filterNode.connect(c1);   c1.connect(w1); w1.connect(masterNode);
     filterNode.connect(c2);   c2.connect(w2); w2.connect(masterNode);
@@ -851,7 +871,7 @@
     tremoloNode.connect(ctx.destination);
 
     oscNodes.forEach(({ osc }) => osc.start());
-    masterNode.gain.linearRampToValueAtTime(p.vol, ctx.currentTime + 8); // slow fade-in
+    masterNode.gain.linearRampToValueAtTime(p.vol, ctx.currentTime + 8);
 
     startLFO(currentParams);
     startTremolo();
@@ -984,7 +1004,7 @@
   /* ── Tap overlay ───────────────────────────────────────────────────── */
   const tapOverlay = document.getElementById('tap-overlay');
   tapOverlay.addEventListener('click', async () => {
-    buildDrone();
+    await buildDrone();
     tapOverlay.style.opacity       = '0';
     tapOverlay.style.pointerEvents = 'none';
     setTimeout(() => tapOverlay.remove(), 600);

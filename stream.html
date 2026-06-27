@@ -309,6 +309,69 @@
       .ov-br { bottom: 0.5rem; }
       .ov-bl { bottom: 0.5rem; }
     }
+
+    /* ── Auth / OTP modal ── */
+    #auth-modal {
+      position: fixed; inset: 0; z-index: 100;
+      background: rgba(13,28,21,0.98);
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.28s ease;
+    }
+    #auth-modal.open { opacity: 1; pointer-events: auto; }
+    #auth-panel {
+      position: relative;
+      width: 100%; max-width: 280px;
+      padding: 0 1.5rem;
+      display: flex; flex-direction: column;
+    }
+    .auth-back-link {
+      position: absolute; top: -2.4rem; left: 1.5rem;
+      font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase;
+      color: rgba(200,144,32,0.4); cursor: pointer;
+      background: none; border: none; font-family: inherit;
+      transition: color 0.15s; touch-action: manipulation;
+    }
+    .auth-back-link:hover { color: #f0e0a8; }
+    .join-heading {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 1rem; font-weight: 300; font-style: italic;
+      letter-spacing: 0.02em; color: #f0e0a8;
+      margin-bottom: 0.35rem;
+    }
+    .join-sub {
+      font-size: 0.72rem; color: #c89020;
+      margin-bottom: 1.4rem; line-height: 1.55;
+    }
+    .join-input {
+      background: transparent; border: none;
+      border-bottom: 1px solid #c89020;
+      color: #f0e0a8;
+      font-family: 'Courier New', Courier, monospace; font-size: 0.9rem;
+      padding: 0.4rem 0; outline: none; width: 100%;
+      margin-bottom: 1.2rem;
+    }
+    .join-input::placeholder { color: rgba(200,144,32,0.4); }
+    .join-submit {
+      background: transparent; border: none;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.8rem; letter-spacing: 0.05em;
+      color: #e07828; cursor: pointer; padding: 0; text-align: left;
+      touch-action: manipulation; transition: color 0.15s;
+    }
+    .join-submit:hover { color: #f0e0a8; }
+    .join-submit:disabled { color: rgba(200,144,32,0.3); cursor: default; }
+    .join-err {
+      font-size: 0.68rem; color: #e05030;
+      margin-top: 0.8rem; min-height: 1rem; line-height: 1.5;
+    }
+    .join-back-step {
+      font-size: 0.68rem; color: #c89020;
+      cursor: pointer; background: none; border: none;
+      font-family: inherit; padding: 0; margin-top: 1.2rem;
+      touch-action: manipulation;
+    }
+    .join-back-step:hover { color: #f0e0a8; }
   </style>
 </head>
 <body>
@@ -404,6 +467,32 @@
 <audio id="np-audio" style="display:none" preload="auto"></audio>
 <div class="audio-prompt" id="audio-prompt">tap to enable audio</div>
 
+<!-- Auth / OTP modal — shown when user lands without a session -->
+<div id="auth-modal">
+  <div id="auth-panel">
+    <button class="auth-back-link" id="auth-back-home">← back to home</button>
+
+    <!-- Step 1: email -->
+    <div id="auth-step-email">
+      <div class="join-heading">join the session</div>
+      <div class="join-sub">we'll send a one-time code to your email</div>
+      <input class="join-input" id="auth-email" type="email" placeholder="your@email.com" autocomplete="email" />
+      <button class="join-submit" id="auth-send">send code →</button>
+      <div class="join-err" id="auth-err1"></div>
+    </div>
+
+    <!-- Step 2: OTP code -->
+    <div id="auth-step-otp" style="display:none">
+      <div class="join-heading">check your email</div>
+      <div class="join-sub" id="auth-otp-sub">enter the 6-digit code we sent</div>
+      <input class="join-input" id="auth-otp" type="text" inputmode="numeric" maxlength="6" placeholder="000000" autocomplete="one-time-code" />
+      <button class="join-submit" id="auth-verify">verify →</button>
+      <div class="join-err" id="auth-err2"></div>
+      <button class="join-back-step" id="auth-step-back">← use a different email</button>
+    </div>
+  </div>
+</div>
+
 <script>
 (async () => {
   const { createClient } = window.supabase;
@@ -423,8 +512,77 @@
 
   /* ── Auth gate ── */
   const isBroadcaster = window.location.hash === '#broadcast';
-  const { data: { session } } = await db.auth.getSession();
-  if (!session && !isBroadcaster) { window.location.replace('index.html'); return; }
+  let { data: { session } } = await db.auth.getSession();
+
+  if (!session && !isBroadcaster) {
+    // Show OTP modal inline — resolves once user authenticates
+    session = await new Promise(resolve => {
+      const modal      = document.getElementById('auth-modal');
+      const stepEmail  = document.getElementById('auth-step-email');
+      const stepOtp    = document.getElementById('auth-step-otp');
+      const emailEl    = document.getElementById('auth-email');
+      const sendBtn    = document.getElementById('auth-send');
+      const otpEl      = document.getElementById('auth-otp');
+      const verifyBtn  = document.getElementById('auth-verify');
+      const err1       = document.getElementById('auth-err1');
+      const err2       = document.getElementById('auth-err2');
+      const otpSub     = document.getElementById('auth-otp-sub');
+      const backHome   = document.getElementById('auth-back-home');
+      const stepBack   = document.getElementById('auth-step-back');
+      let   otpEmail   = '';
+
+      modal.classList.add('open');
+      setTimeout(() => emailEl.focus(), 80);
+
+      backHome.addEventListener('click', () => { window.location.replace('index.html'); });
+
+      stepBack.addEventListener('click', () => {
+        stepOtp.style.display   = 'none';
+        stepEmail.style.display = '';
+        emailEl.focus();
+      });
+
+      async function sendOtp() {
+        const email = emailEl.value.trim();
+        if (!email || !email.includes('@')) { err1.textContent = 'enter a valid email address'; return; }
+        err1.textContent  = '';
+        sendBtn.disabled  = true;
+        sendBtn.textContent = 'sending…';
+        const { error } = await db.auth.signInWithOtp({ email, options: { shouldCreateUser: true } });
+        sendBtn.disabled  = false;
+        sendBtn.textContent = 'send code →';
+        if (error) { err1.textContent = error.message; return; }
+        otpEmail = email;
+        otpSub.textContent      = `enter the code we sent to ${email}`;
+        err2.textContent        = '';
+        otpEl.value             = '';
+        stepEmail.style.display = 'none';
+        stepOtp.style.display   = '';
+        setTimeout(() => otpEl.focus(), 50);
+      }
+
+      async function verifyOtp() {
+        const token = otpEl.value.trim().replace(/\D/g, '');
+        if (token.length < 6) { err2.textContent = 'enter the 6-digit code from your email'; return; }
+        err2.textContent       = '';
+        verifyBtn.disabled     = true;
+        verifyBtn.textContent  = 'verifying…';
+        const { data, error } = await db.auth.verifyOtp({ email: otpEmail, token, type: 'email' });
+        verifyBtn.disabled     = false;
+        verifyBtn.textContent  = 'verify →';
+        if (error) { err2.textContent = error.message; return; }
+        modal.classList.remove('open');
+        resolve(data.session);
+      }
+
+      sendBtn.addEventListener('click', sendOtp);
+      emailEl.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); sendOtp(); } });
+      verifyBtn.addEventListener('click', verifyOtp);
+      otpEl.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); verifyOtp(); } });
+    });
+
+    if (!session) return;
+  }
 
   const user = session?.user || null;
   let userName = user?.user_metadata?.username || user?.email?.split('@')[0] || (isBroadcaster ? 'Broadcaster' : 'Listener');
