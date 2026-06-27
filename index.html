@@ -375,7 +375,7 @@
 <div id="session-card">
   <div id="sc-title"></div>
   <div id="sc-date"></div>
-  <button id="sc-join">join →</button>
+  <button id="sc-join">enter room →</button>
 </div>
 
 <div id="tap-overlay">
@@ -585,8 +585,8 @@
 
     // Wire join button — skip modal if already authed
     const { data: { session: existing } } = await db.auth.getSession();
+    scJoinBtn.textContent = 'enter room →';
     if (existing) {
-      scJoinBtn.textContent = 'enter room →';
       scJoinBtn.addEventListener('click', () => window.open('stream.html', '_blank'));
     } else {
       scJoinBtn.addEventListener('click', () => openJoinModal());
