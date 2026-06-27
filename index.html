@@ -248,11 +248,37 @@
       cursor: pointer; transition: opacity 0.55s ease;
       touch-action: manipulation;
     }
-    #tap-logo { opacity: 0.55; }
+    #tap-logo-wrap {
+      display: flex; align-items: center; gap: 0.75rem;
+      opacity: 0.88;
+    }
+    #tap-rings { flex-shrink: 0; }
+    #tap-wordmark {
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 2rem; font-weight: bold; letter-spacing: 0.12em;
+      color: #f0e0a8; line-height: 1;
+      display: flex; align-items: center; gap: 0;
+    }
+    #tap-wordmark .tap-dot {
+      display: inline-block; width: 7px; height: 7px;
+      background: #e07828; border-radius: 50%;
+      margin: 0 0.22em;
+      position: relative; top: -1px;
+    }
+    #tap-tagline {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 0.72rem; font-weight: 300; font-style: italic;
+      letter-spacing: 0.22em; text-transform: lowercase;
+      color: rgba(200,144,32,0.6);
+      margin-top: 0.6rem;
+      user-select: none;
+    }
     #tap-hint {
-      font-family: 'Yatra One', serif;
-      font-size: 0.82rem; letter-spacing: 0.18em;
-      color: #c89020;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 0.72rem; font-weight: 300; font-style: italic;
+      letter-spacing: 0.18em;
+      color: rgba(200,144,32,0.38);
+      margin-top: 2rem;
       user-select: none;
     }
 
@@ -379,21 +405,25 @@
 </div>
 
 <div id="tap-overlay">
-  <svg id="tap-logo" viewBox="0 0 280 108" width="160" height="62" fill="none">
-    <defs>
-      <clipPath id="tap-clip">
-        <rect x="0" y="0" width="280" height="82"/>
-      </clipPath>
-    </defs>
-    <g clip-path="url(#tap-clip)">
-      <circle cx="138" cy="82" r="36"  stroke="#f0e0a8" stroke-width="1.3" opacity="0.65"/>
-      <circle cx="138" cy="82" r="54"  stroke="#f0e0a8" stroke-width="1.0" opacity="0.44"/>
-      <circle cx="138" cy="82" r="72"  stroke="#f0e0a8" stroke-width="0.75" opacity="0.26"/>
-    </g>
-    <circle cx="138" cy="82" r="5" fill="#f0e0a8"/>
-    <text x="128" y="89" text-anchor="end"   font-family="'Courier New'" font-size="22" font-weight="bold" letter-spacing="4" fill="#f0e0a8">FUR</text>
-    <text x="148" y="89" text-anchor="start" font-family="'Courier New'" font-size="22" font-weight="bold" letter-spacing="4" fill="#f0e0a8">FM</text>
-  </svg>
+  <div id="tap-logo-wrap">
+    <!-- Radio rings icon -->
+    <svg id="tap-rings" viewBox="0 0 44 28" width="44" height="28" fill="none">
+      <defs>
+        <clipPath id="tap-rings-clip">
+          <rect x="0" y="0" width="44" height="22"/>
+        </clipPath>
+      </defs>
+      <g clip-path="url(#tap-rings-clip)">
+        <circle cx="22" cy="22" r="8"  stroke="#f0e0a8" stroke-width="1.4" opacity="0.72"/>
+        <circle cx="22" cy="22" r="14" stroke="#f0e0a8" stroke-width="1.1" opacity="0.48"/>
+        <circle cx="22" cy="22" r="20" stroke="#f0e0a8" stroke-width="0.8" opacity="0.28"/>
+      </g>
+      <circle cx="22" cy="22" r="2.6" fill="#e07828"/>
+    </svg>
+    <!-- Wordmark -->
+    <div id="tap-wordmark">FUR<span class="tap-dot"></span>FM</div>
+  </div>
+  <div id="tap-tagline">intentional listening space</div>
   <div id="tap-hint">tap to listen</div>
 </div>
 
