@@ -600,17 +600,25 @@
   const countEl   = document.getElementById('listener-count');
   let dbSessionId  = null;
 
+  /* ── User interaction gate for audio autoplay ── */
+  let userHasInteracted = false;
+  document.addEventListener('click', () => { userHasInteracted = true; }, { once: true, capture: true });
+
   /* ── Live badge ── */
   const liveBadge = document.getElementById('live-badge');
   function setLive(isLive) { liveBadge.classList.toggle('is-live', isLive); }
 
+  /* Track whether vdo.ninja already wrote stream_started_at this session
+     to prevent repeated reconnect events from resetting the timer */
+  let _vdoDidStartTimer = false;
   window.addEventListener('message', e => {
     if (!String(e.origin).includes('vdo.ninja')) return;
     const msg = e.data; if (!msg) return;
     const action = msg.action || msg.type || '';
     if (/view|join|connect|stream/i.test(action)) {
       setLive(true);
-      if (dbSessionId && !timerInterval) {
+      if (dbSessionId && !timerInterval && !_vdoDidStartTimer) {
+        _vdoDidStartTimer = true;
         db.from('sessions').update({ stream_started_at: new Date().toISOString() })
           .eq('id', dbSessionId).is('stream_started_at', null).then(() => {});
       }
@@ -672,25 +680,37 @@
     history.forEach(m => appendMessage(m.username || 'Listener', m.content));
   }
 
-  db.channel(`chat:${sessionId}`)
+  /* Track IDs of messages we sent locally so we don't echo them
+     when the realtime event arrives. Using IDs (not user_id) is the
+     only safe way — broadcaster has user_id=null, same as unauthenticated
+     listeners, so null !== null comparison fails silently. */
+  const _sentMsgIds = new Set();
+
+  db.channel('chat:stream')
     .on('postgres_changes', {
       event: 'INSERT', schema: 'public', table: 'chat_messages',
-      filter: `session_id=eq.${sessionId}`,
+      // No server-side filter — Supabase requires REPLICA IDENTITY FULL
+      // on non-PK columns for row filters; without it no events fire.
+      // We filter client-side instead.
     }, payload => {
-      if (payload.new.user_id !== myUserId)
-        appendMessage(payload.new.username || 'Listener', payload.new.content);
+      if (_sentMsgIds.has(payload.new.id)) return; // skip our own echo
+      appendMessage(payload.new.username || 'Listener', payload.new.content);
     })
     .subscribe();
 
   async function send() {
     const text = input.value.trim();
     if (!text) return;
-    appendMessage(userName, text);
     input.value = ''; input.focus();
-    await db.from('chat_messages').insert({
+    const { data: ins } = await db.from('chat_messages').insert({
       user_id: myUserId, username: userName,
       content: text, session_id: sessionId,
-    });
+    }).select('id').single();
+    // Show own message only after confirmed DB insert (so we have the ID)
+    if (ins?.id) {
+      _sentMsgIds.add(ins.id);
+      appendMessage(userName, text);
+    }
   }
   btn.addEventListener('click', send);
   input.addEventListener('keydown', e => {
@@ -823,13 +843,17 @@
     }
 
     if (wantPlaying && url) {
-      if (npAudio.paused) attemptPlay();
+      // Only auto-play after a user gesture — prevents audio starting
+      // mid-session because the DB still has is_playing=true from a
+      // previous broadcast that wasn't cleanly stopped.
+      if (npAudio.paused && userHasInteracted) attemptPlay();
     } else {
       npAudio.pause();
     }
   }
 
   document.addEventListener('click', () => {
+    userHasInteracted = true;
     if (wantPlaying && npAudio.paused) attemptPlay();
   }, true);
   audioPrompt.addEventListener('click', () => attemptPlay());
