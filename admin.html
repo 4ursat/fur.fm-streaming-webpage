@@ -1479,16 +1479,19 @@
               </div>
               <div class="arc-controls">
                 <button class="arc-play-btn" id="lounge-play-btn" disabled>▶</button>
+                <button class="arc-play-btn" id="lounge-granular-preview-btn" disabled title="preview granular texture" style="width:auto;padding:0 0.6rem;font-size:0.9rem">🌾</button>
                 <div class="arc-seek-wrap">
                   <input type="range" class="arc-seek" id="lounge-seek" value="0" min="0" max="100" step="0.1"/>
                   <span class="arc-time" id="lounge-time">0:00 / 0:00</span>
                 </div>
               </div>
             </div>
-            <div class="btn-row" style="margin-top:0.7rem">
+            <div class="btn-row" style="margin-top:0.7rem;flex-wrap:wrap">
               <button class="btn btn-primary" id="lounge-go-live-btn" disabled>→ send to lounge</button>
+              <button class="btn btn-sm" id="lounge-set-ambient-btn" disabled>🌾 set as ambient layer</button>
             </div>
             <span class="status-msg" id="lounge-play-status" style="margin-top:0.35rem;display:block"></span>
+            <span class="status-msg" id="lounge-ambient-status" style="margin-top:0.15rem;display:block"></span>
           </div>
 
           <!-- col 3: track info -->
@@ -3276,13 +3279,82 @@
        SECTION 4 — LOUNGE
     ═════════════════════════════════════════════════════ */
     const LOUNGE_NP_ID  = '00000000-0000-0000-0000-000000000002';
-  const LOUNGE_SES_ID = 'lounge';
+  // tracks.session_id is a UUID FK to sessions(id) — lounge tracks aren't tied
+  // to a real session, so they're identified by storage path prefix instead.
+  const LOUNGE_STORAGE_PREFIX = 'lounge/';
 
   let loungeLoaded       = false;
   let loungeCurrentTrack = null;
   let loungeAudio        = new Audio();
   let loungeIsLive       = false;
   let loungeArcPlaying   = false;
+  let currentLoungeScene = {};
+  let loungeTracksCache  = [];
+
+  /* ── Granular field-recording preview (admin) ─────────────────────────
+     Mirrors startAdminDronePreview/stopAdminDronePreview: its own lazily
+     created AudioContext, feeding a looping recording through the same
+     'granular-drone' worklet the drone uses, instead of oscillators. */
+  let fieldPreviewCtx      = null;
+  let fieldPreviewSource   = null;
+  let fieldPreviewGranular = null;
+  let fieldPreviewGain     = null;
+  let fieldPreviewBufCache = {};
+  let fieldPreviewPlaying  = false;
+
+  async function startFieldGranularPreview(track) {
+    stopFieldGranularPreview();
+    const ac = new (window.AudioContext || window.webkitAudioContext)();
+    fieldPreviewCtx = ac;
+
+    let buf = fieldPreviewBufCache[track.url];
+    if (!buf) {
+      const resp = await fetch(track.url);
+      const arr  = await resp.arrayBuffer();
+      buf = await ac.decodeAudioData(arr);
+      fieldPreviewBufCache[track.url] = buf;
+    }
+    if (fieldPreviewCtx !== ac) return; // stopped while decoding
+
+    const source = ac.createBufferSource();
+    source.buffer = buf;
+    source.loop   = true;
+
+    const monoDown = ac.createGain();
+    monoDown.channelCount          = 1;
+    monoDown.channelCountMode      = 'explicit';
+    monoDown.channelInterpretation = 'speakers';
+
+    const gain = ac.createGain();
+    gain.gain.value = 0;
+
+    try {
+      await ac.audioWorklet.addModule('drone-worklet.js');
+      if (fieldPreviewCtx !== ac) return; // stopped while loading module
+      const granular = new AudioWorkletNode(ac, 'granular-drone', {
+        numberOfInputs: 1, numberOfOutputs: 1, outputChannelCount: [2],
+      });
+      monoDown.connect(granular);
+      granular.connect(gain);
+      fieldPreviewGranular = granular;
+    } catch (_) {
+      monoDown.connect(gain); // worklet unavailable — dry loop
+    }
+    source.connect(monoDown);
+    gain.connect(ac.destination);
+    source.start();
+    gain.gain.linearRampToValueAtTime(0.7, ac.currentTime + 1.5);
+
+    fieldPreviewSource = source;
+    fieldPreviewGain   = gain;
+  }
+
+  function stopFieldGranularPreview() {
+    if (fieldPreviewSource) { try { fieldPreviewSource.stop(); } catch (_) {} }
+    if (fieldPreviewCtx)    { fieldPreviewCtx.close().catch(() => {}); }
+    fieldPreviewCtx = fieldPreviewSource = fieldPreviewGranular = fieldPreviewGain = null;
+    fieldPreviewPlaying = false;
+  }
 
   const LOUNGE_ROOTS = [
     { hz: 55.00, name: 'A' }, { hz: 73.42, name: 'D' },
@@ -3335,9 +3407,10 @@
 
   async function loadLoungeTracks() {
     const { data: tracks } = await db.from('tracks')
-      .select('*').eq('session_id', LOUNGE_SES_ID)
+      .select('*').like('storage_path', LOUNGE_STORAGE_PREFIX + '%')
       .order('uploaded_at', { ascending: false });
-    renderLoungeTracks(tracks || []);
+    loungeTracksCache = tracks || [];
+    renderLoungeTracks(loungeTracksCache);
   }
 
   function renderLoungeTracks(tracks) {
@@ -3347,13 +3420,14 @@
       list.innerHTML = '<div class="empty-state">No lounge tracks yet — upload one.</div>';
       return;
     }
+    const ambientUrl = currentLoungeScene?.field_recording?.url;
     list.innerHTML = '';
     tracks.forEach(t => {
       const row = document.createElement('div');
       row.className = 'arc-track-row' + (loungeCurrentTrack?.id === t.id ? ' playing' : '');
       row.dataset.id = String(t.id);
       row.innerHTML = `
-        <span class="arc-track-title">${t.track_title || t.filename}</span>
+        <span class="arc-track-title">${t.url === ambientUrl ? '🌾 ' : ''}${t.track_title || t.filename}</span>
         <span class="arc-track-dur">${loungeFmt(t.duration)}</span>
         <button class="arc-track-del" title="Delete">✕</button>`;
       row.addEventListener('click', e => {
@@ -3366,6 +3440,13 @@
         await db.storage.from('fur-fm-tracks').remove([t.storage_path]);
         await db.from('tracks').delete().eq('id', t.id);
         if (loungeCurrentTrack?.id === t.id) clearLoungePlayer();
+        if (currentLoungeScene?.field_recording?.url === t.url) {
+          currentLoungeScene = { ...currentLoungeScene };
+          delete currentLoungeScene.field_recording;
+          await db.from('now_playing').upsert({
+            id: LOUNGE_NP_ID, scene: currentLoungeScene, updated_at: new Date().toISOString(),
+          });
+        }
         await loadLoungeTracks();
       });
       list.appendChild(row);
@@ -3376,10 +3457,15 @@
     loungeCurrentTrack = null;
     loungeAudio.pause(); loungeAudio.src = '';
     loungeArcPlaying = false;
+    if (fieldPreviewPlaying) stopFieldGranularPreview();
     const pb = document.getElementById('lounge-play-btn');
     if (pb) { pb.disabled = true; pb.textContent = '▶'; }
+    const gpb = document.getElementById('lounge-granular-preview-btn');
+    if (gpb) { gpb.disabled = true; gpb.textContent = '🌾'; }
     const glb = document.getElementById('lounge-go-live-btn');
     if (glb) glb.disabled = true;
+    const sab = document.getElementById('lounge-set-ambient-btn');
+    if (sab) sab.disabled = true;
     const tn = document.getElementById('lounge-track-name');
     if (tn) tn.textContent = 'no track selected';
     const cas = document.getElementById('lounge-cassette');
@@ -3391,11 +3477,15 @@
     loungeAudio.pause();
     loungeAudio.src = t.url;
     loungeArcPlaying = false;
+    if (fieldPreviewPlaying) stopFieldGranularPreview();
 
     document.getElementById('lounge-track-name').textContent = t.track_title || t.filename;
     const pb = document.getElementById('lounge-play-btn');
     pb.disabled = false; pb.textContent = '▶';
+    const gpb = document.getElementById('lounge-granular-preview-btn');
+    gpb.disabled = false; gpb.textContent = '🌾';
     document.getElementById('lounge-go-live-btn').disabled = false;
+    document.getElementById('lounge-set-ambient-btn').disabled = false;
     document.getElementById('lounge-cassette').classList.remove('playing');
     document.getElementById('lounge-time').textContent = `0:00 / ${loungeFmt(t.duration)}`;
     document.getElementById('lounge-seek').value = 0;
@@ -3415,6 +3505,8 @@
     const { data: ls } = await db.from('now_playing')
       .select('*').eq('id', LOUNGE_NP_ID).maybeSingle();
     loungeIsLive = !!(ls?.is_playing && ls?.audio_url);
+    currentLoungeScene = ls?.scene || {};
+    renderAmbientStatus();
     updateLoungeDroneDisplay();
     updateLoungeStatusBar(ls || {});
     setInterval(() => { updateLoungeDroneDisplay(); if (!loungeIsLive) updateLoungeStatusBar({}); }, 30000);
@@ -3426,6 +3518,9 @@
       .on('postgres_changes', { event: '*', schema: 'public', table: 'now_playing' }, ({ new: d }) => {
         if (d?.id !== LOUNGE_NP_ID) return;
         loungeIsLive = !!(d.is_playing && d.audio_url);
+        currentLoungeScene = d.scene || {};
+        renderAmbientStatus();
+        renderLoungeTracks(loungeTracksCache);
         updateLoungeStatusBar(d);
       })
       .subscribe();
@@ -3726,10 +3821,11 @@
     document.getElementById('lounge-push-drone-btn').addEventListener('click', async () => {
       const st = document.getElementById('lounge-drone-push-status');
       st.textContent = 'pushing…'; st.className = 'status-msg';
-      const { error } = await db.from('now_playing').update({
-        scene: { drone_config: { override: true, ...droneEditParams } },
+      currentLoungeScene = { ...currentLoungeScene, drone_config: { override: true, ...droneEditParams } };
+      const { error } = await db.from('now_playing').upsert({
+        id: LOUNGE_NP_ID, scene: currentLoungeScene,
         updated_at: new Date().toISOString(),
-      }).eq('id', LOUNGE_NP_ID);
+      });
       if (error) { st.textContent = error.message; st.className = 'status-msg err'; return; }
       droneHasOverride = true; updateOverrideTag();
       st.textContent = '✓ drone config live'; st.className = 'status-msg ok';
@@ -3740,9 +3836,11 @@
     document.getElementById('lounge-reset-drone-btn').addEventListener('click', async () => {
       const st = document.getElementById('lounge-drone-push-status');
       st.textContent = 'resetting…'; st.className = 'status-msg';
-      const { error } = await db.from('now_playing').update({
-        scene: null, updated_at: new Date().toISOString(),
-      }).eq('id', LOUNGE_NP_ID);
+      currentLoungeScene = { ...currentLoungeScene };
+      delete currentLoungeScene.drone_config;
+      const { error } = await db.from('now_playing').upsert({
+        id: LOUNGE_NP_ID, scene: currentLoungeScene, updated_at: new Date().toISOString(),
+      });
       if (error) { st.textContent = error.message; st.className = 'status-msg err'; return; }
       droneHasOverride = false; updateOverrideTag();
       droneEditParams = adminDroneDefaults();
@@ -3752,11 +3850,15 @@
       setTimeout(() => { if (st.textContent.startsWith('○')) { st.textContent = ''; st.className = 'status-msg'; } }, 3000);
     });
 
-    /* Play / pause (admin preview) */
-    const playBtn = document.getElementById('lounge-play-btn');
-    const seekEl  = document.getElementById('lounge-seek');
+    /* Play / pause (admin preview) — straight and granular are two
+       independent, mutually-exclusive auditioning buttons. */
+    const playBtn         = document.getElementById('lounge-play-btn');
+    const granularPrevBtn = document.getElementById('lounge-granular-preview-btn');
+    const seekEl           = document.getElementById('lounge-seek');
+
     playBtn.addEventListener('click', () => {
       if (!loungeCurrentTrack || !loungeAudio.src) return;
+      if (fieldPreviewPlaying) { stopFieldGranularPreview(); granularPrevBtn.textContent = '🌾'; }
       if (loungeArcPlaying) {
         loungeAudio.pause();
         loungeArcPlaying = false;
@@ -3766,6 +3868,25 @@
         loungeAudio.play().catch(() => {});
         loungeArcPlaying = true;
         playBtn.textContent = '⏸';
+        document.getElementById('lounge-cassette').classList.add('playing');
+      }
+    });
+
+    granularPrevBtn.addEventListener('click', () => {
+      if (!loungeCurrentTrack) return;
+      if (loungeArcPlaying) {
+        loungeAudio.pause();
+        loungeArcPlaying = false;
+        playBtn.textContent = '▶';
+      }
+      if (fieldPreviewPlaying) {
+        stopFieldGranularPreview();
+        granularPrevBtn.textContent = '🌾';
+        document.getElementById('lounge-cassette').classList.remove('playing');
+      } else {
+        startFieldGranularPreview(loungeCurrentTrack);
+        fieldPreviewPlaying = true;
+        granularPrevBtn.textContent = '⏸';
         document.getElementById('lounge-cassette').classList.add('playing');
       }
     });
@@ -3787,7 +3908,7 @@
       document.getElementById('lounge-cassette').classList.remove('playing');
     });
 
-    /* Send to lounge */
+    /* Send to lounge — temporary straight-track takeover, fully silences the drone */
     document.getElementById('lounge-go-live-btn').addEventListener('click', async () => {
       if (!loungeCurrentTrack) return;
       const title  = document.getElementById('lounge-meta-title').value.trim() || loungeCurrentTrack.track_title || loungeCurrentTrack.filename;
@@ -3816,6 +3937,47 @@
         playBtn.textContent = '⏸';
         document.getElementById('lounge-cassette').classList.add('playing');
       }
+    });
+
+    /* Set as ambient layer — persistent granular blend under the drone,
+       independent of the straight-track takeover above. */
+    function renderAmbientStatus() {
+      const st  = document.getElementById('lounge-ambient-status');
+      const fr  = currentLoungeScene?.field_recording;
+      if (!st) return;
+      if (fr?.url) {
+        st.innerHTML = `🌾 ambient layer: ${fr.title || 'field recording'} · <a href="#" id="lounge-clear-ambient-link" style="color:inherit;text-decoration:underline">clear</a>`;
+        const link = document.getElementById('lounge-clear-ambient-link');
+        if (link) link.addEventListener('click', async e => {
+          e.preventDefault();
+          currentLoungeScene = { ...currentLoungeScene };
+          delete currentLoungeScene.field_recording;
+          await db.from('now_playing').upsert({
+            id: LOUNGE_NP_ID, scene: currentLoungeScene, updated_at: new Date().toISOString(),
+          });
+          renderAmbientStatus();
+          renderLoungeTracks(loungeTracksCache);
+        });
+      } else {
+        st.textContent = '';
+      }
+    }
+
+    document.getElementById('lounge-set-ambient-btn').addEventListener('click', async () => {
+      if (!loungeCurrentTrack) return;
+      const title = document.getElementById('lounge-meta-title').value.trim()
+        || loungeCurrentTrack.track_title || loungeCurrentTrack.filename;
+      currentLoungeScene = { ...currentLoungeScene, field_recording: { url: loungeCurrentTrack.url, title } };
+      const { error } = await db.from('now_playing').upsert({
+        id: LOUNGE_NP_ID, scene: currentLoungeScene, updated_at: new Date().toISOString(),
+      });
+      if (error) {
+        const st = document.getElementById('lounge-ambient-status');
+        st.textContent = error.message; st.className = 'status-msg err';
+        return;
+      }
+      renderAmbientStatus();
+      renderLoungeTracks(loungeTracksCache);
     });
 
     /* Stop track — restore drone */
@@ -3849,10 +4011,11 @@
         const { error: upErr } = await db.storage.from('fur-fm-tracks').upload(path, file);
         if (upErr) { st.textContent = upErr.message; st.className = 'status-msg err'; continue; }
         const { data: { publicUrl } } = db.storage.from('fur-fm-tracks').getPublicUrl(path);
-        await db.from('tracks').insert({
-          session_id: LOUNGE_SES_ID, filename: file.name,
+        const { error: insErr } = await db.from('tracks').insert({
+          name: file.name, filename: file.name,
           storage_path: path, url: publicUrl, duration: dur,
         });
+        if (insErr) { st.textContent = insErr.message; st.className = 'status-msg err'; continue; }
       }
       st.textContent = '✓ uploaded'; st.className = 'status-msg ok';
       setTimeout(() => { st.textContent = ''; st.className = 'status-msg'; }, 3000);

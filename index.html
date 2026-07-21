@@ -35,29 +35,6 @@
       pointer-events: none;
     }
 
-    /* ── Floating layer ──────────────────────────────────────── */
-    #floating-layer {
-      position: fixed; inset: 0; z-index: 10;
-      pointer-events: none; overflow: hidden;
-    }
-    .float-msg {
-      position: absolute;
-      bottom: 5.5rem;
-      white-space: nowrap;
-      font-size: 0.85rem;
-      pointer-events: none;
-      animation: float-up 7s ease-out forwards;
-    }
-    .f-sender { color: #c89020; }
-    .f-text   { color: #f0e0a8; margin-left: 0.42em; }
-
-    @keyframes float-up {
-      0%   { transform: translateY(0);     opacity: 0; }
-      8%   { opacity: 1; }
-      78%  { opacity: 0.9; }
-      100% { transform: translateY(-72vh); opacity: 0; }
-    }
-
     /* ── UI chrome ───────────────────────────────────────────── */
     #ui-chrome {
       position: fixed; inset: 0; z-index: 20;
@@ -189,31 +166,6 @@
       font-family: 'Hind', sans-serif; font-size: 0.72rem;
       padding: 0.1rem 0; outline: none; width: 130px;
     }
-
-    /* ── Chat bar ────────────────────────────────────────────── */
-    #chat-bar {
-      position: fixed; bottom: 0; left: 0; right: 0;
-      z-index: 30;
-      padding: 0.75rem 1.5rem;
-      padding-bottom: max(1rem, env(safe-area-inset-bottom));
-      background: linear-gradient(to top, rgba(13,28,21,0.98) 55%, transparent);
-      display: flex; align-items: center; gap: 0.75rem;
-    }
-    #chat-input {
-      flex: 1; background: transparent; border: none;
-      border-bottom: 1px solid rgba(200,144,32,0.4);
-      color: #f0e0a8;
-      font-family: 'Hind', sans-serif; font-size: 0.85rem;
-      padding: 0.35rem 0; outline: none;
-    }
-    #chat-input::placeholder { color: rgba(200,144,32,0.45); }
-    #send-btn {
-      background: transparent; border: none;
-      color: #c89020; cursor: pointer;
-      font-size: 1rem; padding: 0 0.15rem;
-      transition: color 0.15s; touch-action: manipulation;
-    }
-    #send-btn:hover { color: #f0e0a8; }
 
     /* ── Brand ───────────────────────────────────────────────── */
     #brand {
@@ -376,8 +328,6 @@
   <div id="brand-tagline">Intentional Listening Space</div>
 </div>
 
-<div id="floating-layer"></div>
-
 <div id="ui-chrome">
   <div id="top-left">
     <div id="drone-label">·</div>
@@ -394,11 +344,6 @@
     <button id="username-edit" title="change name">✎</button>
     <input id="username-input" style="display:none" maxlength="28" autocomplete="off" spellcheck="false" />
   </div>
-</div>
-
-<div id="chat-bar">
-  <input id="chat-input" type="text" placeholder="say something…" maxlength="200" autocomplete="off" />
-  <button id="send-btn">→</button>
 </div>
 
 <!-- Drifting session / join card -->
@@ -526,18 +471,6 @@
     if (e.key === 'Enter') { e.preventDefault(); nameInputEl.blur(); }
   });
 
-  /* ── Floating messages ─────────────────────────────────────────────── */
-  const floatLayer = document.getElementById('floating-layer');
-
-  function floatMessage(sender, text) {
-    const el = document.createElement('div');
-    el.className  = 'float-msg';
-    el.style.left = (8 + Math.random() * 70) + '%';
-    el.innerHTML  = `<span class="f-sender">${esc(sender)}</span><span class="f-text">${esc(text)}</span>`;
-    floatLayer.appendChild(el);
-    setTimeout(() => el.remove(), 7500);
-  }
-
   /* ── Notifications ─────────────────────────────────────────────────── */
   const notifTray = document.getElementById('notif-tray');
 
@@ -583,7 +516,7 @@
       const padX = 28;
       const padY = 28;
       const maxX = window.innerWidth  - cw - padX;
-      const maxY = window.innerHeight * 0.74 - ch; // stay clear of chat bar
+      const maxY = window.innerHeight * 0.74 - ch;
       const x    = padX + Math.random() * Math.max(0, maxX - padX);
       const y    = padY + Math.random() * Math.max(0, maxY - padY);
       sessionCard.style.transform = `translate(${x}px, ${y}px)`;
@@ -659,60 +592,6 @@
       .subscribe();
   })();
 
-  /* ── Chat ──────────────────────────────────────────────────────────── */
-  const chatInputEl = document.getElementById('chat-input');
-  const sendBtnEl   = document.getElementById('send-btn');
-  const LOUNGE_ID   = 'lounge';
-
-  const { data: history } = await db.from('chat_messages')
-    .select('username, content')
-    .eq('session_id', LOUNGE_ID)
-    .order('created_at', { ascending: true })
-    .limit(30);
-
-  if (history?.length) {
-    history.slice(-8).forEach((m, i) => {
-      setTimeout(() => floatMessage(m.username || 'listener', m.content), i * 900 + 300);
-    });
-  }
-
-  // Track recently sent messages to avoid echoing them back from realtime
-  const recentSent = new Set();
-
-  db.channel('lounge-chat')
-    .on('postgres_changes', {
-      event: 'INSERT', schema: 'public', table: 'chat_messages',
-    }, ({ new: msg }) => {
-      if (msg.session_id !== LOUNGE_ID) return;
-      const key = (msg.username || '') + '\0' + (msg.content || '');
-      if (!recentSent.has(key))
-        floatMessage(msg.username || 'listener', msg.content);
-    })
-    .subscribe((status, err) => {
-      if (err) console.error('[fur-fm] chat sub error:', err);
-      else console.log('[fur-fm] chat sub status:', status);
-    });
-
-  async function sendMessage() {
-    const text = chatInputEl.value.trim();
-    if (!text) return;
-    floatMessage(myName, text);
-    chatInputEl.value = '';
-    const key = myName + '\0' + text;
-    recentSent.add(key);
-    setTimeout(() => recentSent.delete(key), 5000);
-    const { error } = await db.from('chat_messages').insert({
-      user_id: null, username: myName,
-      content: text, session_id: LOUNGE_ID,
-    });
-    if (error) console.error('[fur-fm] chat insert error:', error);
-  }
-
-  sendBtnEl.addEventListener('click', sendMessage);
-  chatInputEl.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
-  });
-
   /* ── Presence ──────────────────────────────────────────────────────── */
   const countEl = document.getElementById('listener-count');
   let presenceChannel = null;
@@ -763,13 +642,15 @@
 
   const droneLabelEl = document.getElementById('drone-label');
   let ctx, oscNodes, filterNode, masterNode, tremoloNode, lfoTimer, tremoloTimer, currentParams;
+  let workletOk = false;
+  let fieldLayerActive = false;
 
   function updateDroneLabel() {
     if (!currentParams) return;
     const ms   = SLOT_MS - (Date.now() % SLOT_MS);
     const mins = Math.ceil(ms / 60000);
-    droneLabelEl.textContent =
-      `drone in ${currentParams.rootName} · shifting in ${mins < 2 ? 'soon' : mins + 'm'}`;
+    const base = `drone in ${currentParams.rootName} · shifting in ${mins < 2 ? 'soon' : mins + 'm'}`;
+    droneLabelEl.textContent = fieldLayerActive ? `🌾 ${base}` : base;
   }
 
   // LFO phase locked to wall-clock — all listeners hear the same sweep moment.
@@ -887,8 +768,10 @@
       });
       granular.connect(filterNode);
       oscTarget = granular;
+      workletOk = true;
     } catch (_) {
       // AudioWorklet unavailable (file:// or older browser) — direct chain
+      workletOk = false;
     }
     oscNodes.forEach(({ g }) => g.connect(oscTarget));
     // ─────────────────────────────────────────────────────────────────────
@@ -995,9 +878,97 @@
   const LOUNGE_NP_ID = '00000000-0000-0000-0000-000000000002';
   let loungeAudioEl  = null;
 
+  /* ── Granular field-recording playback ───────────────────────────────
+     The lounge's standing sound: the drone plus a granularized field
+     recording, both at their normal levels — a persistent ambient layer,
+     not something toggled per visit. Feeds a looping field recording
+     through the same 'granular-drone' worklet the drone uses, on its own
+     gain node so it's independent of the drone's master gain. */
+  const FIELD_GRANULAR_VOL = 0.7;
+  let fieldSourceNode   = null;
+  let fieldGranularNode = null;
+  let fieldMasterGain   = null;
+  let fieldBufCache     = {};
+  let fieldCurrentUrl   = null;
+  let fieldGen          = 0;
+
+  async function startFieldGranular(url) {
+    if (!ctx) return;
+    if (fieldCurrentUrl === url && fieldSourceNode) return; // already playing this url
+    stopFieldGranular();
+    fieldCurrentUrl = url;
+    const myGen = ++fieldGen;
+
+    let buf = fieldBufCache[url];
+    if (!buf) {
+      const resp = await fetch(url);
+      const arr  = await resp.arrayBuffer();
+      buf = await ctx.decodeAudioData(arr);
+      fieldBufCache[url] = buf;
+    }
+    if (myGen !== fieldGen) return; // superseded while decoding
+
+    const source = ctx.createBufferSource();
+    source.buffer = buf;
+    source.loop   = true;
+
+    const monoDown = ctx.createGain();
+    monoDown.channelCount          = 1;
+    monoDown.channelCountMode      = 'explicit';
+    monoDown.channelInterpretation = 'speakers';
+
+    const gain = ctx.createGain();
+    gain.gain.value = 0;
+
+    if (workletOk) {
+      try {
+        const granular = new AudioWorkletNode(ctx, 'granular-drone', {
+          numberOfInputs: 1, numberOfOutputs: 1, outputChannelCount: [2],
+        });
+        monoDown.connect(granular);
+        granular.connect(gain);
+        fieldGranularNode = granular;
+      } catch (_) {
+        monoDown.connect(gain); // worklet instantiation failed — dry loop
+      }
+    } else {
+      monoDown.connect(gain); // worklet unavailable — dry loop
+    }
+    source.connect(monoDown);
+    gain.connect(ctx.destination);
+    source.start();
+    gain.gain.linearRampToValueAtTime(FIELD_GRANULAR_VOL, ctx.currentTime + 3);
+
+    fieldSourceNode  = source;
+    fieldMasterGain  = gain;
+    fieldLayerActive = true;
+    updateDroneLabel();
+  }
+
+  function stopFieldGranular() {
+    fieldGen++; // invalidate any in-flight decode
+    fieldCurrentUrl = null;
+    fieldLayerActive = false;
+    const source = fieldSourceNode;
+    const gain   = fieldMasterGain;
+    fieldSourceNode = fieldGranularNode = fieldMasterGain = null;
+    if (gain && ctx) {
+      gain.gain.setTargetAtTime(0, ctx.currentTime, 0.6);
+      setTimeout(() => { try { source && source.stop(); } catch (_) {} }, 2000);
+    } else if (source) {
+      try { source.stop(); } catch (_) {}
+    }
+    updateDroneLabel();
+  }
+
   function applyLoungeState(d) {
-    const droneLabel = document.getElementById('drone-label');
-    if (d?.is_playing && d?.audio_url) {
+    const droneLabel   = document.getElementById('drone-label');
+    const overrideLive = !!(d?.is_playing && d?.audio_url);
+    const fieldUrl     = d?.scene?.field_recording?.url || null;
+
+    if (overrideLive) {
+      // Temporary straight-track takeover — fully replaces drone + ambient layer.
+      stopFieldGranular();
       if (!loungeAudioEl) loungeAudioEl = new Audio();
       if (loungeAudioEl.src !== d.audio_url) {
         loungeAudioEl.src = d.audio_url;
@@ -1008,11 +979,15 @@
       if (droneLabel) droneLabel.textContent = d.track_title
         ? `♪ ${d.track_title}${d.artist ? ' · ' + d.artist : ''}`
         : '♪ lounge track';
-    } else {
-      if (loungeAudioEl) { loungeAudioEl.pause(); loungeAudioEl.src = ''; loungeAudioEl = null; }
-      if (masterNode && ctx) masterNode.gain.setTargetAtTime(currentParams?.vol || 0.15, ctx.currentTime, 2);
-      if (typeof updateDroneLabel === 'function') updateDroneLabel();
+      return;
     }
+
+    // No override: drone at its normal volume, plus the ambient field
+    // recording layer if one is set — both play at their normal levels.
+    if (loungeAudioEl) { loungeAudioEl.pause(); loungeAudioEl.src = ''; loungeAudioEl = null; }
+    if (masterNode && ctx) masterNode.gain.setTargetAtTime(currentParams?.vol || 0.15, ctx.currentTime, 2);
+    if (fieldUrl) startFieldGranular(fieldUrl);
+    else stopFieldGranular();
   }
 
   function applyDroneOverride(dc) {
