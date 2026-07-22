@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fur FM — Shop</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Hind:wght@400;500&family=Yatra+One&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      background: #000000;
+      font-family: 'Hind', sans-serif;
+      color: #ffffff;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body::after {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background-image: radial-gradient(circle, rgba(255,255,255,0.045) 1px, transparent 1px);
+      background-size: 26px 26px;
+      pointer-events: none;
+    }
+
+    /* ── Brand ───────────────────────────────────────────────── */
+    #brand {
+      position: fixed;
+      top: 1.4rem; left: 1.5rem;
+      z-index: 30;
+      user-select: none;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.18rem;
+    }
+    #brand svg { opacity: 0.9; width: 100%; height: auto; }
+    #brand-tagline {
+      font-family: 'Hind', sans-serif;
+      font-size: 0.6rem;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.55);
+      white-space: nowrap;
+      text-align: left;
+    }
+
+    /* ── Site nav ────────────────────────────────────────────── */
+    #site-nav {
+      position: fixed;
+      top: 1.7rem; right: 1.5rem;
+      z-index: 30;
+      display: flex;
+      gap: 1.5rem;
+    }
+    .nav-link {
+      font-family: 'Hind', sans-serif;
+      font-size: 0.72rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.55);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+    .nav-link:hover { color: #ffffff; }
+    .nav-link.active { color: #ffffff; }
+
+    @media (max-width: 560px) {
+      #site-nav { gap: 0.9rem; top: 1.5rem; right: 1rem; }
+      .nav-link { font-size: 0.62rem; letter-spacing: 0.08em; }
+      #brand { top: 1.2rem; left: 1rem; }
+    }
+
+    /* ── Placeholder body ────────────────────────────────────── */
+    #placeholder {
+      position: fixed; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center;
+      gap: 0.6rem;
+      z-index: 1;
+    }
+    #placeholder .heading {
+      font-family: 'Yatra One', serif;
+      font-size: 1.4rem;
+      color: #ffffff;
+    }
+    #placeholder .sub {
+      font-size: 0.78rem; letter-spacing: 0.05em;
+      color: #999999;
+    }
+  </style>
+</head>
+<body>
+
+<div id="brand">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 168 34" width="140" height="29" fill="none">
+    <text x="0" y="26"
+      font-family="'Courier New',Courier,monospace"
+      font-size="24" font-weight="700" letter-spacing="1"
+      fill="#ffffff">FurFM</text>
+  </svg>
+  <div id="brand-tagline">Intentional Listening Space</div>
+</div>
+
+<nav id="site-nav">
+  <a class="nav-link" href="stream.html">Live</a>
+  <a class="nav-link" href="fursat.html">Fursat</a>
+  <a class="nav-link" href="studio.html">Studio</a>
+  <a class="nav-link active" href="shop.html">Shop</a>
+</nav>
+
+<div id="placeholder">
+  <div class="heading">Shop</div>
+  <div class="sub">coming soon</div>
+</div>
+
+</body>
+</html>

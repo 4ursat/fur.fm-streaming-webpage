@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Fur FM — Fursat Archival</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --font: 'Courier New', Courier, monospace;
+      --black: #000;
+      --white: #fff;
+      --dim:   rgba(255,255,255,0.42);
+      --faint: rgba(255,255,255,0.14);
+      --line:  rgba(255,255,255,0.1);
+    }
+
+    html, body {
+      height: 100%; background: var(--black); color: var(--white);
+      font-family: var(--font); overflow: hidden;
+    }
+
+    /* ── Auth gate ─────────────────────────────────────── */
+    #gate {
+      position: fixed; inset: 0; z-index: 900;
+      background: #000;
+      display: flex; align-items: center; justify-content: center;
+    }
+    #gate.hidden { display: none; }
+    .gate-box {
+      display: flex; flex-direction: column; gap: 1rem;
+      width: 280px;
+    }
+    .gate-title {
+      font-size: 0.72rem; letter-spacing: 0.28em; text-transform: uppercase;
+      color: var(--dim); margin-bottom: 0.5rem;
+    }
+    .gate-input {
+      background: none; border: none; border-bottom: 1px solid var(--line);
+      color: var(--white); font-family: var(--font); font-size: 1rem;
+      padding: 0.4rem 0; outline: none; width: 100%;
+      letter-spacing: 0.06em;
+    }
+    .gate-input::placeholder { color: rgba(255,255,255,0.22); }
+    .gate-btn {
+      background: none; border: 1px solid var(--faint);
+      color: var(--white); font-family: var(--font);
+      font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase;
+      padding: 0.55rem 1rem; cursor: pointer; transition: border-color 0.15s;
+      align-self: flex-start;
+    }
+    .gate-btn:hover { border-color: var(--dim); }
+    .gate-err {
+      font-size: 0.62rem; letter-spacing: 0.12em;
+      color: rgba(255,100,80,0.75); min-height: 1em;
+    }
+
+    /* ── Page layout ───────────────────────────────────── */
+    #page {
+      height: 100vh; display: flex; flex-direction: column;
+    }
+    #page.hidden { display: none; }
+
+    /* Header bar */
+    .page-header {
+      display: flex; align-items: center; gap: 1.5rem;
+      padding: 0.65rem 1.4rem;
+      border-bottom: 1px solid var(--line);
+      flex-shrink: 0;
+    }
+    .header-logo {
+      font-size: 0.62rem; letter-spacing: 0.36em; text-transform: uppercase;
+      color: var(--dim); flex-shrink: 0;
+    }
+    .header-archive {
+      flex: 1; font-size: 0.78rem; letter-spacing: 0.08em;
+      color: rgba(255,255,255,0.72); white-space: nowrap;
+      overflow: hidden; text-overflow: ellipsis;
+    }
+    .header-archive.empty { color: rgba(255,255,255,0.2); font-style: italic; }
+    .header-right {
+      flex-shrink: 0;
+    }
+    .header-leave {
+      font-size: 0.6rem; letter-spacing: 0.18em; text-transform: uppercase;
+      color: rgba(255,255,255,0.28); text-decoration: none; transition: color 0.14s;
+    }
+    .header-leave:hover { color: var(--dim); }
+
+    /* Three-column main */
+    .main-cols {
+      flex: 1; display: grid;
+      grid-template-columns: 1fr 50vw 1fr;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    /* ── Left column: image ─────────────────────────────── */
+    .col-image {
+      border-right: 1px solid var(--line);
+      display: flex; align-items: stretch;
+      overflow: hidden;
+    }
+    .image-frame {
+      flex: 1;
+      background: rgba(255,255,255,0.02) center/cover no-repeat;
+      display: flex; align-items: center; justify-content: center;
+      transition: background-image 0.4s ease;
+    }
+    .no-image-text {
+      font-size: 0.62rem; letter-spacing: 0.22em; text-transform: uppercase;
+      color: rgba(255,255,255,0.12);
+    }
+
+    /* ── Center column: video ───────────────────────────── */
+    .col-video {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 0;
+      border-right: 1px solid var(--line);
+      background: #000;
+    }
+    .video-wrap {
+      width: 100%;
+      position: relative;
+      padding-top: 56.25%;
+      height: 0;
+    }
+    .video-wrap iframe {
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 100%;
+      border: none;
+    }
+
+    /* ── Right column: text + cassette ─────────────────── */
+    .col-text {
+      display: flex; flex-direction: column;
+      padding: 1.4rem 1.4rem 1rem;
+      gap: 1.2rem;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255,255,255,0.1) transparent;
+    }
+    .col-text::-webkit-scrollbar { width: 3px; }
+    .col-text::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); }
+
+    /* Track info */
+    .np-track-title {
+      font-size: 1rem; letter-spacing: 0.03em;
+      line-height: 1.3;
+      color: rgba(255,255,255,0.88);
+      word-break: break-word;
+    }
+    .np-track-title.empty { color: rgba(255,255,255,0.2); font-style: italic; }
+    .np-artist {
+      font-size: 0.74rem; letter-spacing: 0.06em;
+      color: var(--dim); margin-top: 0.2rem;
+    }
+    .np-source {
+      font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase;
+      color: rgba(255,255,255,0.26); margin-top: 0.35rem;
+    }
+    .np-notes {
+      font-size: 0.72rem; line-height: 1.6;
+      color: rgba(255,255,255,0.38); margin-top: 0.55rem;
+      white-space: pre-wrap;
+    }
+
+    /* Cassette player (display only) */
+    .cassette-deck {
+      border: 1px solid var(--line);
+      padding: 0.75rem 0.85rem;
+      flex-shrink: 0;
+    }
+    .cassette-body {
+      display: flex; align-items: center; gap: 0.5rem;
+      margin-bottom: 0.6rem;
+    }
+    .reel {
+      color: rgba(255,255,255,0.5);
+      flex-shrink: 0;
+      transform-origin: center center;
+    }
+    @keyframes reel-spin { to { transform: rotate(360deg); } }
+    .cassette-deck.playing .reel {
+      animation: reel-spin 3.5s linear infinite;
+    }
+    .cassette-window {
+      flex: 1; min-width: 0;
+      border: 1px solid var(--line);
+      padding: 0.28rem 0.6rem;
+      background: rgba(255,255,255,0.02);
+    }
+    .cassette-track-name {
+      font-size: 0.72rem; letter-spacing: 0.04em;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      color: rgba(255,255,255,0.42); display: block;
+    }
+
+    /* Progress bar (display-only div, not input) */
+    .cassette-progress {
+      display: flex; flex-direction: column; gap: 0.35rem;
+    }
+    .cassette-progress-track {
+      height: 2px;
+      background: rgba(255,255,255,0.1);
+      position: relative;
+      overflow: hidden;
+    }
+    .cassette-progress-fill {
+      position: absolute; left: 0; top: 0; bottom: 0;
+      background: rgba(255,255,255,0.52);
+      transition: width 0.2s linear;
+      width: 0%;
+    }
+    .cassette-time-row {
+      display: flex; justify-content: space-between;
+      font-size: 0.6rem; letter-spacing: 0.08em;
+      color: rgba(255,255,255,0.26);
+      font-variant-numeric: tabular-nums;
+    }
+    .cassette-state-row {
+      display: flex; justify-content: center; align-items: center;
+      font-size: 0.58rem; letter-spacing: 0.22em; text-transform: uppercase;
+      color: rgba(255,255,255,0.22); margin-top: 0.45rem;
+    }
+    .cassette-state-dot {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: rgba(255,255,255,0.18);
+      margin-right: 0.45rem;
+      transition: background 0.3s;
+    }
+    .cassette-deck.playing .cassette-state-dot {
+      background: rgba(180,255,180,0.65);
+    }
+
+    /* Audio unlock prompt */
+    .audio-prompt {
+      position: fixed; bottom: 1.4rem; left: 50%;
+      transform: translateX(-50%);
+      z-index: 80; display: none; align-items: center; gap: 0.5rem;
+      background: rgba(255,255,255,0.95); color: #000;
+      font-family: var(--font);
+      font-size: 0.64rem; letter-spacing: 0.12em; text-transform: uppercase;
+      padding: 0.55rem 1.1rem; cursor: pointer;
+    }
+    .audio-prompt.visible { display: flex; }
+
+    /* Translation */
+    .translation-section {
+      border-top: 1px solid var(--line);
+      padding-top: 0.9rem;
+    }
+    .translation-label {
+      font-size: 0.58rem; letter-spacing: 0.22em; text-transform: uppercase;
+      color: rgba(255,255,255,0.2); margin-bottom: 0.55rem;
+    }
+    .translation-text {
+      font-size: 0.76rem; line-height: 1.7;
+      color: rgba(255,255,255,0.52);
+      white-space: pre-wrap;
+    }
+
+    /* ── Responsive ─────────────────────────────────────── */
+    @media (max-width: 860px) {
+      html, body { overflow: auto; }
+      #page { height: auto; }
+      .main-cols {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+      }
+      .col-video {
+        border-right: none;
+        border-bottom: 1px solid var(--line);
+      }
+      .col-image {
+        border-right: none;
+        border-bottom: 1px solid var(--line);
+        height: 40vw;
+      }
+      .col-text {
+        border-right: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Auth gate ──────────────────────────────────────────── -->
+<div id="gate">
+  <div class="gate-box">
+    <div class="gate-title">Fur FM — Fursat Archival</div>
+    <input id="gate-pass" class="gate-input" type="password"
+           placeholder="password" autocomplete="current-password"/>
+    <button class="gate-btn" id="gate-btn">Enter</button>
+    <div class="gate-err" id="gate-err"></div>
+  </div>
+</div>
+
+<!-- ── Main page ──────────────────────────────────────────── -->
+<div id="page" class="hidden">
+
+  <header class="page-header">
+    <div class="header-logo">FurFM</div>
+    <div class="header-archive empty" id="page-archive-header">Archival Session</div>
+    <div class="header-right">
+      <a href="index.html" class="header-leave">← Leave</a>
+    </div>
+  </header>
+
+  <div class="main-cols">
+
+    <!-- Left: Archive image -->
+    <div class="col-image">
+      <div class="image-frame" id="image-frame">
+        <span class="no-image-text" id="no-image-text">No Image</span>
+      </div>
+    </div>
+
+    <!-- Center: Video feed -->
+    <div class="col-video">
+      <div class="video-wrap">
+        <iframe
+          src="https://vdo.ninja/?view=xYuuWBy&label=ffm_fursat_listener&cleanoutput&autoplay"
+          allow="autoplay; camera; microphone; fullscreen; picture-in-picture; display-capture; midi; encrypted-media"
+          allowfullscreen>
+        </iframe>
+      </div>
+    </div>
+
+    <!-- Right: Track info + cassette + translation -->
+    <div class="col-text">
+
+      <div>
+        <div class="np-track-title empty" id="np-track-title">—</div>
+        <div class="np-artist" id="np-artist"></div>
+        <div class="np-source" id="np-source"></div>
+        <div class="np-notes" id="np-notes"></div>
+      </div>
+
+      <div class="cassette-deck" id="listener-cassette">
+        <div class="cassette-body">
+          <svg class="reel" viewBox="0 0 40 40" width="36" height="36" fill="none">
+            <circle cx="20" cy="20" r="17" stroke="currentColor" stroke-width="1.2" opacity="0.28"/>
+            <circle cx="20" cy="20" r="5"  stroke="currentColor" stroke-width="1"   opacity="0.35"/>
+            <line x1="20"   y1="8"  x2="20"   y2="15"  stroke="currentColor" stroke-width="1" opacity="0.28"/>
+            <line x1="30.5" y1="26" x2="24.3" y2="22.5" stroke="currentColor" stroke-width="1" opacity="0.28"/>
+            <line x1="9.5"  y1="26" x2="15.7" y2="22.5" stroke="currentColor" stroke-width="1" opacity="0.28"/>
+          </svg>
+          <div class="cassette-window">
+            <span class="cassette-track-name" id="listener-track-name">—</span>
+          </div>
+          <svg class="reel" viewBox="0 0 40 40" width="36" height="36" fill="none">
+            <circle cx="20" cy="20" r="17" stroke="currentColor" stroke-width="1.2" opacity="0.28"/>
+            <circle cx="20" cy="20" r="5"  stroke="currentColor" stroke-width="1"   opacity="0.35"/>
+            <line x1="20"   y1="8"  x2="20"   y2="15"  stroke="currentColor" stroke-width="1" opacity="0.28"/>
+            <line x1="30.5" y1="26" x2="24.3" y2="22.5" stroke="currentColor" stroke-width="1" opacity="0.28"/>
+            <line x1="9.5"  y1="26" x2="15.7" y2="22.5" stroke="currentColor" stroke-width="1" opacity="0.28"/>
+          </svg>
+        </div>
+        <div class="cassette-progress">
+          <div class="cassette-progress-track">
+            <div class="cassette-progress-fill" id="listener-fill"></div>
+          </div>
+          <div class="cassette-time-row">
+            <span id="listener-cur">0:00</span>
+            <span id="listener-dur">0:00</span>
+          </div>
+        </div>
+        <div class="cassette-state-row">
+          <div class="cassette-state-dot"></div>
+          <span id="listener-state">Idle</span>
+        </div>
+      </div>
+
+      <div class="translation-section" id="translation-section" style="display:none">
+        <div class="translation-label">Translation</div>
+        <div class="translation-text" id="np-translation"></div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<audio id="fursat-audio" style="display:none" preload="auto"></audio>
+<div class="audio-prompt" id="audio-prompt">🔈 Tap to enable audio</div>
+
+<script>
+(async () => {
+  const { createClient } = window.supabase;
+  const NP_ID = '00000000-0000-0000-0000-000000000001';
+
+  /* ── Auth ──────────────────────────────────────────────── */
+  async function sha256(str) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+  }
+
+  const gate    = document.getElementById('gate');
+  const pageEl  = document.getElementById('page');
+  const gateErr = document.getElementById('gate-err');
+  const passEl  = document.getElementById('gate-pass');
+  const gateBtn = document.getElementById('gate-btn');
+
+  // Bypass for broadcaster / direct access
+  if (window.location.hash === '#broadcast') {
+    gate.classList.add('hidden');
+    pageEl.classList.remove('hidden');
+    initPage();
+    return;
+  }
+
+  // Check Supabase session
+  const db = createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+  const { data: { session } } = await db.auth.getSession();
+  if (session) {
+    gate.classList.add('hidden');
+    pageEl.classList.remove('hidden');
+    initPage();
+    return;
+  }
+
+  // Password gate
+  async function tryEnter() {
+    const hash = await sha256(passEl.value);
+    if (hash === window.ADMIN_PASSWORD_HASH) {
+      gate.classList.add('hidden');
+      pageEl.classList.remove('hidden');
+      initPage();
+    } else {
+      gateErr.textContent = 'Incorrect password.';
+      passEl.value = '';
+      passEl.focus();
+    }
+  }
+  gateBtn.addEventListener('click', tryEnter);
+  passEl.addEventListener('keydown', e => { if (e.key === 'Enter') tryEnter(); });
+  passEl.focus();
+
+  /* ── Page logic ─────────────────────────────────────────── */
+  function initPage() {
+    const db = createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+
+    // DOM refs
+    const archiveHeaderEl  = document.getElementById('page-archive-header');
+    const imageFrame       = document.getElementById('image-frame');
+    const noImageText      = document.getElementById('no-image-text');
+    const npTrackTitle     = document.getElementById('np-track-title');
+    const npArtist         = document.getElementById('np-artist');
+    const npSource         = document.getElementById('np-source');
+    const npNotes          = document.getElementById('np-notes');
+    const listenerCassette = document.getElementById('listener-cassette');
+    const listenerTrackName= document.getElementById('listener-track-name');
+    const listenerFill     = document.getElementById('listener-fill');
+    const listenerCur      = document.getElementById('listener-cur');
+    const listenerDur      = document.getElementById('listener-dur');
+    const listenerState    = document.getElementById('listener-state');
+    const translationSec   = document.getElementById('translation-section');
+    const npTranslation    = document.getElementById('np-translation');
+    const audio            = document.getElementById('fursat-audio');
+    const audioPrompt      = document.getElementById('audio-prompt');
+
+    function fmtDur(s) {
+      if (!s || isNaN(s) || !isFinite(s)) return '0:00';
+      return `${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,'0')}`;
+    }
+
+    /* ── Synced audio playback ──────────────────────────── */
+    let wantPlaying = false;
+    let wantUrl     = null;
+
+    function attemptPlay() {
+      audio.play().then(() => {
+        audioPrompt.classList.remove('visible');
+      }).catch(() => {
+        audioPrompt.classList.add('visible');
+      });
+    }
+
+    function syncAudio(d) {
+      const url = d.audio_url || null;
+      wantPlaying = !!d.is_playing;
+
+      if (url !== wantUrl) {
+        wantUrl = url;
+        if (url) {
+          audio.src = url;
+          audio.currentTime = d.playhead_pos || 0;
+        } else {
+          audio.removeAttribute('src');
+        }
+      } else if (url && typeof d.playhead_pos === 'number'
+                 && Math.abs(audio.currentTime - d.playhead_pos) > 1.5) {
+        audio.currentTime = d.playhead_pos;
+      }
+
+      if (wantPlaying && url) {
+        if (audio.paused) attemptPlay();
+      } else {
+        audio.pause();
+      }
+    }
+
+    // Any tap on the page retries playback if autoplay was blocked
+    document.addEventListener('click', () => {
+      if (wantPlaying && audio.paused) attemptPlay();
+    }, true);
+    audioPrompt.addEventListener('click', () => attemptPlay());
+
+    audio.addEventListener('timeupdate', () => {
+      if (!audio.duration || isNaN(audio.duration)) return;
+      const pct = (audio.currentTime / audio.duration * 100).toFixed(2);
+      listenerFill.style.width = pct + '%';
+      listenerCur.textContent  = fmtDur(audio.currentTime);
+      listenerDur.textContent  = fmtDur(audio.duration);
+    });
+
+    function applyNP(d) {
+      if (!d) return;
+
+      // Archive header
+      if (d.archive_header) {
+        archiveHeaderEl.textContent = d.archive_header;
+        archiveHeaderEl.classList.remove('empty');
+      } else {
+        archiveHeaderEl.textContent = 'Archival Session';
+        archiveHeaderEl.classList.add('empty');
+      }
+
+      // Image
+      if (d.image_url) {
+        imageFrame.style.backgroundImage = `url("${d.image_url.replace(/"/g,'%22')}")`;
+        noImageText.style.display = 'none';
+      } else {
+        imageFrame.style.backgroundImage = '';
+        noImageText.style.display = '';
+      }
+
+      // Track title
+      const hasTitle = !!(d.track_title || d.artist);
+      npTrackTitle.textContent = d.track_title || (hasTitle ? '' : '—');
+      npTrackTitle.classList.toggle('empty', !d.track_title);
+      npArtist.textContent  = d.artist         || '';
+      npSource.textContent  = d.archive_source  || '';
+      npNotes.textContent   = d.context_notes   || '';
+      npNotes.style.display = d.context_notes ? '' : 'none';
+
+      // Cassette player
+      listenerTrackName.textContent = d.track_title || '—';
+      listenerCassette.classList.toggle('playing', !!d.is_playing);
+
+      const pct = (d.duration && d.duration > 0)
+        ? ((d.playhead_pos / d.duration) * 100).toFixed(2)
+        : '0';
+      listenerFill.style.width = pct + '%';
+      listenerCur.textContent  = fmtDur(d.playhead_pos);
+      listenerDur.textContent  = fmtDur(d.duration);
+      listenerState.textContent = d.is_playing ? 'Playing' : 'Idle';
+
+      // Translation
+      if (d.translation) {
+        npTranslation.textContent = d.translation;
+        translationSec.style.display = '';
+      } else {
+        translationSec.style.display = 'none';
+      }
+
+      syncAudio(d);
+    }
+
+    // Load initial state
+    db.from('now_playing').select('*').eq('id', NP_ID).maybeSingle()
+      .then(({ data }) => applyNP(data));
+
+    // Realtime subscription
+    db.channel('fursat-now-playing')
+      .on('postgres_changes', {
+        event: 'UPDATE', schema: 'public', table: 'now_playing',
+      }, payload => applyNP(payload.new))
+      .subscribe();
+  }
+})();
+</script>
+</body>
+</html>

@@ -11,26 +11,25 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    /* Palette:
-       bg       #0d1c15  dark Mughal forest
-       cream    #f0e0a8  miniature parchment
-       saffron  #e07828  figure robes
-       gold     #c89020  jewellery / borders
+    /* Palette (black & white):
+       bg      #000000  base
+       ink     #ffffff  primary text / accents
+       muted   #999999  secondary text / borders
     */
 
     html, body {
       width: 100%; height: 100%;
       overflow: hidden;
-      background: #0d1c15;
+      background: #000000;
       font-family: 'Hind', sans-serif;
-      color: #f0e0a8;
+      color: #ffffff;
       -webkit-tap-highlight-color: transparent;
     }
 
     body::after {
       content: '';
       position: fixed; inset: 0; z-index: 0;
-      background-image: radial-gradient(circle, rgba(200,144,32,0.045) 1px, transparent 1px);
+      background-image: radial-gradient(circle, rgba(255,255,255,0.045) 1px, transparent 1px);
       background-size: 26px 26px;
       pointer-events: none;
     }
@@ -42,12 +41,8 @@
     }
 
     #top-left {
-      position: absolute; top: 1.5rem; left: 1.5rem;
+      position: absolute; top: 4.8rem; left: 1.5rem;
       display: flex; flex-direction: column; gap: 0.42rem;
-    }
-    #drone-label {
-      font-size: 0.72rem; letter-spacing: 0.05em;
-      color: #c89020;
     }
     #live-indicator {
       display: none;
@@ -55,11 +50,11 @@
       pointer-events: auto;
     }
     #live-indicator .dot {
-      color: #e07828;
+      color: #ffffff;
       animation: blink 1.8s ease-in-out infinite;
     }
     #live-link {
-      color: #f0e0a8;
+      color: #ffffff;
       text-decoration: none;
       margin-left: 0.28em;
     }
@@ -72,49 +67,109 @@
       pointer-events: auto;
     }
 
-    /* ── Drifting session card ───────────────────────────────── */
-    #session-card {
+    /* ── Session / join cards ────────────────────────────────── */
+    #session-card, #session-card-static {
       position: fixed;
-      top: 0; left: 0;
       z-index: 25;
       display: none;
       flex-direction: column;
       gap: 0.22rem;
       padding: 0.75rem 1rem;
-      background: rgba(13,28,21,0.92);
-      border: 1px solid #c89020;
+      background: rgba(0,0,0,0.92);
+      border: 1px solid #999999;
       max-width: 210px;
       line-height: 1.55;
-      will-change: transform;
       pointer-events: auto;
     }
-    #sc-title {
+    #session-card {
+      top: 0; left: 0;
+      will-change: transform;
+    }
+    #session-card-static {
+      bottom: 4.8rem; left: 50%;
+      transform: translateX(-50%);
+    }
+    #sc-title, .sc-card-title {
       font-family: 'Yatra One', serif;
       font-size: 0.95rem;
-      color: #f0e0a8;
+      color: #ffffff;
       line-height: 1.35;
     }
-    #sc-date {
+    #sc-date, .sc-card-date {
       font-size: 0.68rem; letter-spacing: 0.04em;
-      color: #c89020;
+      color: #999999;
     }
-    #sc-join {
+    #sc-join, #sc-static-join {
       background: transparent; border: none;
       font-family: 'Hind', sans-serif;
       font-size: 0.72rem; letter-spacing: 0.05em;
-      color: #e07828;
+      color: #ffffff;
       cursor: pointer; padding: 0; margin-top: 0.3rem;
       text-align: left; touch-action: manipulation;
       transition: color 0.15s;
     }
-    #sc-join:hover { color: #f0e0a8; }
+    #sc-join:hover, #sc-static-join:hover { color: #ffffff; }
+
+    /* ── Sur peti instrument ─────────────────────────────────── */
+    #surpeti-wrap {
+      position: fixed;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 22;
+      display: flex; flex-direction: column; align-items: center;
+      gap: 0.9rem;
+    }
+    #surpeti-panel {
+      display: flex;
+      align-items: flex-end;
+      gap: 0.6rem;
+      padding: 2.2rem 1.6rem 1rem;
+      border: 1.5px solid rgba(255,255,255,0.55);
+      background: rgba(0,0,0,0.3);
+      max-width: 92vw;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+    }
+    .sargam-key {
+      appearance: none;
+      background: rgba(255,255,255,0.04);
+      border: 1.5px solid rgba(255,255,255,0.45);
+      border-radius: 14px 14px 4px 4px;
+      color: rgba(255,255,255,0.75);
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.78rem;
+      letter-spacing: 0.02em;
+      width: 44px; height: 74px;
+      display: flex; align-items: flex-end; justify-content: center;
+      padding-bottom: 0.6rem;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    }
+    .sargam-key.sharp { margin-bottom: 0.85rem; }
+    .sargam-key:hover { border-color: rgba(255,255,255,0.75); }
+    .sargam-key.active {
+      background: rgba(255,255,255,0.18);
+      border-color: #ffffff;
+      color: #ffffff;
+      transform: translateY(10px);
+    }
+    #surpeti-caption {
+      font-family: 'Hind', sans-serif;
+      font-style: italic;
+      font-size: 0.74rem;
+      letter-spacing: 0.02em;
+      color: rgba(255,255,255,0.55);
+      text-align: center;
+      user-select: none;
+    }
 
     .notif-card {
-      background: rgba(13,28,21,0.92);
-      border: 1px solid #c89020;
+      background: rgba(0,0,0,0.92);
+      border: 1px solid #999999;
       padding: 0.65rem 0.95rem;
       font-size: 0.75rem;
-      color: #f0e0a8;
+      color: #ffffff;
       max-width: 230px;
       line-height: 1.6;
       transform: translateX(14px);
@@ -123,60 +178,28 @@
     }
     .notif-card.visible { transform: translateX(0); opacity: 1; }
     .notif-card a {
-      color: #e07828;
+      color: #ffffff;
       text-decoration: underline;
       text-underline-offset: 2px;
     }
     .notif-card em {
-      color: #f0e0a8;
+      color: #ffffff;
       font-family: 'Yatra One', serif;
       font-size: 0.88rem;
       font-style: normal;
     }
-    .notif-card .dot { color: #e07828; }
-
-    #bottom-left {
-      position: absolute;
-      bottom: 4.8rem; left: 1.5rem;
-      pointer-events: none;
-    }
-    #listener-count {
-      font-size: 0.7rem; letter-spacing: 0.05em;
-      color: #c89020;
-    }
-
-    #bottom-right {
-      position: absolute;
-      bottom: 4.8rem; right: 1.5rem;
-      display: flex; align-items: center; gap: 0.4rem;
-      pointer-events: auto;
-    }
-    #username-text { font-size: 0.72rem; color: #c89020; }
-    #username-edit {
-      background: transparent; border: none;
-      color: rgba(200,144,32,0.55); cursor: pointer;
-      font-size: 0.78rem; padding: 0 0.1rem; line-height: 1;
-      touch-action: manipulation;
-    }
-    #username-edit:hover { color: #f0e0a8; }
-    #username-input {
-      background: transparent; border: none;
-      border-bottom: 1px solid #c89020;
-      color: #f0e0a8;
-      font-family: 'Hind', sans-serif; font-size: 0.72rem;
-      padding: 0.1rem 0; outline: none; width: 130px;
-    }
+    .notif-card .dot { color: #ffffff; }
 
     /* ── Brand ───────────────────────────────────────────────── */
     #brand {
       position: fixed;
-      top: 1.4rem; right: 1.5rem;
+      top: 1.4rem; left: 1.5rem;
       z-index: 30;
       pointer-events: none;
       user-select: none;
       display: flex;
       flex-direction: column;
-      align-items: stretch;
+      align-items: flex-start;
       gap: 0.18rem;
     }
     #brand svg { opacity: 0.9; width: 100%; height: auto; }
@@ -185,63 +208,42 @@
       font-size: 0.6rem;
       letter-spacing: 0.13em;
       text-transform: uppercase;
-      color: rgba(200,144,32,0.55);
+      color: rgba(255,255,255,0.55);
       margin-top: 0;
       white-space: nowrap;
-      text-align: right;
+      text-align: left;
     }
 
-    /* ── Tap overlay ─────────────────────────────────────────── */
-    #tap-overlay {
-      position: fixed; inset: 0; z-index: 100;
-      background: #0d1c15;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center; gap: 0.9rem;
-      cursor: pointer; transition: opacity 0.55s ease;
-      touch-action: manipulation;
+    /* ── Site nav ────────────────────────────────────────────── */
+    #site-nav {
+      position: fixed;
+      top: 1.7rem; right: 1.5rem;
+      z-index: 30;
+      display: flex;
+      gap: 1.5rem;
+      pointer-events: auto;
     }
-    #tap-logo-block {
-      display: flex; flex-direction: column; align-items: flex-start;
-      opacity: 0.88;
+    .nav-link {
+      font-family: 'Hind', sans-serif;
+      font-size: 0.72rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.55);
+      text-decoration: none;
+      transition: color 0.15s;
     }
-    #tap-logo-wrap {
-      display: flex; align-items: center; gap: 0.75rem;
-    }
-    #tap-rings { flex-shrink: 0; }
-    #tap-wordmark {
-      font-family: 'Courier New', Courier, monospace;
-      font-size: 2rem; font-weight: bold; letter-spacing: 0.12em;
-      color: #f0e0a8; line-height: 1;
-      display: flex; align-items: center; gap: 0;
-    }
-    #tap-wordmark .tap-dot {
-      display: inline-block; width: 7px; height: 7px;
-      background: #e07828; border-radius: 50%;
-      margin: 0 0.22em;
-      position: relative; top: -1px;
-    }
-    #tap-tagline {
-      font-family: 'Courier New', Courier, monospace;
-      font-size: 0.52rem; font-weight: normal; font-style: normal;
-      letter-spacing: 0.28em; text-transform: uppercase;
-      color: rgba(200,144,32,0.78);
-      margin-top: 0.3rem;
-      width: 100%;
-      user-select: none;
-    }
-    #tap-hint {
-      font-family: 'Cormorant Garamond', Georgia, serif;
-      font-size: 0.78rem; font-weight: 300; font-style: italic;
-      letter-spacing: 0.18em;
-      color: rgba(240,224,168,0.65);
-      margin-top: 2.2rem;
-      user-select: none;
+    .nav-link:hover { color: #ffffff; }
+
+    @media (max-width: 560px) {
+      #site-nav { gap: 0.9rem; top: 1.5rem; right: 1rem; }
+      .nav-link { font-size: 0.62rem; letter-spacing: 0.08em; }
+      #brand { top: 1.2rem; left: 1rem; }
     }
 
     /* ── Join / OTP modal ────────────────────────────────────── */
     #join-modal {
       position: fixed; inset: 0; z-index: 50;
-      background: rgba(13,28,21,0.97);
+      background: rgba(0,0,0,0.97);
       display: flex; align-items: center; justify-content: center;
       opacity: 0; pointer-events: none;
       transition: opacity 0.28s ease;
@@ -257,53 +259,53 @@
     #join-close {
       position: absolute; top: -2.2rem; right: 1.5rem;
       cursor: pointer; font-size: 1.1rem;
-      color: #c89020;
+      color: #999999;
       background: none; border: none;
       font-family: inherit; touch-action: manipulation;
       transition: color 0.15s;
     }
-    #join-close:hover { color: #f0e0a8; }
+    #join-close:hover { color: #ffffff; }
 
     .join-heading {
       font-family: 'Yatra One', serif;
       font-size: 1rem; letter-spacing: 0.02em;
-      color: #f0e0a8;
+      color: #ffffff;
       margin-bottom: 0.35rem;
     }
     .join-sub {
-      font-size: 0.72rem; color: #c89020;
+      font-size: 0.72rem; color: #999999;
       margin-bottom: 1.4rem; line-height: 1.55;
     }
     .join-input {
       background: transparent; border: none;
-      border-bottom: 1px solid #c89020;
-      color: #f0e0a8;
+      border-bottom: 1px solid #999999;
+      color: #ffffff;
       font-family: 'Hind', sans-serif; font-size: 0.9rem;
       padding: 0.4rem 0; outline: none; width: 100%;
       margin-bottom: 1.2rem;
     }
-    .join-input::placeholder { color: rgba(200,144,32,0.4); }
+    .join-input::placeholder { color: rgba(255,255,255,0.4); }
     .join-submit {
       background: transparent; border: none;
       font-family: 'Hind', sans-serif;
       font-size: 0.8rem; letter-spacing: 0.05em;
-      color: #e07828;
+      color: #ffffff;
       cursor: pointer; padding: 0; text-align: left;
       touch-action: manipulation; transition: color 0.15s;
     }
-    .join-submit:hover { color: #f0e0a8; }
-    .join-submit:disabled { color: rgba(200,144,32,0.3); cursor: default; }
+    .join-submit:hover { color: #ffffff; }
+    .join-submit:disabled { color: rgba(255,255,255,0.3); cursor: default; }
     .join-err {
-      font-size: 0.68rem; color: #e05030;
+      font-size: 0.68rem; color: #ffffff;
       margin-top: 0.8rem; min-height: 1rem; line-height: 1.5;
     }
     .join-back {
-      font-size: 0.68rem; color: #c89020;
+      font-size: 0.68rem; color: #999999;
       cursor: pointer; background: none; border: none;
       font-family: inherit; padding: 0; margin-top: 1.2rem;
       touch-action: manipulation;
     }
-    .join-back:hover { color: #f0e0a8; }
+    .join-back:hover { color: #ffffff; }
 
     @keyframes blink {
       0%, 100% { opacity: 1; }
@@ -318,64 +320,45 @@
     <text x="0" y="26"
       font-family="'Courier New',Courier,monospace"
       font-size="24" font-weight="700" letter-spacing="1"
-      fill="#f0e0a8">Fur</text>
-    <circle cx="63" cy="19" r="4.5" fill="#e07828"/>
-    <text x="81" y="26"
-      font-family="'Courier New',Courier,monospace"
-      font-size="24" font-weight="700" letter-spacing="1"
-      fill="#f0e0a8">FM</text>
+      fill="#ffffff">FurFM</text>
   </svg>
   <div id="brand-tagline">Intentional Listening Space</div>
 </div>
 
+<nav id="site-nav">
+  <a class="nav-link" href="stream.html">Live</a>
+  <a class="nav-link" href="fursat.html">Fursat</a>
+  <a class="nav-link" href="studio.html">Studio</a>
+  <a class="nav-link" href="shop.html">Shop</a>
+</nav>
+
 <div id="ui-chrome">
   <div id="top-left">
-    <div id="drone-label">·</div>
     <div id="live-indicator">
       <span class="dot">●</span><a href="stream.html" target="_blank" id="live-link">live now · join →</a>
     </div>
   </div>
   <div id="notif-tray"></div>
-  <div id="bottom-left">
-    <div id="listener-count">·</div>
-  </div>
-  <div id="bottom-right">
-    <span id="username-text"></span>
-    <button id="username-edit" title="change name">✎</button>
-    <input id="username-input" style="display:none" maxlength="28" autocomplete="off" spellcheck="false" />
-  </div>
 </div>
 
-<!-- Drifting session / join card -->
+<!-- Drifting session / join card — shown when a session is scheduled -->
 <div id="session-card">
   <div id="sc-title"></div>
   <div id="sc-date"></div>
   <button id="sc-join">enter room →</button>
 </div>
 
-<div id="tap-overlay">
-  <div id="tap-logo-block">
-    <div id="tap-logo-wrap">
-      <!-- Wordmark -->
-      <div id="tap-wordmark">FUR<span class="tap-dot"></span>FM</div>
-      <!-- Radio rings icon -->
-      <svg id="tap-rings" viewBox="0 0 44 28" width="44" height="28" fill="none">
-        <defs>
-          <clipPath id="tap-rings-clip">
-            <rect x="0" y="0" width="44" height="22"/>
-          </clipPath>
-        </defs>
-        <g clip-path="url(#tap-rings-clip)">
-          <circle cx="22" cy="22" r="8"  stroke="#f0e0a8" stroke-width="1.4" opacity="0.72"/>
-          <circle cx="22" cy="22" r="14" stroke="#f0e0a8" stroke-width="1.1" opacity="0.48"/>
-          <circle cx="22" cy="22" r="20" stroke="#f0e0a8" stroke-width="0.8" opacity="0.28"/>
-        </g>
-        <circle cx="22" cy="22" r="2.6" fill="#e07828"/>
-      </svg>
-    </div>
-    <div id="tap-tagline">intentional listening space</div>
-  </div>
-  <div id="tap-hint">tap to listen</div>
+<!-- Static join card — shown when no session is scheduled, doesn't drift -->
+<div id="session-card-static">
+  <div class="sc-card-title">fur fm</div>
+  <div class="sc-card-date">sessions coming soon</div>
+  <button id="sc-static-join">enter room →</button>
+</div>
+
+<!-- Sur peti instrument — click a key to toggle it, no gate, no login -->
+<div id="surpeti-wrap">
+  <div id="surpeti-panel"></div>
+  <div id="surpeti-caption">the sound changes. you don't have to.</div>
 </div>
 
 <!-- Join / OTP modal -->
@@ -437,40 +420,6 @@
   let myName = localStorage.getItem('fur-fm-name');
   if (!myName) { myName = genName(); localStorage.setItem('fur-fm-name', myName); }
 
-  const nameTextEl  = document.getElementById('username-text');
-  const nameEditBtn = document.getElementById('username-edit');
-  const nameInputEl = document.getElementById('username-input');
-
-  function renderName() { nameTextEl.textContent = myName; }
-  renderName();
-
-  nameEditBtn.addEventListener('click', () => {
-    nameInputEl.value = myName;
-    nameInputEl.style.display   = '';
-    nameTextEl.style.display    = 'none';
-    nameEditBtn.style.display   = 'none';
-    nameInputEl.focus();
-    nameInputEl.select();
-  });
-
-  function commitName() {
-    const v = nameInputEl.value.trim().replace(/[<>"&]/g,'').slice(0, 28);
-    if (v && v !== myName) {
-      myName = v;
-      localStorage.setItem('fur-fm-name', myName);
-      if (presenceChannel) presenceChannel.track({ username: myName });
-    }
-    nameInputEl.style.display  = 'none';
-    nameTextEl.style.display   = '';
-    nameEditBtn.style.display  = '';
-    renderName();
-  }
-
-  nameInputEl.addEventListener('blur', commitName);
-  nameInputEl.addEventListener('keydown', e => {
-    if (e.key === 'Enter') { e.preventDefault(); nameInputEl.blur(); }
-  });
-
   /* ── Notifications ─────────────────────────────────────────────────── */
   const notifTray = document.getElementById('notif-tray');
 
@@ -500,11 +449,13 @@
     if (on && label) liveLinkEl.textContent = label + ' · join →';
   }
 
-  /* ── Drifting session card ─────────────────────────────────────────── */
-  const sessionCard = document.getElementById('session-card');
-  const scTitle     = document.getElementById('sc-title');
-  const scDate      = document.getElementById('sc-date');
-  const scJoinBtn   = document.getElementById('sc-join');
+  /* ── Session card (drifting, when a session is scheduled) ───────────── */
+  const sessionCard   = document.getElementById('session-card');
+  const scTitle       = document.getElementById('sc-title');
+  const scDate        = document.getElementById('sc-date');
+  const scJoinBtn     = document.getElementById('sc-join');
+  const sessionCardStatic = document.getElementById('session-card-static');
+  const scStaticJoinBtn   = document.getElementById('sc-static-join');
   let   driftTimer  = null;
 
   function startDrift() {
@@ -547,16 +498,13 @@
       scDate.textContent  = next.date
         ? new Date(next.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric' })
         : '';
+      scJoinBtn.addEventListener('click', () => openJoinModal());
+      startDrift();
     } else {
-      scTitle.textContent = 'fur fm';
-      scDate.textContent  = 'sessions coming soon';
+      // No session scheduled — static card, no drift.
+      sessionCardStatic.style.display = 'flex';
+      scStaticJoinBtn.addEventListener('click', () => openJoinModal());
     }
-
-    // Always require OTP to enter the room
-    scJoinBtn.textContent = 'enter room →';
-    scJoinBtn.addEventListener('click', () => openJoinModal());
-
-    startDrift();
 
     // Current live state
     const { data: np } = await db.from('now_playing')
@@ -593,206 +541,138 @@
   })();
 
   /* ── Presence ──────────────────────────────────────────────────────── */
-  const countEl = document.getElementById('listener-count');
-  let presenceChannel = null;
-
-  presenceChannel = db.channel('fur-fm:room');
+  let presenceChannel = db.channel('fur-fm:room');
   presenceChannel
-    .on('presence', { event: 'sync' }, () => {
-      const n = Object.keys(presenceChannel.presenceState()).length;
-      countEl.textContent = n === 1 ? '1 listening' : `${n} listening`;
-    })
     .subscribe(async status => {
       if (status === 'SUBSCRIBED') await presenceChannel.track({ username: myName });
     });
 
-  /* ── Drone synth ───────────────────────────────────────────────────── */
-  const SLOT_MS        = 8 * 60 * 1000;   // 8-minute drone slots
-  const LFO_PERIOD_MS  = 90 * 1000;       // 90-second filter sweep
-  const TREM_PERIOD_MS = 37 * 1000;       // 37-second breathing cycle (prime, offset from LFO)
+  /* ── Sur peti instrument ───────────────────────────────────────────────
+     8 independent, polyphonic click-toggle voices. Fully self-contained —
+     no shared/server state, no gate. AudioContext inits lazily on the
+     first key click. Evolution timings are the tunable knobs here. ──── */
+  const FADE_IN_MS        = 400;    // base tone fade-in
+  const DETUNE_RAMP_MS    = 18000;  // chorus (detuned) oscillator ramp-in
+  const NOISE_RAMP_MS     = 22000;  // filtered-noise breath ramp-in
+  const LFO_DEPTH_RAMP_MS = 20000;  // pitch-drift LFO depth ramp-in
+  const RELEASE_MS        = 1200;   // fade-out on toggle-off
+  const LFO_RATE_HZ       = 0.12;
+  const DETUNE_CENTS      = 6;      // chorus detune amount
+  const LFO_MAX_CENTS     = 5;      // max pitch-drift depth once fully ramped in
+  const NOISE_Q           = 4;
 
-  const ROOTS = [
-    { hz: 55.00,  name: 'A' },
-    { hz: 73.42,  name: 'D' },
-    { hz: 82.41,  name: 'E' },
-    { hz: 98.00,  name: 'G' },
-    { hz: 110.00, name: 'A' },
+  const SARGAM = [
+    { name: 'Sa',  hz: 130.81, sharp: false },
+    { name: 'Re',  hz: 146.83, sharp: true  },
+    { name: 'Ga',  hz: 164.81, sharp: false },
+    { name: 'Ma',  hz: 174.61, sharp: true  },
+    { name: 'Pa',  hz: 196.00, sharp: false },
+    { name: 'Dha', hz: 220.00, sharp: true  },
+    { name: 'Ni',  hz: 246.94, sharp: false },
+    { name: "Sa'", hz: 261.63, sharp: true  },
   ];
 
-  // Deterministic pseudo-random from integer seed + index
-  function seedRand(seed, n) {
-    const x = Math.sin(seed * 127.1 + n * 311.7) * 43758.5453;
-    return x - Math.floor(x);
+  let ctx = null;
+  let noiseBufferCache = null;
+  const voices = {}; // idx -> { voiceGain, baseOsc, detOsc, lfo, noiseSrc }
+
+  function ensureCtx() {
+    if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+    if (ctx.state === 'suspended') ctx.resume();
+    return ctx;
   }
 
-  function droneParams(seed) {
-    const ri = Math.floor(seedRand(seed, 0) * ROOTS.length);
-    return {
-      rootHz:     ROOTS[ri].hz,
-      rootName:   ROOTS[ri].name,
-      detune2:    (seedRand(seed, 1) * 4) - 2,      // ±2 cents — slow, gentle beating (~8–15s)
-      detune3:    (seedRand(seed, 2) * 4) - 2,      // ±2 cents
-      filterBase: 140 + seedRand(seed, 3) * 200,    // 140–340 Hz — dark and warm
-      lfoDepth:   20  + seedRand(seed, 4) * 40,     // 20–60 Hz — barely perceptible sweep
-      vol:        0.10 + seedRand(seed, 5) * 0.05,  // 0.10–0.15 — soft
-    };
+  function getNoiseBuffer() {
+    if (noiseBufferCache) return noiseBufferCache;
+    const len  = ctx.sampleRate * 2;
+    const buf  = ctx.createBuffer(1, len, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
+    noiseBufferCache = buf;
+    return buf;
   }
 
-  function lerp(a, b, t) { return a + (b - a) * t; }
+  function startVoice(idx) {
+    const freq = SARGAM[idx].hz;
+    const now  = ctx.currentTime;
 
-  const droneLabelEl = document.getElementById('drone-label');
-  let ctx, oscNodes, filterNode, masterNode, tremoloNode, lfoTimer, tremoloTimer, currentParams;
-  let workletOk = false;
-  let fieldLayerActive = false;
+    const voiceGain = ctx.createGain();
+    voiceGain.gain.value = 1;
+    voiceGain.connect(ctx.destination);
 
-  function updateDroneLabel() {
-    if (!currentParams) return;
-    const ms   = SLOT_MS - (Date.now() % SLOT_MS);
-    const mins = Math.ceil(ms / 60000);
-    const base = `drone in ${currentParams.rootName} · shifting in ${mins < 2 ? 'soon' : mins + 'm'}`;
-    droneLabelEl.textContent = fieldLayerActive ? `🌾 ${base}` : base;
+    // 1. Base tone — clean fade-in
+    const baseOsc  = ctx.createOscillator();
+    baseOsc.type = 'triangle';
+    baseOsc.frequency.value = freq;
+    const baseGain = ctx.createGain();
+    baseGain.gain.setValueAtTime(0, now);
+    baseGain.gain.linearRampToValueAtTime(0.28, now + FADE_IN_MS / 1000);
+    baseOsc.connect(baseGain); baseGain.connect(voiceGain);
+    baseOsc.start(now);
+
+    // 2. Detuned chorus oscillator — inaudible at first, ramps in slowly
+    const detOsc = ctx.createOscillator();
+    detOsc.type = 'triangle';
+    detOsc.frequency.value = freq;
+    detOsc.detune.value    = DETUNE_CENTS;
+    const detGain = ctx.createGain();
+    detGain.gain.setValueAtTime(0, now);
+    detGain.gain.linearRampToValueAtTime(0.14, now + DETUNE_RAMP_MS / 1000);
+    detOsc.connect(detGain); detGain.connect(voiceGain);
+    detOsc.start(now);
+
+    // 3. Slow LFO on the chorus oscillator's pitch, depth ramps in over time
+    const lfo = ctx.createOscillator();
+    lfo.type = 'sine';
+    lfo.frequency.value = LFO_RATE_HZ;
+    const lfoDepth = ctx.createGain();
+    lfoDepth.gain.setValueAtTime(0, now);
+    lfoDepth.gain.linearRampToValueAtTime(LFO_MAX_CENTS, now + LFO_DEPTH_RAMP_MS / 1000);
+    lfo.connect(lfoDepth); lfoDepth.connect(detOsc.detune);
+    lfo.start(now);
+
+    // 4. Filtered noise — soft breath-like texture, ramps in slowest
+    const noiseSrc = ctx.createBufferSource();
+    noiseSrc.buffer = getNoiseBuffer();
+    noiseSrc.loop   = true;
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = freq;
+    bp.Q.value = NOISE_Q;
+    const noiseGain = ctx.createGain();
+    noiseGain.gain.setValueAtTime(0, now);
+    noiseGain.gain.linearRampToValueAtTime(0.10, now + NOISE_RAMP_MS / 1000);
+    noiseSrc.connect(bp); bp.connect(noiseGain); noiseGain.connect(voiceGain);
+    noiseSrc.start(now);
+
+    voices[idx] = { voiceGain, baseOsc, detOsc, lfo, noiseSrc };
   }
 
-  // LFO phase locked to wall-clock — all listeners hear the same sweep moment.
-  function startLFO(params, fromParams, transStart) {
-    clearInterval(lfoTimer);
-    const TRANS_MS = 30000; // 30-second crossfade between slot params
-    lfoTimer = setInterval(() => {
-      let base  = params.filterBase;
-      let depth = params.lfoDepth;
-      if (fromParams && transStart) {
-        const p = Math.min(1, (Date.now() - transStart) / TRANS_MS);
-        base  = lerp(fromParams.filterBase, params.filterBase, p);
-        depth = lerp(fromParams.lfoDepth,   params.lfoDepth,   p);
-      }
-      const phase  = ((Date.now() % LFO_PERIOD_MS) / LFO_PERIOD_MS) * Math.PI * 2;
-      const cutoff = Math.max(60, base + Math.sin(phase) * depth);
-      filterNode.frequency.setTargetAtTime(cutoff, ctx.currentTime, 1.2); // slow response
-    }, 250);
+  function stopVoice(idx) {
+    const v = voices[idx];
+    if (!v) return;
+    delete voices[idx];
+    const now = ctx.currentTime;
+    v.voiceGain.gain.cancelScheduledValues(now);
+    v.voiceGain.gain.setValueAtTime(v.voiceGain.gain.value, now);
+    v.voiceGain.gain.linearRampToValueAtTime(0, now + RELEASE_MS / 1000);
+    const stopAt = now + RELEASE_MS / 1000 + 0.05;
+    [v.baseOsc, v.detOsc, v.lfo, v.noiseSrc].forEach(n => { try { n.stop(stopAt); } catch (_) {} });
   }
 
-  // Slow amplitude tremolo — breath-like envelope, wall-clock phase.
-  function startTremolo() {
-    clearInterval(tremoloTimer);
-    tremoloTimer = setInterval(() => {
-      if (!tremoloNode) return;
-      const phase = ((Date.now() % TREM_PERIOD_MS) / TREM_PERIOD_MS) * Math.PI * 2;
-      const gain  = 1.0 + 0.06 * Math.sin(phase); // ±6% breathing
-      tremoloNode.gain.setTargetAtTime(gain, ctx.currentTime, 4); // very slow response
-    }, 300);
-  }
-
-  function scheduleDroneSlot() {
-    const msUntilNext = SLOT_MS - (Date.now() % SLOT_MS);
-    setTimeout(() => {
-      const newParams = droneParams(Math.floor(Date.now() / SLOT_MS));
-      const t    = ctx.currentTime;
-      const RAMP = 30; // 30-second glide between keys
-      oscNodes[0].osc.frequency.linearRampToValueAtTime(newParams.rootHz,       t + RAMP);
-      oscNodes[1].osc.frequency.linearRampToValueAtTime(newParams.rootHz * 1.5, t + RAMP);
-      oscNodes[2].osc.frequency.linearRampToValueAtTime(newParams.rootHz * 2,   t + RAMP);
-      oscNodes[1].osc.detune.linearRampToValueAtTime(newParams.detune2, t + RAMP);
-      oscNodes[2].osc.detune.linearRampToValueAtTime(newParams.detune3, t + RAMP);
-      masterNode.gain.linearRampToValueAtTime(newParams.vol, t + RAMP);
-      startLFO(newParams, currentParams, Date.now());
-      currentParams = newParams;
-      updateDroneLabel();
-      scheduleDroneSlot(); // schedule the one after
-    }, msUntilNext);
-  }
-
-  async function buildDrone() {
-    const seed = Math.floor(Date.now() / SLOT_MS);
-    currentParams = droneParams(seed);
-    const p = currentParams;
-
-    // AudioContext created synchronously — required for iOS gesture unlock
-    ctx = new (window.AudioContext || window.webkitAudioContext)();
-
-    // Root + fifth + octave, each slightly detuned for warmth
-    const cfgs = [
-      { freq: p.rootHz,       detune: 0,         vol: 0.62 },
-      { freq: p.rootHz * 1.5, detune: p.detune2,  vol: 0.36 },
-      { freq: p.rootHz * 2,   detune: p.detune3,  vol: 0.18 },
-    ];
-
-    oscNodes = cfgs.map(({ freq, detune, vol }) => {
-      const osc = ctx.createOscillator();
-      const g   = ctx.createGain();
-      osc.type            = 'sine';
-      osc.frequency.value = freq;
-      osc.detune.value    = detune;
-      g.gain.value        = vol;
-      osc.connect(g);
-      return { osc, g };
+  const surpetiPanel = document.getElementById('surpeti-panel');
+  SARGAM.forEach((note, idx) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'sargam-key' + (note.sharp ? ' sharp' : '');
+    btn.textContent = note.name;
+    btn.addEventListener('click', () => {
+      ensureCtx();
+      const isActive = btn.classList.toggle('active');
+      if (isActive) startVoice(idx); else stopVoice(idx);
     });
-
-    // Low-pass filter (driven by LFO)
-    filterNode = ctx.createBiquadFilter();
-    filterNode.type            = 'lowpass';
-    filterNode.Q.value         = 0.9;
-    filterNode.frequency.value = p.filterBase;
-
-    // Four comb-filter delays — long, lush reverb tail
-    function makeComb(dt, fb) {
-      const d  = ctx.createDelay(6); d.delayTime.value = dt;
-      const fg = ctx.createGain();   fg.gain.value     = fb;
-      d.connect(fg); fg.connect(d);
-      return d;
-    }
-    const c1 = makeComb(0.397, 0.80);
-    const c2 = makeComb(0.601, 0.76);
-    const c3 = makeComb(0.253, 0.73);
-    const c4 = makeComb(0.467, 0.70);
-
-    const dryG = ctx.createGain();  dryG.gain.value  = 0.28;
-    const w1   = ctx.createGain();  w1.gain.value    = 0.22;
-    const w2   = ctx.createGain();  w2.gain.value    = 0.20;
-    const w3   = ctx.createGain();  w3.gain.value    = 0.18;
-    const w4   = ctx.createGain();  w4.gain.value    = 0.15;
-
-    masterNode  = ctx.createGain();  masterNode.gain.value  = 0;
-    tremoloNode = ctx.createGain();  tremoloNode.gain.value = 1;
-
-    // ── Granular synthesis layer ─────────────────────────────────────────
-    // Oscillators → granular worklet → filter → reverb → master → tremolo
-    // Falls back to direct oscillator → filter if worklet can't load
-    // (e.g. file:// access without a server, or older browser)
-    let oscTarget = filterNode; // default: direct connection
-    try {
-      await ctx.audioWorklet.addModule('drone-worklet.js');
-      const granular = new AudioWorkletNode(ctx, 'granular-drone', {
-        numberOfInputs:    1,
-        numberOfOutputs:   1,
-        outputChannelCount:[2],  // stereo output — grains are panned L/R
-      });
-      granular.connect(filterNode);
-      oscTarget = granular;
-      workletOk = true;
-    } catch (_) {
-      // AudioWorklet unavailable (file:// or older browser) — direct chain
-      workletOk = false;
-    }
-    oscNodes.forEach(({ g }) => g.connect(oscTarget));
-    // ─────────────────────────────────────────────────────────────────────
-
-    filterNode.connect(dryG); dryG.connect(masterNode);
-    filterNode.connect(c1);   c1.connect(w1); w1.connect(masterNode);
-    filterNode.connect(c2);   c2.connect(w2); w2.connect(masterNode);
-    filterNode.connect(c3);   c3.connect(w3); w3.connect(masterNode);
-    filterNode.connect(c4);   c4.connect(w4); w4.connect(masterNode);
-    masterNode.connect(tremoloNode);
-    tremoloNode.connect(ctx.destination);
-
-    oscNodes.forEach(({ osc }) => osc.start());
-    masterNode.gain.linearRampToValueAtTime(p.vol, ctx.currentTime + 8);
-
-    startLFO(currentParams);
-    startTremolo();
-    updateDroneLabel();
-    scheduleDroneSlot();
-    setInterval(updateDroneLabel, 60000);
-  }
+    surpetiPanel.appendChild(btn);
+  });
 
   /* ── Join session / OTP modal ─────────────────────────────────────── */
   const joinModal    = document.getElementById('join-modal');
@@ -873,167 +753,6 @@
 
   joinVerifyBtn.addEventListener('click', verifyOtp);
   joinOtpEl.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); verifyOtp(); } });
-
-  /* ── Lounge state (drone vs track override) ───────────────────────── */
-  const LOUNGE_NP_ID = '00000000-0000-0000-0000-000000000002';
-  let loungeAudioEl  = null;
-
-  /* ── Granular field-recording playback ───────────────────────────────
-     The lounge's standing sound: the drone plus a granularized field
-     recording, both at their normal levels — a persistent ambient layer,
-     not something toggled per visit. Feeds a looping field recording
-     through the same 'granular-drone' worklet the drone uses, on its own
-     gain node so it's independent of the drone's master gain. */
-  const FIELD_GRANULAR_VOL = 0.7;
-  let fieldSourceNode   = null;
-  let fieldGranularNode = null;
-  let fieldMasterGain   = null;
-  let fieldBufCache     = {};
-  let fieldCurrentUrl   = null;
-  let fieldGen          = 0;
-
-  async function startFieldGranular(url) {
-    if (!ctx) return;
-    if (fieldCurrentUrl === url && fieldSourceNode) return; // already playing this url
-    stopFieldGranular();
-    fieldCurrentUrl = url;
-    const myGen = ++fieldGen;
-
-    let buf = fieldBufCache[url];
-    if (!buf) {
-      const resp = await fetch(url);
-      const arr  = await resp.arrayBuffer();
-      buf = await ctx.decodeAudioData(arr);
-      fieldBufCache[url] = buf;
-    }
-    if (myGen !== fieldGen) return; // superseded while decoding
-
-    const source = ctx.createBufferSource();
-    source.buffer = buf;
-    source.loop   = true;
-
-    const monoDown = ctx.createGain();
-    monoDown.channelCount          = 1;
-    monoDown.channelCountMode      = 'explicit';
-    monoDown.channelInterpretation = 'speakers';
-
-    const gain = ctx.createGain();
-    gain.gain.value = 0;
-
-    if (workletOk) {
-      try {
-        const granular = new AudioWorkletNode(ctx, 'granular-drone', {
-          numberOfInputs: 1, numberOfOutputs: 1, outputChannelCount: [2],
-        });
-        monoDown.connect(granular);
-        granular.connect(gain);
-        fieldGranularNode = granular;
-      } catch (_) {
-        monoDown.connect(gain); // worklet instantiation failed — dry loop
-      }
-    } else {
-      monoDown.connect(gain); // worklet unavailable — dry loop
-    }
-    source.connect(monoDown);
-    gain.connect(ctx.destination);
-    source.start();
-    gain.gain.linearRampToValueAtTime(FIELD_GRANULAR_VOL, ctx.currentTime + 3);
-
-    fieldSourceNode  = source;
-    fieldMasterGain  = gain;
-    fieldLayerActive = true;
-    updateDroneLabel();
-  }
-
-  function stopFieldGranular() {
-    fieldGen++; // invalidate any in-flight decode
-    fieldCurrentUrl = null;
-    fieldLayerActive = false;
-    const source = fieldSourceNode;
-    const gain   = fieldMasterGain;
-    fieldSourceNode = fieldGranularNode = fieldMasterGain = null;
-    if (gain && ctx) {
-      gain.gain.setTargetAtTime(0, ctx.currentTime, 0.6);
-      setTimeout(() => { try { source && source.stop(); } catch (_) {} }, 2000);
-    } else if (source) {
-      try { source.stop(); } catch (_) {}
-    }
-    updateDroneLabel();
-  }
-
-  function applyLoungeState(d) {
-    const droneLabel   = document.getElementById('drone-label');
-    const overrideLive = !!(d?.is_playing && d?.audio_url);
-    const fieldUrl     = d?.scene?.field_recording?.url || null;
-
-    if (overrideLive) {
-      // Temporary straight-track takeover — fully replaces drone + ambient layer.
-      stopFieldGranular();
-      if (!loungeAudioEl) loungeAudioEl = new Audio();
-      if (loungeAudioEl.src !== d.audio_url) {
-        loungeAudioEl.src = d.audio_url;
-        if (d.playhead_pos > 0) loungeAudioEl.currentTime = d.playhead_pos;
-      }
-      loungeAudioEl.play().catch(() => {});
-      if (masterNode && ctx) masterNode.gain.setTargetAtTime(0, ctx.currentTime, 1.2);
-      if (droneLabel) droneLabel.textContent = d.track_title
-        ? `♪ ${d.track_title}${d.artist ? ' · ' + d.artist : ''}`
-        : '♪ lounge track';
-      return;
-    }
-
-    // No override: drone at its normal volume, plus the ambient field
-    // recording layer if one is set — both play at their normal levels.
-    if (loungeAudioEl) { loungeAudioEl.pause(); loungeAudioEl.src = ''; loungeAudioEl = null; }
-    if (masterNode && ctx) masterNode.gain.setTargetAtTime(currentParams?.vol || 0.15, ctx.currentTime, 2);
-    if (fieldUrl) startFieldGranular(fieldUrl);
-    else stopFieldGranular();
-  }
-
-  function applyDroneOverride(dc) {
-    if (!ctx || !filterNode || !masterNode || !oscNodes) return;
-    const t = ctx.currentTime;
-    const RAMP = 5;
-    if (dc.rootHz) {
-      oscNodes[0].osc.frequency.linearRampToValueAtTime(dc.rootHz,       t + RAMP);
-      oscNodes[1].osc.frequency.linearRampToValueAtTime(dc.rootHz * 1.5, t + RAMP);
-      oscNodes[2].osc.frequency.linearRampToValueAtTime(dc.rootHz * 2,   t + RAMP);
-      if (dc.rootName) currentParams.rootName = dc.rootName;
-      currentParams.rootHz = dc.rootHz;
-    }
-    if (dc.vol) { currentParams.vol = dc.vol; masterNode.gain.linearRampToValueAtTime(dc.vol, t + RAMP); }
-    if (dc.filterBase !== undefined) currentParams.filterBase = dc.filterBase;
-    if (dc.lfoDepth   !== undefined) currentParams.lfoDepth   = dc.lfoDepth;
-    updateDroneLabel();
-  }
-
-  /* ── Tap overlay ───────────────────────────────────────────────────── */
-  const tapOverlay = document.getElementById('tap-overlay');
-  tapOverlay.addEventListener('click', async () => {
-    await buildDrone();
-    tapOverlay.style.opacity       = '0';
-    tapOverlay.style.pointerEvents = 'none';
-    setTimeout(() => tapOverlay.remove(), 600);
-
-    /* Check lounge state + drone config override */
-    const { data: ls } = await db.from('now_playing')
-      .select('is_playing,audio_url,track_title,artist,playhead_pos,scene')
-      .eq('id', LOUNGE_NP_ID).maybeSingle();
-
-    if (ls?.scene?.drone_config?.override) {
-      applyDroneOverride(ls.scene.drone_config);
-    }
-    applyLoungeState(ls);
-
-    /* Subscribe to lounge changes */
-    db.channel('lounge-visitor')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'now_playing' }, ({ new: d }) => {
-        if (d?.id !== LOUNGE_NP_ID) return;
-        if (d?.scene?.drone_config?.override) applyDroneOverride(d.scene.drone_config);
-        applyLoungeState(d);
-      })
-      .subscribe();
-  }, { once: true });
 
 })();
 </script>
