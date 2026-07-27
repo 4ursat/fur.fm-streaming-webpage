@@ -21,7 +21,7 @@
       width: 100%; height: 100%;
       overflow: hidden;
       background: #000000;
-      font-family: 'Hind', sans-serif;
+      font-family: 'Yatra One', serif;
       color: #ffffff;
       -webkit-tap-highlight-color: transparent;
     }
@@ -41,7 +41,7 @@
     }
 
     #top-left {
-      position: absolute; top: 4.8rem; left: 1.5rem;
+      position: absolute; top: 6.2rem; left: 1.5rem;
       display: flex; flex-direction: column; gap: 0.42rem;
     }
     #live-indicator {
@@ -67,8 +67,8 @@
       pointer-events: auto;
     }
 
-    /* ── Session / join cards ────────────────────────────────── */
-    #session-card, #session-card-static {
+    /* ── Session / join card ─────────────────────────────────── */
+    #session-card {
       position: fixed;
       z-index: 25;
       display: none;
@@ -80,35 +80,29 @@
       max-width: 210px;
       line-height: 1.55;
       pointer-events: auto;
-    }
-    #session-card {
       top: 0; left: 0;
       will-change: transform;
     }
-    #session-card-static {
-      bottom: 4.8rem; left: 50%;
-      transform: translateX(-50%);
-    }
-    #sc-title, .sc-card-title {
+    #sc-title {
       font-family: 'Yatra One', serif;
       font-size: 0.95rem;
       color: #ffffff;
       line-height: 1.35;
     }
-    #sc-date, .sc-card-date {
+    #sc-date {
       font-size: 0.68rem; letter-spacing: 0.04em;
       color: #999999;
     }
-    #sc-join, #sc-static-join {
+    #sc-join {
       background: transparent; border: none;
-      font-family: 'Hind', sans-serif;
+      font-family: 'Yatra One', serif;
       font-size: 0.72rem; letter-spacing: 0.05em;
       color: #ffffff;
       cursor: pointer; padding: 0; margin-top: 0.3rem;
       text-align: left; touch-action: manipulation;
       transition: color 0.15s;
     }
-    #sc-join:hover, #sc-static-join:hover { color: #ffffff; }
+    #sc-join:hover { color: #ffffff; }
 
     /* ── Sur peti instrument ─────────────────────────────────── */
     #surpeti-wrap {
@@ -117,16 +111,17 @@
       transform: translate(-50%, -50%);
       z-index: 22;
       display: flex; flex-direction: column; align-items: center;
-      gap: 0.9rem;
+      gap: 1.4rem;
+      padding: 2.8rem 2.6rem 2.2rem;
+      border: 1.5px solid rgba(255,255,255,0.55);
+      background: rgba(0,0,0,0.3);
+      max-width: 92vw;
     }
     #surpeti-panel {
       display: flex;
       align-items: flex-end;
-      gap: 0.6rem;
-      padding: 2.2rem 1.6rem 1rem;
-      border: 1.5px solid rgba(255,255,255,0.55);
-      background: rgba(0,0,0,0.3);
-      max-width: 92vw;
+      gap: 0.8rem;
+      max-width: 100%;
       flex-wrap: nowrap;
       overflow-x: auto;
     }
@@ -134,19 +129,19 @@
       appearance: none;
       background: rgba(255,255,255,0.04);
       border: 1.5px solid rgba(255,255,255,0.45);
-      border-radius: 14px 14px 4px 4px;
+      border-radius: 16px 16px 4px 4px;
       color: rgba(255,255,255,0.75);
       font-family: 'Courier New', Courier, monospace;
-      font-size: 0.78rem;
+      font-size: 0.85rem;
       letter-spacing: 0.02em;
-      width: 44px; height: 74px;
+      width: 52px; height: 88px;
       display: flex; align-items: flex-end; justify-content: center;
-      padding-bottom: 0.6rem;
+      padding-bottom: 0.7rem;
       cursor: pointer;
       touch-action: manipulation;
       transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
     }
-    .sargam-key.sharp { margin-bottom: 0.85rem; }
+    .sargam-key.sharp { margin-bottom: 1rem; }
     .sargam-key:hover { border-color: rgba(255,255,255,0.75); }
     .sargam-key.active {
       background: rgba(255,255,255,0.18);
@@ -154,16 +149,71 @@
       color: #ffffff;
       transform: translateY(10px);
     }
-    #surpeti-caption {
-      font-family: 'Hind', sans-serif;
-      font-style: italic;
-      font-size: 0.74rem;
-      letter-spacing: 0.02em;
-      color: rgba(255,255,255,0.55);
-      text-align: center;
-      user-select: none;
+    #surpeti-controls {
+      display: flex;
+      align-items: center;
+      gap: 1.4rem;
     }
-
+    .surpeti-btn {
+      appearance: none;
+      background: transparent;
+      border: 1.5px solid rgba(255,255,255,0.45);
+      border-radius: 4px;
+      color: rgba(255,255,255,0.75);
+      font-family: 'Yatra One', serif;
+      font-size: 0.7rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      padding: 0.45rem 1rem;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+    }
+    .surpeti-btn:hover {
+      border-color: #ffffff;
+      color: #ffffff;
+      background: rgba(255,255,255,0.06);
+    }
+    .surpeti-btn.active {
+      background: rgba(255,255,255,0.18);
+      border-color: #ffffff;
+      color: #ffffff;
+    }
+    #surpeti-volume-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+    }
+    #surpeti-volume-wrap label {
+      font-size: 0.62rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.5);
+    }
+    #surpeti-volume {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100px;
+      height: 2px;
+      background: rgba(255,255,255,0.3);
+      outline: none;
+      cursor: pointer;
+    }
+    #surpeti-volume::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: #ffffff;
+      cursor: pointer;
+    }
+    #surpeti-volume::-moz-range-thumb {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: none;
+      cursor: pointer;
+    }
     .notif-card {
       background: rgba(0,0,0,0.92);
       border: 1px solid #999999;
@@ -195,24 +245,14 @@
       position: fixed;
       top: 1.4rem; left: 1.5rem;
       z-index: 30;
-      pointer-events: none;
       user-select: none;
       display: flex;
       flex-direction: column;
       align-items: flex-start;
       gap: 0.18rem;
+      text-decoration: none;
     }
     #brand svg { opacity: 0.9; width: 100%; height: auto; }
-    #brand-tagline {
-      font-family: 'Hind', sans-serif;
-      font-size: 0.6rem;
-      letter-spacing: 0.13em;
-      text-transform: uppercase;
-      color: rgba(255,255,255,0.55);
-      margin-top: 0;
-      white-space: nowrap;
-      text-align: left;
-    }
 
     /* ── Site nav ────────────────────────────────────────────── */
     #site-nav {
@@ -224,7 +264,7 @@
       pointer-events: auto;
     }
     .nav-link {
-      font-family: 'Hind', sans-serif;
+      font-family: 'Yatra One', serif;
       font-size: 0.72rem;
       letter-spacing: 0.12em;
       text-transform: uppercase;
@@ -280,14 +320,14 @@
       background: transparent; border: none;
       border-bottom: 1px solid #999999;
       color: #ffffff;
-      font-family: 'Hind', sans-serif; font-size: 0.9rem;
+      font-family: 'Yatra One', serif; font-size: 0.9rem;
       padding: 0.4rem 0; outline: none; width: 100%;
       margin-bottom: 1.2rem;
     }
     .join-input::placeholder { color: rgba(255,255,255,0.4); }
     .join-submit {
       background: transparent; border: none;
-      font-family: 'Hind', sans-serif;
+      font-family: 'Yatra One', serif;
       font-size: 0.8rem; letter-spacing: 0.05em;
       color: #ffffff;
       cursor: pointer; padding: 0; text-align: left;
@@ -315,21 +355,26 @@
 </head>
 <body>
 
-<div id="brand">
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 168 34" width="140" height="29" fill="none">
-    <text x="0" y="26"
+<a id="brand" href="index.html">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 168 64" width="140" height="53" fill="none">
+    <text x="0" y="24"
       font-family="'Courier New',Courier,monospace"
       font-size="24" font-weight="700" letter-spacing="1"
-      fill="#ffffff">FurFM</text>
+      fill="#ffffff">FursatFM</text>
+    <line x1="1" y1="31" x2="37" y2="31" stroke="rgba(255,255,255,0.4)" stroke-width="1"/>
+    <text x="1" y="50"
+      font-family="'Yatra One', serif"
+      font-size="18"
+      fill="rgba(255,255,255,0.75)">फ़ुर्सत</text>
   </svg>
-  <div id="brand-tagline">Intentional Listening Space</div>
-</div>
+</a>
 
 <nav id="site-nav">
   <a class="nav-link" href="stream.html">Live</a>
-  <a class="nav-link" href="fursat.html">Fursat</a>
+  <a class="nav-link" href="fursat.html">Music</a>
   <a class="nav-link" href="studio.html">Studio</a>
   <a class="nav-link" href="shop.html">Shop</a>
+  <a class="nav-link" href="cry.html">Cry</a>
 </nav>
 
 <div id="ui-chrome">
@@ -348,17 +393,19 @@
   <button id="sc-join">enter room →</button>
 </div>
 
-<!-- Static join card — shown when no session is scheduled, doesn't drift -->
-<div id="session-card-static">
-  <div class="sc-card-title">fur fm</div>
-  <div class="sc-card-date">sessions coming soon</div>
-  <button id="sc-static-join">enter room →</button>
-</div>
 
 <!-- Sur peti instrument — click a key to toggle it, no gate, no login -->
 <div id="surpeti-wrap">
   <div id="surpeti-panel"></div>
-  <div id="surpeti-caption">the sound changes. you don't have to.</div>
+  <div id="surpeti-controls">
+    <button id="surpeti-randomize" class="surpeti-btn" type="button">randomize</button>
+    <button id="surpeti-stopall" class="surpeti-btn" type="button">stop all</button>
+    <button id="surpeti-noise" class="surpeti-btn" type="button">noise</button>
+    <div id="surpeti-volume-wrap">
+      <label for="surpeti-volume">vol</label>
+      <input type="range" id="surpeti-volume" min="0" max="1" step="0.01" value="1" />
+    </div>
+  </div>
 </div>
 
 <!-- Join / OTP modal -->
@@ -454,8 +501,6 @@
   const scTitle       = document.getElementById('sc-title');
   const scDate        = document.getElementById('sc-date');
   const scJoinBtn     = document.getElementById('sc-join');
-  const sessionCardStatic = document.getElementById('session-card-static');
-  const scStaticJoinBtn   = document.getElementById('sc-static-join');
   let   driftTimer  = null;
 
   function startDrift() {
@@ -500,10 +545,6 @@
         : '';
       scJoinBtn.addEventListener('click', () => openJoinModal());
       startDrift();
-    } else {
-      // No session scheduled — static card, no drift.
-      sessionCardStatic.style.display = 'flex';
-      scStaticJoinBtn.addEventListener('click', () => openJoinModal());
     }
 
     // Current live state
@@ -548,36 +589,75 @@
     });
 
   /* ── Sur peti instrument ───────────────────────────────────────────────
-     8 independent, polyphonic click-toggle voices. Fully self-contained —
+     6 independent, polyphonic click-toggle voices. Fully self-contained —
      no shared/server state, no gate. AudioContext inits lazily on the
-     first key click. Evolution timings are the tunable knobs here. ──── */
+     first key click. After the initial ramp-in each voice keeps drifting
+     indefinitely (see scheduleDrift) so it never settles into a static
+     sound. ──────────────────────────────────────────────────────────── */
   const FADE_IN_MS        = 400;    // base tone fade-in
   const DETUNE_RAMP_MS    = 18000;  // chorus (detuned) oscillator ramp-in
   const NOISE_RAMP_MS     = 22000;  // filtered-noise breath ramp-in
   const LFO_DEPTH_RAMP_MS = 20000;  // pitch-drift LFO depth ramp-in
+  const REED_RAMP_MS      = 12000;  // reedy harmonic layer ramp-in
   const RELEASE_MS        = 1200;   // fade-out on toggle-off
   const LFO_RATE_HZ       = 0.12;
   const DETUNE_CENTS      = 6;      // chorus detune amount
   const LFO_MAX_CENTS     = 5;      // max pitch-drift depth once fully ramped in
   const NOISE_Q           = 4;
+  const REED_LEVEL        = 0.06;   // subtle — blends under the base tone
+  const REED_DETUNE_CENTS = -4;     // reed beats against the base + chorus tones
+
+  // Slow, indefinite parameter drift once a voice has settled in.
+  const DRIFT_MIN_INTERVAL_MS = 14000;
+  const DRIFT_MAX_INTERVAL_MS = 26000;
+  const DRIFT_RAMP_S          = 9;
+  const DRIFT_DETUNE_RANGE    = [3, 10];    // cents
+  const DRIFT_LFO_RATE_RANGE  = [0.06, 0.24]; // Hz
+  const DRIFT_LFO_DEPTH_RANGE = [3, 8];     // cents
+  const DRIFT_REED_CUTOFF_MULT_RANGE = [3, 8]; // × fundamental
+  const DRIFT_NOISE_LEVEL_RANGE = [0.06, 0.14];
+
+  const WHITE_NOISE_LEVEL   = 0.05;
+  const WHITE_NOISE_RAMP_S  = 1.5;
+
+  function randInRange([min, max]) { return min + Math.random() * (max - min); }
 
   const SARGAM = [
     { name: 'Sa',  hz: 130.81, sharp: false },
     { name: 'Re',  hz: 146.83, sharp: true  },
-    { name: 'Ga',  hz: 164.81, sharp: false },
-    { name: 'Ma',  hz: 174.61, sharp: true  },
-    { name: 'Pa',  hz: 196.00, sharp: false },
-    { name: 'Dha', hz: 220.00, sharp: true  },
-    { name: 'Ni',  hz: 246.94, sharp: false },
+    { name: 'Ma',  hz: 174.61, sharp: false },
+    { name: 'Pa',  hz: 196.00, sharp: true  },
+    { name: 'Dha', hz: 220.00, sharp: false },
     { name: "Sa'", hz: 261.63, sharp: true  },
   ];
 
   let ctx = null;
+  let masterGain = null;
+  let whiteNoiseGain = null;
+  let whiteNoiseOn = false;
   let noiseBufferCache = null;
-  const voices = {}; // idx -> { voiceGain, baseOsc, detOsc, lfo, noiseSrc }
+  const voices = {}; // idx -> { voiceGain, baseOsc, detOsc, lfo, noiseSrc, reedOsc, driftTimer }
 
   function ensureCtx() {
-    if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+    if (!ctx) {
+      ctx = new (window.AudioContext || window.webkitAudioContext)();
+      masterGain = ctx.createGain();
+      masterGain.gain.value = parseFloat(volumeSlider.value);
+      masterGain.connect(ctx.destination);
+
+      // Global broadband "breath" layer, toggled on/off by the noise button.
+      // Created once and left running at zero gain so toggling is instant.
+      const noiseSrc = ctx.createBufferSource();
+      noiseSrc.buffer = getNoiseBuffer();
+      noiseSrc.loop   = true;
+      const noiseFilter = ctx.createBiquadFilter();
+      noiseFilter.type = 'lowpass';
+      noiseFilter.frequency.value = 3200;
+      whiteNoiseGain = ctx.createGain();
+      whiteNoiseGain.gain.value = 0;
+      noiseSrc.connect(noiseFilter); noiseFilter.connect(whiteNoiseGain); whiteNoiseGain.connect(masterGain);
+      noiseSrc.start();
+    }
     if (ctx.state === 'suspended') ctx.resume();
     return ctx;
   }
@@ -598,7 +678,7 @@
 
     const voiceGain = ctx.createGain();
     voiceGain.gain.value = 1;
-    voiceGain.connect(ctx.destination);
+    voiceGain.connect(masterGain);
 
     // 1. Base tone — clean fade-in
     const baseOsc  = ctx.createOscillator();
@@ -645,22 +725,80 @@
     noiseSrc.connect(bp); bp.connect(noiseGain); noiseGain.connect(voiceGain);
     noiseSrc.start(now);
 
-    voices[idx] = { voiceGain, baseOsc, detOsc, lfo, noiseSrc };
+    // 5. Reedy "surpeti" layer — bright sawtooth through a resonant lowpass,
+    //    detuned against the base/chorus tones for that harmonium-reed buzz.
+    const reedOsc = ctx.createOscillator();
+    reedOsc.type = 'sawtooth';
+    reedOsc.frequency.value = freq;
+    reedOsc.detune.value    = REED_DETUNE_CENTS;
+    const reedFilter = ctx.createBiquadFilter();
+    reedFilter.type = 'lowpass';
+    reedFilter.frequency.value = freq * 5;
+    reedFilter.Q.value = 1.2;
+    const reedGain = ctx.createGain();
+    reedGain.gain.setValueAtTime(0, now);
+    reedGain.gain.linearRampToValueAtTime(REED_LEVEL, now + REED_RAMP_MS / 1000);
+    reedOsc.connect(reedFilter); reedFilter.connect(reedGain); reedGain.connect(voiceGain);
+    reedOsc.start(now);
+
+    const voice = { voiceGain, baseOsc, detOsc, lfo, noiseSrc, reedOsc, noiseGain, reedFilter, driftTimer: null };
+    voices[idx] = voice;
+    scheduleDrift(idx);
+  }
+
+  // Keeps a running voice's detune, LFO, reed filter and noise level slowly
+  // wandering forever, so the drone never settles into a fixed, static sound.
+  function scheduleDrift(idx) {
+    const delay = DRIFT_MIN_INTERVAL_MS + Math.random() * (DRIFT_MAX_INTERVAL_MS - DRIFT_MIN_INTERVAL_MS);
+    const timer = setTimeout(() => {
+      const v = voices[idx];
+      if (!v) return;
+      const t = ctx.currentTime;
+
+      v.detOsc.detune.cancelScheduledValues(t);
+      v.detOsc.detune.setValueAtTime(v.detOsc.detune.value, t);
+      v.detOsc.detune.linearRampToValueAtTime(randInRange(DRIFT_DETUNE_RANGE), t + DRIFT_RAMP_S);
+
+      // lfo is the modulation *rate* — ramp its frequency param directly.
+      v.lfo.frequency.cancelScheduledValues(t);
+      v.lfo.frequency.setValueAtTime(v.lfo.frequency.value, t);
+      v.lfo.frequency.linearRampToValueAtTime(randInRange(DRIFT_LFO_RATE_RANGE), t + DRIFT_RAMP_S);
+
+      v.reedFilter.frequency.cancelScheduledValues(t);
+      v.reedFilter.frequency.setValueAtTime(v.reedFilter.frequency.value, t);
+      v.reedFilter.frequency.linearRampToValueAtTime(
+        SARGAM[idx].hz * randInRange(DRIFT_REED_CUTOFF_MULT_RANGE), t + DRIFT_RAMP_S
+      );
+
+      v.noiseGain.gain.cancelScheduledValues(t);
+      v.noiseGain.gain.setValueAtTime(v.noiseGain.gain.value, t);
+      v.noiseGain.gain.linearRampToValueAtTime(randInRange(DRIFT_NOISE_LEVEL_RANGE), t + DRIFT_RAMP_S);
+
+      scheduleDrift(idx);
+    }, delay);
+    voices[idx].driftTimer = timer;
   }
 
   function stopVoice(idx) {
     const v = voices[idx];
     if (!v) return;
     delete voices[idx];
+    if (v.driftTimer) clearTimeout(v.driftTimer);
     const now = ctx.currentTime;
     v.voiceGain.gain.cancelScheduledValues(now);
     v.voiceGain.gain.setValueAtTime(v.voiceGain.gain.value, now);
     v.voiceGain.gain.linearRampToValueAtTime(0, now + RELEASE_MS / 1000);
     const stopAt = now + RELEASE_MS / 1000 + 0.05;
-    [v.baseOsc, v.detOsc, v.lfo, v.noiseSrc].forEach(n => { try { n.stop(stopAt); } catch (_) {} });
+    [v.baseOsc, v.detOsc, v.lfo, v.noiseSrc, v.reedOsc].forEach(n => { try { n.stop(stopAt); } catch (_) {} });
   }
 
-  const surpetiPanel = document.getElementById('surpeti-panel');
+  const surpetiPanel     = document.getElementById('surpeti-panel');
+  const volumeSlider     = document.getElementById('surpeti-volume');
+  const randomizeBtn     = document.getElementById('surpeti-randomize');
+  const stopAllBtn       = document.getElementById('surpeti-stopall');
+  const noiseToggleBtn   = document.getElementById('surpeti-noise');
+  const keyButtons       = [];
+
   SARGAM.forEach((note, idx) => {
     const btn = document.createElement('button');
     btn.type = 'button';
@@ -672,6 +810,42 @@
       if (isActive) startVoice(idx); else stopVoice(idx);
     });
     surpetiPanel.appendChild(btn);
+    keyButtons.push(btn);
+  });
+
+  volumeSlider.addEventListener('input', () => {
+    if (!masterGain) return;
+    masterGain.gain.setTargetAtTime(parseFloat(volumeSlider.value), ctx.currentTime, 0.01);
+  });
+
+  randomizeBtn.addEventListener('click', () => {
+    ensureCtx();
+    const count = 2 + Math.floor(Math.random() * 2); // 2 or 3
+    const pool  = keyButtons.map((_, i) => i);
+    const picked = new Set();
+    while (picked.size < count && pool.length) {
+      picked.add(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
+    }
+    keyButtons.forEach((btn, idx) => {
+      const shouldBeActive = picked.has(idx);
+      if (btn.classList.contains('active') !== shouldBeActive) btn.click();
+    });
+  });
+
+  stopAllBtn.addEventListener('click', () => {
+    keyButtons.forEach(btn => {
+      if (btn.classList.contains('active')) btn.click();
+    });
+  });
+
+  noiseToggleBtn.addEventListener('click', () => {
+    ensureCtx();
+    whiteNoiseOn = !whiteNoiseOn;
+    noiseToggleBtn.classList.toggle('active', whiteNoiseOn);
+    const target = whiteNoiseOn ? WHITE_NOISE_LEVEL : 0;
+    whiteNoiseGain.gain.cancelScheduledValues(ctx.currentTime);
+    whiteNoiseGain.gain.setValueAtTime(whiteNoiseGain.gain.value, ctx.currentTime);
+    whiteNoiseGain.gain.linearRampToValueAtTime(target, ctx.currentTime + WHITE_NOISE_RAMP_S);
   });
 
   /* ── Join session / OTP modal ─────────────────────────────────────── */
