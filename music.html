@@ -3,15 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Fur FM — Cry</title>
+  <title>Fur FM — Music</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Hind:wght@400;500&family=Yatra+One&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     html, body {
-      width: 100%; height: 100%;
-      overflow: hidden;
+      width: 100%;
+      min-height: 100%;
       background: #000000;
       font-family: 'Yatra One', serif;
       color: #ffffff;
@@ -66,23 +66,27 @@
       #brand { top: 1.2rem; left: 1rem; }
     }
 
-    /* ── Placeholder body ────────────────────────────────────── */
-    #placeholder {
-      position: fixed; inset: 0;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      text-align: center;
-      gap: 0.6rem;
+    /* ── Albums ──────────────────────────────────────────────── */
+    #albums {
+      position: relative;
       z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.6rem;
+      padding: 8.5rem 1.5rem 4rem;
+      max-width: 500px;
+      margin: 0 auto;
     }
-    #placeholder .heading {
-      font-family: 'Yatra One', serif;
-      font-size: 1.4rem;
-      color: #ffffff;
+    .album-embed {
+      width: 100%;
+      border-radius: 12px;
+      overflow: hidden;
     }
-    #placeholder .sub {
-      font-size: 0.78rem; letter-spacing: 0.05em;
-      color: #999999;
+    .album-embed iframe {
+      display: block;
+      width: 100%;
+      border: none;
     }
   </style>
 </head>
@@ -104,15 +108,25 @@
 
 <nav id="site-nav">
   <a class="nav-link" href="stream.html">Live</a>
-  <a class="nav-link" href="music.html">Music</a>
+  <a class="nav-link active" href="music.html">Music</a>
   <a class="nav-link" href="studio.html">Studio</a>
   <a class="nav-link" href="shop.html">Shop</a>
-  <a class="nav-link active" href="cry.html">Cry</a>
+  <a class="nav-link" href="cry.html">Cry</a>
 </nav>
 
-<div id="placeholder">
-  <div class="heading">Cry</div>
-  <div class="sub">coming soon</div>
+<div id="albums">
+  <div class="album-embed">
+    <iframe src="https://open.spotify.com/embed/album/4jUfzkDY2btkcYhmr8eumT?utm_source=generator&theme=0"
+      height="352" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+  </div>
+  <div class="album-embed">
+    <iframe src="https://open.spotify.com/embed/album/4QMAkUfUzUJkdXhb2saNlW?utm_source=generator&theme=0"
+      height="352" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+  </div>
+  <div class="album-embed">
+    <iframe src="https://open.spotify.com/embed/album/6GI2F0no7956cSFsPD7XbC?utm_source=generator&theme=0"
+      height="352" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+  </div>
 </div>
 
 </body>
