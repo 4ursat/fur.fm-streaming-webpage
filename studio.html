@@ -10,8 +10,8 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     html, body {
-      width: 100%; height: 100%;
-      overflow: hidden;
+      width: 100%;
+      min-height: 100%;
       background: #000000;
       font-family: 'Yatra One', serif;
       color: #ffffff;
@@ -66,23 +66,95 @@
       #brand { top: 1.2rem; left: 1rem; }
     }
 
-    /* ── Placeholder body ────────────────────────────────────── */
-    #placeholder {
-      position: fixed; inset: 0;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      text-align: center;
-      gap: 0.6rem;
+    @media (max-width: 620px) {
+      #studio-layout { flex-direction: column; gap: 1.5rem; padding-top: 7rem; }
+      #studio-nav { flex-direction: row; gap: 1.4rem; min-width: 0; }
+    }
+
+    /* ── Studio layout ───────────────────────────────────────── */
+    #studio-layout {
+      position: relative;
       z-index: 1;
+      display: flex;
+      align-items: flex-start;
+      gap: 2.5rem;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 8.5rem 1.5rem 4rem;
     }
-    #placeholder .heading {
+    #studio-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      flex-shrink: 0;
+      min-width: 130px;
+      padding-top: 0.2rem;
+    }
+    .studio-nav-link {
+      appearance: none;
+      background: transparent;
+      border: none;
       font-family: 'Yatra One', serif;
-      font-size: 1.4rem;
-      color: #ffffff;
+      font-size: 0.78rem;
+      letter-spacing: 0.03em;
+      text-align: left;
+      color: rgba(255,255,255,0.5);
+      cursor: pointer;
+      padding: 0;
+      transition: color 0.15s;
     }
-    #placeholder .sub {
-      font-size: 0.78rem; letter-spacing: 0.05em;
-      color: #999999;
+    .studio-nav-link:hover { color: rgba(255,255,255,0.8); }
+    .studio-nav-link.active { color: #ffffff; }
+
+    #studio-content {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 1.6rem;
+    }
+    .studio-section {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 1.6rem;
+    }
+    .film-item {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+    .film-title {
+      font-size: 0.9rem;
+      letter-spacing: 0.03em;
+      color: rgba(255,255,255,0.85);
+      text-align: left;
+    }
+    .film-embed {
+      position: relative;
+      width: 100%;
+      padding-top: 56.25%; /* 16:9 */
+      border-radius: 8px;
+      overflow: hidden;
+      background: rgba(255,255,255,0.03);
+    }
+    .film-embed iframe {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      border: none;
+    }
+    .track-embed {
+      width: 100%;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .track-embed iframe {
+      width: 100%;
+      height: 442px;
+      border: none;
+      display: block;
     }
   </style>
 </head>
@@ -108,12 +180,65 @@
   <a class="nav-link active" href="studio.html">Studio</a>
   <a class="nav-link" href="shop.html">Shop</a>
   <a class="nav-link" href="cry.html">Cry</a>
+  <a class="nav-link" href="contact.html">Contact</a>
 </nav>
 
-<div id="placeholder">
-  <div class="heading">Studio</div>
-  <div class="sub">coming soon</div>
+<div id="studio-layout">
+  <nav id="studio-nav">
+    <button class="studio-nav-link active" data-target="films" type="button">Music for Films</button>
+    <button class="studio-nav-link" data-target="stock" type="button">Stock Music</button>
+  </nav>
+
+  <div id="studio-content">
+    <div class="studio-section" id="section-films">
+      <div class="film-item">
+        <div class="film-title">Queen of Hearts</div>
+        <div class="film-embed">
+          <iframe src="https://player.vimeo.com/video/965231788?title=0&byline=0&portrait=0"
+            allow="autoplay; fullscreen; picture-in-picture" allowfullscreen loading="lazy"></iframe>
+        </div>
+      </div>
+    </div>
+
+    <div class="studio-section" id="section-stock" style="display:none;">
+      <div class="film-item">
+        <div class="film-title">black &amp; white is drowning</div>
+        <div class="track-embed">
+          <iframe src="https://bandcamp.com/EmbeddedPlayer/album=1619191446/size=large/bgcol=000000/linkcol=ffffff/tracklist=true/artwork=small/transparent=true/"
+            seamless loading="lazy">
+            <a href="https://4ursat.bandcamp.com/album/black-white-is-drowning">black &amp; white is drowning by Fursat FM</a>
+          </iframe>
+        </div>
+      </div>
+      <div class="film-item">
+        <div class="film-title">is it today or tomorrow?</div>
+        <div class="track-embed">
+          <iframe src="https://bandcamp.com/EmbeddedPlayer/album=1620040497/size=large/bgcol=000000/linkcol=ffffff/tracklist=true/artwork=small/transparent=true/"
+            seamless loading="lazy">
+            <a href="https://4ursat.bandcamp.com/album/is-it-today-or-tomorrow">is it today or tomorrow? by Fursat FM</a>
+          </iframe>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
+
+<script>
+  const studioNavLinks = document.querySelectorAll('.studio-nav-link');
+  const studioSections = {
+    films: document.getElementById('section-films'),
+    stock: document.getElementById('section-stock'),
+  };
+  studioNavLinks.forEach(btn => {
+    btn.addEventListener('click', () => {
+      studioNavLinks.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      Object.entries(studioSections).forEach(([key, el]) => {
+        el.style.display = key === btn.dataset.target ? '' : 'none';
+      });
+    });
+  });
+</script>
 
 </body>
 </html>

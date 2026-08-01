@@ -104,102 +104,65 @@
     }
     #sc-join:hover { color: #ffffff; }
 
-    /* ── Sur peti instrument ─────────────────────────────────── */
-    #surpeti-wrap {
+    /* ── Ambient wave visualizer ─────────────────────────────── */
+    #wave-canvas {
       position: fixed;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 22;
-      display: flex; flex-direction: column; align-items: center;
-      gap: 1.4rem;
-      padding: 2.8rem 2.6rem 2.2rem;
-      border: 1.5px solid rgba(255,255,255,0.55);
-      background: rgba(0,0,0,0.3);
-      max-width: 92vw;
+      inset: 0;
+      z-index: 1;
+      width: 100%;
+      height: 100%;
     }
-    #surpeti-panel {
-      display: flex;
-      align-items: flex-end;
-      gap: 0.8rem;
-      max-width: 100%;
-      flex-wrap: nowrap;
-      overflow-x: auto;
-    }
-    .sargam-key {
-      appearance: none;
-      background: rgba(255,255,255,0.04);
-      border: 1.5px solid rgba(255,255,255,0.45);
-      border-radius: 16px 16px 4px 4px;
-      color: rgba(255,255,255,0.75);
-      font-family: 'Courier New', Courier, monospace;
-      font-size: 0.85rem;
-      letter-spacing: 0.02em;
-      width: 52px; height: 88px;
-      display: flex; align-items: flex-end; justify-content: center;
-      padding-bottom: 0.7rem;
-      cursor: pointer;
-      touch-action: manipulation;
-      transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
-    }
-    .sargam-key.sharp { margin-bottom: 1rem; }
-    .sargam-key:hover { border-color: rgba(255,255,255,0.75); }
-    .sargam-key.active {
-      background: rgba(255,255,255,0.18);
-      border-color: #ffffff;
-      color: #ffffff;
-      transform: translateY(10px);
-    }
-    #surpeti-controls {
+    #ambient-controls {
+      position: fixed;
+      bottom: 2rem; left: 50%;
+      transform: translateX(-50%);
+      z-index: 20;
       display: flex;
       align-items: center;
-      gap: 1.4rem;
+      gap: 1.1rem;
     }
-    .surpeti-btn {
+    #ambient-play {
       appearance: none;
       background: transparent;
-      border: 1.5px solid rgba(255,255,255,0.45);
-      border-radius: 4px;
-      color: rgba(255,255,255,0.75);
+      border: 1.5px solid rgba(255,255,255,0.5);
+      border-radius: 999px;
+      color: rgba(255,255,255,0.85);
       font-family: 'Yatra One', serif;
       font-size: 0.7rem;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
-      padding: 0.45rem 1rem;
+      padding: 0.4rem 1.15rem;
       cursor: pointer;
       touch-action: manipulation;
       transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
     }
-    .surpeti-btn:hover {
-      border-color: #ffffff;
-      color: #ffffff;
-      background: rgba(255,255,255,0.06);
-    }
-    .surpeti-btn.active {
+    #ambient-play:hover { border-color: #ffffff; color: #ffffff; }
+    #ambient-play.active {
       background: rgba(255,255,255,0.18);
       border-color: #ffffff;
       color: #ffffff;
     }
-    #surpeti-volume-wrap {
+    #ambient-volume-wrap {
       display: flex;
       align-items: center;
-      gap: 0.55rem;
+      gap: 0.5rem;
     }
-    #surpeti-volume-wrap label {
-      font-size: 0.62rem;
+    #ambient-volume-wrap label {
+      font-size: 0.6rem;
       letter-spacing: 0.08em;
       text-transform: uppercase;
       color: rgba(255,255,255,0.5);
     }
-    #surpeti-volume {
+    #ambient-volume {
       -webkit-appearance: none;
       appearance: none;
-      width: 100px;
+      width: 90px;
       height: 2px;
       background: rgba(255,255,255,0.3);
       outline: none;
       cursor: pointer;
     }
-    #surpeti-volume::-webkit-slider-thumb {
+    #ambient-volume::-webkit-slider-thumb {
       -webkit-appearance: none;
       appearance: none;
       width: 10px; height: 10px;
@@ -207,12 +170,16 @@
       background: #ffffff;
       cursor: pointer;
     }
-    #surpeti-volume::-moz-range-thumb {
+    #ambient-volume::-moz-range-thumb {
       width: 10px; height: 10px;
       border-radius: 50%;
       background: #ffffff;
       border: none;
       cursor: pointer;
+    }
+    @media (max-width: 560px) {
+      #ambient-controls { bottom: 1.4rem; gap: 0.8rem; }
+      #ambient-volume { width: 64px; }
     }
     .notif-card {
       background: rgba(0,0,0,0.92);
@@ -375,6 +342,7 @@
   <a class="nav-link" href="studio.html">Studio</a>
   <a class="nav-link" href="shop.html">Shop</a>
   <a class="nav-link" href="cry.html">Cry</a>
+  <a class="nav-link" href="contact.html">Contact</a>
 </nav>
 
 <div id="ui-chrome">
@@ -394,17 +362,16 @@
 </div>
 
 
-<!-- Sur peti instrument — click a key to toggle it, no gate, no login -->
-<div id="surpeti-wrap">
-  <div id="surpeti-panel"></div>
-  <div id="surpeti-controls">
-    <button id="surpeti-randomize" class="surpeti-btn" type="button">randomize</button>
-    <button id="surpeti-stopall" class="surpeti-btn" type="button">stop all</button>
-    <button id="surpeti-noise" class="surpeti-btn" type="button">noise</button>
-    <div id="surpeti-volume-wrap">
-      <label for="surpeti-volume">vol</label>
-      <input type="range" id="surpeti-volume" min="0" max="1" step="0.01" value="1" />
-    </div>
+<!-- Ambient wave visualizer — full-screen canvas, audio-reactive via an
+     AnalyserNode tapped off the synth's final output. Click anywhere on it
+     (or the Play button) to start/stop. -->
+<canvas id="wave-canvas"></canvas>
+
+<div id="ambient-controls">
+  <button id="ambient-play" type="button">Play</button>
+  <div id="ambient-volume-wrap">
+    <label for="ambient-volume">vol</label>
+    <input type="range" id="ambient-volume" min="0" max="1" step="0.01" value="1" />
   </div>
 </div>
 
@@ -588,37 +555,77 @@
       if (status === 'SUBSCRIBED') await presenceChannel.track({ username: myName });
     });
 
-  /* ── Sur peti instrument ───────────────────────────────────────────────
-     6 independent, polyphonic click-toggle voices. Fully self-contained —
-     no shared/server state, no gate. AudioContext inits lazily on the
-     first key click. After the initial ramp-in each voice keeps drifting
-     indefinitely (see scheduleDrift) so it never settles into a static
-     sound. ──────────────────────────────────────────────────────────── */
-  const FADE_IN_MS        = 400;    // base tone fade-in
+  /* ── Ambient drone engine ─────────────────────────────────────────────
+     Autonomous generative synth, no note-picking UI — Play starts a few
+     random voices and an "evolve" timer keeps adding/removing notes over
+     time (see scheduleEvolve, further down). Each voice sits at a fixed
+     stereo position with a slow auto-pan wobble, passes through its own
+     drifting lowpass filter, and feeds a shared procedural reverb —
+     detune/LFO/filter/pan/reverb all keep wandering indefinitely (see the
+     various scheduleXDrift functions) so it never settles into a static
+     sound. The final output feeds an AnalyserNode that drives the
+     full-screen wave visualizer below. ─────────────────────────────────── */
+  const FADE_IN_MS        = 600;    // base tone fade-in
   const DETUNE_RAMP_MS    = 18000;  // chorus (detuned) oscillator ramp-in
-  const NOISE_RAMP_MS     = 22000;  // filtered-noise breath ramp-in
+  const BREATH_RAMP_MS    = 24000;  // filtered-noise breath ramp-in
   const LFO_DEPTH_RAMP_MS = 20000;  // pitch-drift LFO depth ramp-in
-  const REED_RAMP_MS      = 12000;  // reedy harmonic layer ramp-in
-  const RELEASE_MS        = 1200;   // fade-out on toggle-off
-  const LFO_RATE_HZ       = 0.12;
+  const REED_RAMP_MS      = 13000;  // reedy harmonic layer ramp-in
+  const RELEASE_MS        = 2200;   // fade-out on toggle-off — long enough to trail into the reverb tail
+  const LFO_RATE_HZ       = 0.11;
   const DETUNE_CENTS      = 6;      // chorus detune amount
   const LFO_MAX_CENTS     = 5;      // max pitch-drift depth once fully ramped in
-  const NOISE_Q           = 4;
-  const REED_LEVEL        = 0.06;   // subtle — blends under the base tone
-  const REED_DETUNE_CENTS = -4;     // reed beats against the base + chorus tones
+  const BASE_LEVEL        = 0.2;
+  const CHORUS_LEVEL      = 0.1;
+  const BREATH_LEVEL      = 0.07;   // per-voice filtered-noise "air"
+  const BREATH_FILTER_Q   = 0.5;    // lowpass, not resonant bandpass — softer, less whistly
+  const REED_LEVEL         = 0.045; // subtle — blends under the base tone
+  const REED_DETUNE_CENTS  = -4;    // reed beats against the base + chorus tones
+  const REED_FILTER_Q      = 0.5;   // gentle rolloff, no resonant peak
+  const REED_CUTOFF_MULT   = 3;     // × fundamental
+
+  // Per-voice tone filter — the whole voice (all 4 layers) passes through
+  // this on top of the reed's own filter, and it slowly drifts brighter/
+  // darker for a classic filter-sweep pad movement.
+  const VOICE_FILTER_INITIAL     = 2600;
+  const VOICE_FILTER_Q           = 0.5;
+  const DRIFT_VOICE_FILTER_RANGE = [1300, 3600];
+
+  // Stereo spread — each note sits at a fixed pan position across the
+  // field, plus a very slow independent auto-pan wobble for movement.
+  const PAN_SPREAD    = 0.6;   // outermost notes sit at ±this
+  const PAN_LFO_RANGE = [0.02, 0.06]; // Hz, randomized per voice
+  const PAN_LFO_DEPTH = 0.16;
 
   // Slow, indefinite parameter drift once a voice has settled in.
   const DRIFT_MIN_INTERVAL_MS = 14000;
   const DRIFT_MAX_INTERVAL_MS = 26000;
-  const DRIFT_RAMP_S          = 9;
-  const DRIFT_DETUNE_RANGE    = [3, 10];    // cents
-  const DRIFT_LFO_RATE_RANGE  = [0.06, 0.24]; // Hz
-  const DRIFT_LFO_DEPTH_RANGE = [3, 8];     // cents
-  const DRIFT_REED_CUTOFF_MULT_RANGE = [3, 8]; // × fundamental
-  const DRIFT_NOISE_LEVEL_RANGE = [0.06, 0.14];
+  const DRIFT_RAMP_S          = 10;
+  const DRIFT_DETUNE_RANGE    = [3, 8];       // cents
+  const DRIFT_LFO_RATE_RANGE  = [0.06, 0.22]; // Hz
+  const DRIFT_LFO_DEPTH_RANGE = [3, 9];       // cents
+  const DRIFT_REED_CUTOFF_MULT_RANGE = [2, 4]; // × fundamental
+  const DRIFT_BREATH_LEVEL_RANGE = [0.04, 0.08];
 
   const WHITE_NOISE_LEVEL   = 0.05;
   const WHITE_NOISE_RAMP_S  = 1.5;
+
+  // Global ambient noise layer (pink, see getNoiseBuffer) keeps slowly
+  // wandering in tone/level while it's on.
+  const WHITE_NOISE_DRIFT_MIN_MS = 10000;
+  const WHITE_NOISE_DRIFT_MAX_MS = 20000;
+  const WHITE_NOISE_DRIFT_RAMP_S = 6;
+  const WHITE_NOISE_CUTOFF_RANGE = [900, 2200];
+  const WHITE_NOISE_LEVEL_RANGE  = [0.025, 0.06];
+
+  // Master bus — slow filter drift for overall movement, plus a
+  // procedurally-generated reverb (no external IR file needed) that's what
+  // actually turns bare oscillators into something that feels like a space.
+  const MASTER_FILTER_INITIAL      = 3400;
+  const MASTER_FILTER_Q            = 0.4;
+  const DRIFT_MASTER_FILTER_RANGE  = [1800, 4200];
+  const MASTER_FILTER_DRIFT_MIN_MS = 20000;
+  const MASTER_FILTER_DRIFT_MAX_MS = 38000;
+  const MASTER_FILTER_DRIFT_RAMP_S = 16;
 
   function randInRange([min, max]) { return min + Math.random() * (max - min); }
 
@@ -631,77 +638,269 @@
     { name: "Sa'", hz: 261.63, sharp: true  },
   ];
 
+  // All 6 SARGAM notes sit within a single octave (130-262Hz) — even
+  // "different" simultaneous voices end up close in pitch, which compounds
+  // clashing/beating. Upper voices now get a random octave on top of their
+  // note, and any two simultaneous voices must be at least a fourth apart
+  // (see isFarEnoughFromActive), so the ensemble actually spreads out.
+  const OCTAVE_OFFSETS     = [-1, 0, 1];
+  const MIN_VOICE_GAP_CENTS = 500; // ~a perfect fourth
+  const MAX_PICK_ATTEMPTS   = 30;
+
+  function voiceFreq(idx, octaveOffset) {
+    return SARGAM[idx].hz * Math.pow(2, octaveOffset);
+  }
+  function voiceKey(idx, octaveOffset) {
+    return idx + ':' + octaveOffset;
+  }
+  function centsBetween(freqA, freqB) {
+    return Math.abs(1200 * Math.log2(freqA / freqB));
+  }
+  function isFarEnoughFromActive(freq, activeFreqs) {
+    return activeFreqs.every(f => centsBetween(freq, f) >= MIN_VOICE_GAP_CENTS);
+  }
+
+  // Dedicated low anchor — always on Sa (the tonic), two octaves down
+  // (~32.7Hz), simple and unmodulated so it stays a clean, stable bass
+  // foundation rather than another evolving/detuned voice.
+  const BASS_NOTE_IDX      = 0;
+  const BASS_OCTAVE_OFFSET = -2;
+  const BASS_LEVEL         = 0.26;
+  const BASS_FADE_IN_MS    = 2600;
+  const BASS_FILTER_Q      = 0.5;
+
+  const REVERB_WET_DEFAULT = 0.38;
+  const REVERB_PRE_DELAY_S = 0.035;
+
+  // Slow tidal rise/fall in overall level — waves washing in and out,
+  // rather than a flat, static loudness the whole time.
+  const SWELL_RATE_RANGE = [1 / 52, 1 / 30]; // Hz (~30-52s period)
+  const SWELL_DEPTH       = 0.16;
+  const SWELL_FADE_IN_S    = 15;
+
   let ctx = null;
   let masterGain = null;
+  let masterFilter = null;
+  let reverbNode = null;
+  let reverbWetGain = null;
+  let analyser = null;
+  let analyserData = null;
   let whiteNoiseGain = null;
+  let whiteNoiseFilter = null;
   let whiteNoiseOn = false;
+  let whiteNoiseDriftTimer = null;
   let noiseBufferCache = null;
-  const voices = {}; // idx -> { voiceGain, baseOsc, detOsc, lfo, noiseSrc, reedOsc, driftTimer }
+  let bassVoice = null; // { osc, gain, filter } — separate from `voices`, always-on anchor
+  const voices = {}; // "idx:octaveOffset" -> { freq, voiceGain, voiceFilter, pan, panLfo, baseOsc, detOsc, lfo, lfoDepth, noiseSrc, breathFilter, noiseGain, reedOsc, reedFilter, driftTimer }
 
   function ensureCtx() {
     if (!ctx) {
       ctx = new (window.AudioContext || window.webkitAudioContext)();
+
       masterGain = ctx.createGain();
       masterGain.gain.value = parseFloat(volumeSlider.value);
-      masterGain.connect(ctx.destination);
 
-      // Global broadband "breath" layer, toggled on/off by the noise button.
-      // Created once and left running at zero gain so toggling is instant.
+      // Master filter — slow independent drift keeps the whole mix's
+      // brightness breathing over time, layered on top of each voice's own
+      // filter movement.
+      masterFilter = ctx.createBiquadFilter();
+      masterFilter.type = 'lowpass';
+      masterFilter.frequency.value = MASTER_FILTER_INITIAL;
+      masterFilter.Q.value = MASTER_FILTER_Q;
+
+      // Safety limiter — with several voices each running several layers,
+      // it's easy to sum past 0dBFS and get harsh digital clipping. This
+      // catches peaks well before that point.
+      const limiter = ctx.createDynamicsCompressor();
+      limiter.threshold.value = -22;
+      limiter.knee.value      = 18;
+      limiter.ratio.value     = 6;
+      limiter.attack.value    = 0.01;
+      limiter.release.value   = 0.3;
+
+      // Analyser sits inline in the final output path (not just tapped off
+      // to the side) so the wave visualizer reads the actual sound reaching
+      // the speakers, post-limiter. Frequency-domain data (not time-domain
+      // waveform samples) — the browser smooths it via smoothingTimeConstant,
+      // so it drives the visuals with a gentle swell instead of raw per-pixel
+      // waveform jitter.
+      analyser = ctx.createAnalyser();
+      analyser.fftSize = 1024;
+      analyser.smoothingTimeConstant = 0.88;
+      analyserData = new Uint8Array(analyser.frequencyBinCount);
+
+      limiter.connect(analyser);
+      analyser.connect(ctx.destination);
+
+      const dryGain = ctx.createGain();
+      dryGain.gain.value = 1;
+      dryGain.connect(limiter);
+
+      // Procedurally-generated reverb — this is what actually turns bare
+      // oscillators into something that feels like an ambient space, rather
+      // than just tweaking individual oscillator levels. No IR file needed.
+      // A short pre-delay before the tail gives it a sense of size rather
+      // than sounding glued directly to the dry signal.
+      const preDelay = ctx.createDelay(0.2);
+      preDelay.delayTime.value = REVERB_PRE_DELAY_S;
+      reverbNode = ctx.createConvolver();
+      reverbNode.buffer = makeReverbImpulse(ctx);
+      reverbWetGain = ctx.createGain();
+      reverbWetGain.gain.value = REVERB_WET_DEFAULT;
+      preDelay.connect(reverbNode);
+      reverbNode.connect(reverbWetGain);
+      reverbWetGain.connect(limiter);
+
+      // Tidal swell — sits between masterGain (user volume) and everything
+      // downstream, so it multiplies whatever level the user has set rather
+      // than fighting with it.
+      const swellGain = ctx.createGain();
+      swellGain.gain.value = 1;
+      const swellLfo = ctx.createOscillator();
+      swellLfo.type = 'sine';
+      swellLfo.frequency.value = randInRange(SWELL_RATE_RANGE);
+      const swellDepth = ctx.createGain();
+      swellDepth.gain.setValueAtTime(0, ctx.currentTime);
+      swellDepth.gain.linearRampToValueAtTime(SWELL_DEPTH, ctx.currentTime + SWELL_FADE_IN_S);
+      swellLfo.connect(swellDepth);
+      swellDepth.connect(swellGain.gain);
+      swellLfo.start();
+
+      masterGain.connect(swellGain);
+      swellGain.connect(masterFilter);
+      masterFilter.connect(dryGain);
+      masterFilter.connect(preDelay);
+      scheduleMasterFilterDrift();
+
+      // Global broadband "breath" layer, blended in automatically while
+      // playing. Created once and left running at zero gain so ramping it
+      // in/out is instant and click-free.
       const noiseSrc = ctx.createBufferSource();
       noiseSrc.buffer = getNoiseBuffer();
       noiseSrc.loop   = true;
-      const noiseFilter = ctx.createBiquadFilter();
-      noiseFilter.type = 'lowpass';
-      noiseFilter.frequency.value = 3200;
+      whiteNoiseFilter = ctx.createBiquadFilter();
+      whiteNoiseFilter.type = 'lowpass';
+      whiteNoiseFilter.frequency.value = 1600;
       whiteNoiseGain = ctx.createGain();
       whiteNoiseGain.gain.value = 0;
-      noiseSrc.connect(noiseFilter); noiseFilter.connect(whiteNoiseGain); whiteNoiseGain.connect(masterGain);
+      noiseSrc.connect(whiteNoiseFilter); whiteNoiseFilter.connect(whiteNoiseGain); whiteNoiseGain.connect(masterGain);
       noiseSrc.start();
     }
     if (ctx.state === 'suspended') ctx.resume();
     return ctx;
   }
 
+  // A short burst of exponentially-decaying noise makes a perfectly
+  // serviceable diffuse reverb impulse response without needing to ship an
+  // audio file.
+  function makeReverbImpulse(ctx, durationSec = 4.2, decay = 3.0) {
+    const rate    = ctx.sampleRate;
+    const length  = Math.floor(rate * durationSec);
+    const impulse = ctx.createBuffer(2, length, rate);
+    for (let ch = 0; ch < 2; ch++) {
+      const data = impulse.getChannelData(ch);
+      for (let i = 0; i < length; i++) {
+        data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, decay);
+      }
+    }
+    return impulse;
+  }
+
+  function scheduleMasterFilterDrift() {
+    const delay = MASTER_FILTER_DRIFT_MIN_MS + Math.random() * (MASTER_FILTER_DRIFT_MAX_MS - MASTER_FILTER_DRIFT_MIN_MS);
+    setTimeout(() => {
+      const t = ctx.currentTime;
+      masterFilter.frequency.cancelScheduledValues(t);
+      masterFilter.frequency.setValueAtTime(masterFilter.frequency.value, t);
+      masterFilter.frequency.linearRampToValueAtTime(randInRange(DRIFT_MASTER_FILTER_RANGE), t + MASTER_FILTER_DRIFT_RAMP_S);
+      scheduleMasterFilterDrift();
+    }, delay);
+  }
+
+  // Pink noise (equal energy per octave) rather than white noise (flat
+  // across the whole spectrum) — white noise reads as harsh hiss/static;
+  // pink noise is what rain, wind and surf actually sound like. Paul
+  // Kellet's well-known economy pink-noise filter, run once into a
+  // buffer rather than live so both the per-voice breath layer and the
+  // global ambient noise layer can share it cheaply.
   function getNoiseBuffer() {
     if (noiseBufferCache) return noiseBufferCache;
     const len  = ctx.sampleRate * 2;
     const buf  = ctx.createBuffer(1, len, ctx.sampleRate);
     const data = buf.getChannelData(0);
-    for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
+    let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+    for (let i = 0; i < len; i++) {
+      const white = Math.random() * 2 - 1;
+      b0 = 0.99886 * b0 + white * 0.0555179;
+      b1 = 0.99332 * b1 + white * 0.0750759;
+      b2 = 0.96900 * b2 + white * 0.1538520;
+      b3 = 0.86650 * b3 + white * 0.3104856;
+      b4 = 0.55000 * b4 + white * 0.5329522;
+      b5 = -0.7616 * b5 - white * 0.0168980;
+      const pink = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362;
+      b6 = white * 0.115926;
+      data[i] = pink * 0.11;
+    }
     noiseBufferCache = buf;
     return buf;
   }
 
-  function startVoice(idx) {
-    const freq = SARGAM[idx].hz;
+  function startVoice(idx, octaveOffset) {
+    const freq = voiceFreq(idx, octaveOffset);
+    const key  = voiceKey(idx, octaveOffset);
     const now  = ctx.currentTime;
 
     const voiceGain = ctx.createGain();
     voiceGain.gain.value = 1;
-    voiceGain.connect(masterGain);
+
+    // Per-voice tone filter — the whole voice (all 4 layers below) passes
+    // through this, and it slowly drifts brighter/darker independently of
+    // every other voice — a classic filter-sweep pad movement.
+    const voiceFilter = ctx.createBiquadFilter();
+    voiceFilter.type = 'lowpass';
+    voiceFilter.frequency.value = VOICE_FILTER_INITIAL;
+    voiceFilter.Q.value = VOICE_FILTER_Q;
+
+    // Random stereo position (notes can now repeat at different octaves,
+    // so a fixed by-note position isn't meaningful anymore), plus a slow
+    // independent auto-pan wobble so the drone has some movement in space.
+    const pan = ctx.createStereoPanner();
+    pan.pan.value = (Math.random() * 2 - 1) * PAN_SPREAD;
+    const panLfo = ctx.createOscillator();
+    panLfo.type = 'sine';
+    panLfo.frequency.value = randInRange(PAN_LFO_RANGE);
+    const panLfoDepth = ctx.createGain();
+    panLfoDepth.gain.value = PAN_LFO_DEPTH;
+    panLfo.connect(panLfoDepth); panLfoDepth.connect(pan.pan);
+    panLfo.start(now);
+
+    voiceGain.connect(voiceFilter);
+    voiceFilter.connect(pan);
+    pan.connect(masterGain);
 
     // 1. Base tone — clean fade-in
     const baseOsc  = ctx.createOscillator();
-    baseOsc.type = 'triangle';
+    baseOsc.type = 'sine';
     baseOsc.frequency.value = freq;
     const baseGain = ctx.createGain();
     baseGain.gain.setValueAtTime(0, now);
-    baseGain.gain.linearRampToValueAtTime(0.28, now + FADE_IN_MS / 1000);
+    baseGain.gain.linearRampToValueAtTime(BASE_LEVEL, now + FADE_IN_MS / 1000);
     baseOsc.connect(baseGain); baseGain.connect(voiceGain);
     baseOsc.start(now);
 
     // 2. Detuned chorus oscillator — inaudible at first, ramps in slowly
     const detOsc = ctx.createOscillator();
-    detOsc.type = 'triangle';
+    detOsc.type = 'sine';
     detOsc.frequency.value = freq;
     detOsc.detune.value    = DETUNE_CENTS;
     const detGain = ctx.createGain();
     detGain.gain.setValueAtTime(0, now);
-    detGain.gain.linearRampToValueAtTime(0.14, now + DETUNE_RAMP_MS / 1000);
+    detGain.gain.linearRampToValueAtTime(CHORUS_LEVEL, now + DETUNE_RAMP_MS / 1000);
     detOsc.connect(detGain); detGain.connect(voiceGain);
     detOsc.start(now);
 
     // 3. Slow LFO on the chorus oscillator's pitch, depth ramps in over time
+    //    and keeps wandering afterwards (see scheduleDrift).
     const lfo = ctx.createOscillator();
     lfo.type = 'sine';
     lfo.frequency.value = LFO_RATE_HZ;
@@ -711,47 +910,56 @@
     lfo.connect(lfoDepth); lfoDepth.connect(detOsc.detune);
     lfo.start(now);
 
-    // 4. Filtered noise — soft breath-like texture, ramps in slowest
+    // 4. Filtered noise — soft breath-like air. Lowpassed rather than a
+    //    resonant bandpass, so it reads as texture, not a whistle.
     const noiseSrc = ctx.createBufferSource();
     noiseSrc.buffer = getNoiseBuffer();
     noiseSrc.loop   = true;
-    const bp = ctx.createBiquadFilter();
-    bp.type = 'bandpass';
-    bp.frequency.value = freq;
-    bp.Q.value = NOISE_Q;
+    const breathFilter = ctx.createBiquadFilter();
+    breathFilter.type = 'lowpass';
+    breathFilter.frequency.value = freq * 2.2;
+    breathFilter.Q.value = BREATH_FILTER_Q;
     const noiseGain = ctx.createGain();
     noiseGain.gain.setValueAtTime(0, now);
-    noiseGain.gain.linearRampToValueAtTime(0.10, now + NOISE_RAMP_MS / 1000);
-    noiseSrc.connect(bp); bp.connect(noiseGain); noiseGain.connect(voiceGain);
+    noiseGain.gain.linearRampToValueAtTime(BREATH_LEVEL, now + BREATH_RAMP_MS / 1000);
+    noiseSrc.connect(breathFilter); breathFilter.connect(noiseGain); noiseGain.connect(voiceGain);
     noiseSrc.start(now);
 
-    // 5. Reedy "surpeti" layer — bright sawtooth through a resonant lowpass,
-    //    detuned against the base/chorus tones for that harmonium-reed buzz.
+    // 5. Third detuned layer — plain sine, no harmonic content at all.
+    //    Was a custom harmonic "reed" wave; switched to sine to rule out
+    //    waveform harmonics as the source of persistent harshness reports.
     const reedOsc = ctx.createOscillator();
-    reedOsc.type = 'sawtooth';
+    reedOsc.type = 'sine';
     reedOsc.frequency.value = freq;
     reedOsc.detune.value    = REED_DETUNE_CENTS;
     const reedFilter = ctx.createBiquadFilter();
     reedFilter.type = 'lowpass';
-    reedFilter.frequency.value = freq * 5;
-    reedFilter.Q.value = 1.2;
+    reedFilter.frequency.value = freq * REED_CUTOFF_MULT;
+    reedFilter.Q.value = REED_FILTER_Q;
     const reedGain = ctx.createGain();
     reedGain.gain.setValueAtTime(0, now);
     reedGain.gain.linearRampToValueAtTime(REED_LEVEL, now + REED_RAMP_MS / 1000);
     reedOsc.connect(reedFilter); reedFilter.connect(reedGain); reedGain.connect(voiceGain);
     reedOsc.start(now);
 
-    const voice = { voiceGain, baseOsc, detOsc, lfo, noiseSrc, reedOsc, noiseGain, reedFilter, driftTimer: null };
-    voices[idx] = voice;
-    scheduleDrift(idx);
+    const voice = {
+      freq, voiceGain, voiceFilter, pan, panLfo,
+      baseOsc, detOsc, lfo, lfoDepth,
+      noiseSrc, noiseGain,
+      reedOsc, reedFilter,
+      driftTimer: null
+    };
+    voices[key] = voice;
+    scheduleDrift(key);
   }
 
-  // Keeps a running voice's detune, LFO, reed filter and noise level slowly
-  // wandering forever, so the drone never settles into a fixed, static sound.
-  function scheduleDrift(idx) {
+  // Keeps a running voice's detune, vibrato rate/depth, reed filter, breath
+  // level, and overall tone filter slowly wandering forever, so the drone
+  // never settles into a fixed, static sound.
+  function scheduleDrift(key) {
     const delay = DRIFT_MIN_INTERVAL_MS + Math.random() * (DRIFT_MAX_INTERVAL_MS - DRIFT_MIN_INTERVAL_MS);
     const timer = setTimeout(() => {
-      const v = voices[idx];
+      const v = voices[key];
       if (!v) return;
       const t = ctx.currentTime;
 
@@ -764,53 +972,357 @@
       v.lfo.frequency.setValueAtTime(v.lfo.frequency.value, t);
       v.lfo.frequency.linearRampToValueAtTime(randInRange(DRIFT_LFO_RATE_RANGE), t + DRIFT_RAMP_S);
 
+      v.lfoDepth.gain.cancelScheduledValues(t);
+      v.lfoDepth.gain.setValueAtTime(v.lfoDepth.gain.value, t);
+      v.lfoDepth.gain.linearRampToValueAtTime(randInRange(DRIFT_LFO_DEPTH_RANGE), t + DRIFT_RAMP_S);
+
       v.reedFilter.frequency.cancelScheduledValues(t);
       v.reedFilter.frequency.setValueAtTime(v.reedFilter.frequency.value, t);
       v.reedFilter.frequency.linearRampToValueAtTime(
-        SARGAM[idx].hz * randInRange(DRIFT_REED_CUTOFF_MULT_RANGE), t + DRIFT_RAMP_S
+        v.freq * randInRange(DRIFT_REED_CUTOFF_MULT_RANGE), t + DRIFT_RAMP_S
       );
 
       v.noiseGain.gain.cancelScheduledValues(t);
       v.noiseGain.gain.setValueAtTime(v.noiseGain.gain.value, t);
-      v.noiseGain.gain.linearRampToValueAtTime(randInRange(DRIFT_NOISE_LEVEL_RANGE), t + DRIFT_RAMP_S);
+      v.noiseGain.gain.linearRampToValueAtTime(randInRange(DRIFT_BREATH_LEVEL_RANGE), t + DRIFT_RAMP_S);
 
-      scheduleDrift(idx);
+      v.voiceFilter.frequency.cancelScheduledValues(t);
+      v.voiceFilter.frequency.setValueAtTime(v.voiceFilter.frequency.value, t);
+      v.voiceFilter.frequency.linearRampToValueAtTime(randInRange(DRIFT_VOICE_FILTER_RANGE), t + DRIFT_RAMP_S);
+
+      scheduleDrift(key);
     }, delay);
-    voices[idx].driftTimer = timer;
+    voices[key].driftTimer = timer;
   }
 
-  function stopVoice(idx) {
-    const v = voices[idx];
+  function stopVoice(key) {
+    const v = voices[key];
     if (!v) return;
-    delete voices[idx];
+    delete voices[key];
     if (v.driftTimer) clearTimeout(v.driftTimer);
     const now = ctx.currentTime;
     v.voiceGain.gain.cancelScheduledValues(now);
     v.voiceGain.gain.setValueAtTime(v.voiceGain.gain.value, now);
     v.voiceGain.gain.linearRampToValueAtTime(0, now + RELEASE_MS / 1000);
     const stopAt = now + RELEASE_MS / 1000 + 0.05;
-    [v.baseOsc, v.detOsc, v.lfo, v.noiseSrc, v.reedOsc].forEach(n => { try { n.stop(stopAt); } catch (_) {} });
+    [v.baseOsc, v.detOsc, v.lfo, v.noiseSrc, v.reedOsc, v.panLfo].forEach(n => { try { n.stop(stopAt); } catch (_) {} });
   }
 
-  const surpetiPanel     = document.getElementById('surpeti-panel');
-  const volumeSlider     = document.getElementById('surpeti-volume');
-  const randomizeBtn     = document.getElementById('surpeti-randomize');
-  const stopAllBtn       = document.getElementById('surpeti-stopall');
-  const noiseToggleBtn   = document.getElementById('surpeti-noise');
-  const keyButtons       = [];
+  // Dedicated bass anchor — clean sine, no chorus/reed/vibrato layers (those
+  // add pleasant complexity up top but just turn into low-frequency mud on
+  // a sub-bass tone), centered rather than panned since bass isn't very
+  // directional anyway.
+  function startBass() {
+    if (bassVoice) return;
+    const freq = SARGAM[BASS_NOTE_IDX].hz * Math.pow(2, BASS_OCTAVE_OFFSET);
+    const now  = ctx.currentTime;
 
-  SARGAM.forEach((note, idx) => {
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'sargam-key' + (note.sharp ? ' sharp' : '');
-    btn.textContent = note.name;
-    btn.addEventListener('click', () => {
-      ensureCtx();
-      const isActive = btn.classList.toggle('active');
-      if (isActive) startVoice(idx); else stopVoice(idx);
+    const bassFilter = ctx.createBiquadFilter();
+    bassFilter.type = 'lowpass';
+    bassFilter.frequency.value = freq * 6;
+    bassFilter.Q.value = BASS_FILTER_Q;
+
+    const bassGain = ctx.createGain();
+    bassGain.gain.setValueAtTime(0, now);
+    bassGain.gain.linearRampToValueAtTime(BASS_LEVEL, now + BASS_FADE_IN_MS / 1000);
+
+    const bassOsc = ctx.createOscillator();
+    bassOsc.type = 'sine';
+    bassOsc.frequency.value = freq;
+    bassOsc.connect(bassFilter); bassFilter.connect(bassGain); bassGain.connect(masterGain);
+    bassOsc.start(now);
+
+    bassVoice = { osc: bassOsc, gain: bassGain, filter: bassFilter };
+  }
+
+  function stopBass() {
+    if (!bassVoice) return;
+    const now = ctx.currentTime;
+    bassVoice.gain.gain.cancelScheduledValues(now);
+    bassVoice.gain.gain.setValueAtTime(bassVoice.gain.gain.value, now);
+    bassVoice.gain.gain.linearRampToValueAtTime(0, now + RELEASE_MS / 1000);
+    const stopAt = now + RELEASE_MS / 1000 + 0.05;
+    try { bassVoice.osc.stop(stopAt); } catch (_) {}
+    bassVoice = null;
+  }
+
+  // Keeps the ambient noise layer's tone/level slowly wandering while it's on,
+  // same idea as scheduleDrift for the note voices — never a flat static hiss.
+  function scheduleWhiteNoiseDrift() {
+    const delay = WHITE_NOISE_DRIFT_MIN_MS + Math.random() * (WHITE_NOISE_DRIFT_MAX_MS - WHITE_NOISE_DRIFT_MIN_MS);
+    whiteNoiseDriftTimer = setTimeout(() => {
+      if (!whiteNoiseOn) return;
+      const t = ctx.currentTime;
+
+      whiteNoiseFilter.frequency.cancelScheduledValues(t);
+      whiteNoiseFilter.frequency.setValueAtTime(whiteNoiseFilter.frequency.value, t);
+      whiteNoiseFilter.frequency.linearRampToValueAtTime(randInRange(WHITE_NOISE_CUTOFF_RANGE), t + WHITE_NOISE_DRIFT_RAMP_S);
+
+      whiteNoiseGain.gain.cancelScheduledValues(t);
+      whiteNoiseGain.gain.setValueAtTime(whiteNoiseGain.gain.value, t);
+      whiteNoiseGain.gain.linearRampToValueAtTime(randInRange(WHITE_NOISE_LEVEL_RANGE), t + WHITE_NOISE_DRIFT_RAMP_S);
+
+      scheduleWhiteNoiseDrift();
+    }, delay);
+  }
+
+  /* ── Autonomous ambient "composer" ──────────────────────────────────
+     No note-picking UI — Play starts the bass anchor plus 2-3 random upper
+     voices (spread across octaves, kept a minimum gap apart), then an
+     evolve timer keeps adding/removing upper voices indefinitely so the
+     harmonic bed itself changes over time, not just each note's internal
+     drift. ─────────────────────────────────────────────────── */
+  const MAX_ACTIVE_NOTES  = 3;
+  const MIN_ACTIVE_NOTES  = 2;
+  const EVOLVE_MIN_MS     = 25000;
+  const EVOLVE_MAX_MS     = 45000;
+
+  let isPlaying   = false;
+  let evolveTimer = null;
+
+  // All (idx, octaveOffset) combinations — the full pool upper voices are
+  // drawn from.
+  function allVoiceSlots() {
+    const slots = [];
+    SARGAM.forEach((_, idx) => OCTAVE_OFFSETS.forEach(oct => slots.push([idx, oct])));
+    return slots;
+  }
+
+  // Picks a random slot at least MIN_VOICE_GAP_CENTS from every currently
+  // active voice; falls back to whatever's least-close if nothing clears
+  // the bar within a reasonable number of attempts (small pool, shouldn't
+  // normally happen).
+  function pickSpacedSlot(excludeKeys) {
+    const activeFreqs = Object.values(voices).map(v => v.freq);
+    const candidates = allVoiceSlots().filter(([idx, oct]) => !excludeKeys.includes(voiceKey(idx, oct)));
+    if (!candidates.length) return null;
+
+    for (let i = 0; i < MAX_PICK_ATTEMPTS; i++) {
+      const [idx, oct] = candidates[Math.floor(Math.random() * candidates.length)];
+      if (isFarEnoughFromActive(voiceFreq(idx, oct), activeFreqs)) return [idx, oct];
+    }
+    // Fallback: widest minimum gap available among the candidates.
+    let best = candidates[0];
+    let bestGap = -Infinity;
+    candidates.forEach(([idx, oct]) => {
+      const freq = voiceFreq(idx, oct);
+      const gap = activeFreqs.length
+        ? Math.min(...activeFreqs.map(f => centsBetween(freq, f)))
+        : Infinity;
+      if (gap > bestGap) { bestGap = gap; best = [idx, oct]; }
     });
-    surpetiPanel.appendChild(btn);
-    keyButtons.push(btn);
+    return best;
+  }
+
+  function scheduleEvolve() {
+    const delay = EVOLVE_MIN_MS + Math.random() * (EVOLVE_MAX_MS - EVOLVE_MIN_MS);
+    evolveTimer = setTimeout(() => {
+      if (!isPlaying) return;
+      const activeKeys = Object.keys(voices);
+
+      const shouldRemove = activeKeys.length >= MAX_ACTIVE_NOTES
+        || (activeKeys.length > MIN_ACTIVE_NOTES && Math.random() < 0.5);
+
+      if (shouldRemove && activeKeys.length > MIN_ACTIVE_NOTES) {
+        stopVoice(activeKeys[Math.floor(Math.random() * activeKeys.length)]);
+      } else {
+        const slot = pickSpacedSlot(activeKeys);
+        if (slot) startVoice(slot[0], slot[1]);
+      }
+      scheduleEvolve();
+    }, delay);
+  }
+
+  /* ── Bell & windchime accents ─────────────────────────────────────────
+     Sparse, quiet chimes — not a rhythmic element, just occasional bright
+     points of interest against the continuous drone. Both share the same
+     5-sine-partial inharmonic-ratio synthesis (classic bell-synthesis
+     trick) via playChimeNote, just at different registers/timing: bells
+     are single, low-ish, long-ringing strikes; windchimes are clusters of
+     2-4 quick, thin, high notes mimicking a gust catching several tubes at
+     once. Both get an extra direct send into the shared reverb (on top of
+     the normal ambient send) so they ring out longer/more spaciously than
+     the rest of the mix, and both spawn a matching visual (raindrop ripple
+     for bells, a quick sparkle burst for windchimes). ────────────────────── */
+  const CHIME_PARTIALS            = [1, 2.01, 2.74, 3.98, 5.4];
+  const CHIME_PARTIAL_LEVELS      = [1, 0.5, 0.3, 0.16, 0.09];
+  const CHIME_PARTIAL_BASE_DECAY_S = [3.4, 2.2, 1.5, 1.0, 0.7]; // at decayScale = 1
+  const CHIME_ATTACK_S = 0.008;
+
+  // fundamental: Hz. level: peak gain of the loudest partial. decayScale:
+  // multiplies CHIME_PARTIAL_BASE_DECAY_S (1 = bell-length, <1 = shorter/
+  // tinklier). panValue: -1..1. reverbSend: extra direct send into the
+  // shared reverb, on top of the normal ambient-bus send.
+  function playChimeNote(fundamental, level, decayScale, panValue, reverbSend) {
+    if (!ctx) return;
+    const now = ctx.currentTime;
+
+    const pan = ctx.createStereoPanner();
+    pan.pan.value = panValue;
+    const gain = ctx.createGain();
+    gain.gain.value = level;
+    gain.connect(pan);
+    pan.connect(masterGain);
+
+    if (reverbSend && reverbNode) {
+      const send = ctx.createGain();
+      send.gain.value = reverbSend;
+      gain.connect(send);
+      send.connect(reverbNode);
+    }
+
+    CHIME_PARTIALS.forEach((ratio, i) => {
+      const decay = CHIME_PARTIAL_BASE_DECAY_S[i] * decayScale;
+      const osc = ctx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.value = fundamental * ratio;
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0, now);
+      g.gain.linearRampToValueAtTime(CHIME_PARTIAL_LEVELS[i], now + CHIME_ATTACK_S);
+      g.gain.setTargetAtTime(0, now + CHIME_ATTACK_S, decay / 4);
+      osc.connect(g); g.connect(gain);
+      osc.start(now);
+      osc.stop(now + decay * 3 + 0.5);
+    });
+  }
+
+  const BELL_MIN_INTERVAL_MS = 22000;
+  const BELL_MAX_INTERVAL_MS = 48000;
+  const BELL_LEVEL       = 0.075;
+  const BELL_OCTAVES_UP  = [2, 3]; // × 4 or × 8 the scale frequency
+  const BELL_DECAY_SCALE = 2.2;    // longer ring than the base chime decay
+  const BELL_REVERB_SEND = 0.5;
+
+  let bellTimer = null;
+
+  function playBell() {
+    if (!ctx) return;
+    const note = SARGAM[Math.floor(Math.random() * SARGAM.length)];
+    const octaveUp = BELL_OCTAVES_UP[Math.floor(Math.random() * BELL_OCTAVES_UP.length)];
+    const fundamental = note.hz * Math.pow(2, octaveUp);
+    const panValue = (Math.random() * 2 - 1) * 0.7;
+    const level = BELL_LEVEL * (0.7 + Math.random() * 0.5);
+
+    playChimeNote(fundamental, level, BELL_DECAY_SCALE, panValue, BELL_REVERB_SEND);
+
+    // Raindrop ripple, positioned to match the bell's stereo placement —
+    // left/right on screen mirrors left/right in the pan field.
+    spawnRipple((panValue + 1) / 2, 0.25 + Math.random() * 0.4);
+  }
+
+  function scheduleBells() {
+    const delay = BELL_MIN_INTERVAL_MS + Math.random() * (BELL_MAX_INTERVAL_MS - BELL_MIN_INTERVAL_MS);
+    bellTimer = setTimeout(() => {
+      if (!isPlaying) return;
+      playBell();
+      scheduleBells();
+    }, delay);
+  }
+
+  // Windchimes — a "gust" of 2-4 quick, thin, high notes in loose
+  // succession rather than one isolated strike, higher-pitched and
+  // shorter-ringing than the bells so the two stay clearly distinct.
+  const WINDCHIME_MIN_INTERVAL_MS  = 26000;
+  const WINDCHIME_MAX_INTERVAL_MS  = 55000;
+  const WINDCHIME_LEVEL        = 0.05;
+  const WINDCHIME_OCTAVES_UP   = [3, 4]; // higher/thinner than bells
+  const WINDCHIME_DECAY_SCALE  = 0.45;
+  const WINDCHIME_REVERB_SEND  = 0.35;
+  const WINDCHIME_NOTES_MIN    = 2;
+  const WINDCHIME_NOTES_MAX    = 4;
+  const WINDCHIME_NOTE_GAP_MIN_MS = 70;
+  const WINDCHIME_NOTE_GAP_MAX_MS = 190;
+
+  let windchimeTimer = null;
+
+  function playWindchimeGust() {
+    if (!ctx) return;
+    const noteCount = WINDCHIME_NOTES_MIN
+      + Math.floor(Math.random() * (WINDCHIME_NOTES_MAX - WINDCHIME_NOTES_MIN + 1));
+
+    for (let i = 0; i < noteCount; i++) {
+      const delayMs = i * (WINDCHIME_NOTE_GAP_MIN_MS
+        + Math.random() * (WINDCHIME_NOTE_GAP_MAX_MS - WINDCHIME_NOTE_GAP_MIN_MS));
+
+      setTimeout(() => {
+        if (!isPlaying || !ctx) return;
+        const note = SARGAM[Math.floor(Math.random() * SARGAM.length)];
+        const octaveUp = WINDCHIME_OCTAVES_UP[Math.floor(Math.random() * WINDCHIME_OCTAVES_UP.length)];
+        const fundamental = note.hz * Math.pow(2, octaveUp);
+        const panValue = (Math.random() * 2 - 1) * 0.85;
+        const level = WINDCHIME_LEVEL * (0.6 + Math.random() * 0.6);
+
+        playChimeNote(fundamental, level, WINDCHIME_DECAY_SCALE, panValue, WINDCHIME_REVERB_SEND);
+
+        // Sparkle burst, up near the top of the screen — chimes catching
+        // wind/light up high, distinct from bells' raindrop-in-water look.
+        spawnSparkle((panValue + 1) / 2, 0.08 + Math.random() * 0.22);
+      }, delayMs);
+    }
+  }
+
+  function scheduleWindchimes() {
+    const delay = WINDCHIME_MIN_INTERVAL_MS
+      + Math.random() * (WINDCHIME_MAX_INTERVAL_MS - WINDCHIME_MIN_INTERVAL_MS);
+    windchimeTimer = setTimeout(() => {
+      if (!isPlaying) return;
+      playWindchimeGust();
+      scheduleWindchimes();
+    }, delay);
+  }
+
+  function startAmbient() {
+    ensureCtx();
+    if (isPlaying) return;
+    isPlaying = true;
+    playBtn.textContent = 'Stop';
+    playBtn.classList.add('active');
+
+    startBass();
+
+    const count = 2 + Math.floor(Math.random() * 2); // 2 or 3 upper voices
+    for (let i = 0; i < count; i++) {
+      const slot = pickSpacedSlot(Object.keys(voices));
+      if (slot) startVoice(slot[0], slot[1]);
+    }
+
+    whiteNoiseOn = true;
+    whiteNoiseGain.gain.cancelScheduledValues(ctx.currentTime);
+    whiteNoiseGain.gain.setValueAtTime(whiteNoiseGain.gain.value, ctx.currentTime);
+    whiteNoiseGain.gain.linearRampToValueAtTime(WHITE_NOISE_LEVEL, ctx.currentTime + WHITE_NOISE_RAMP_S);
+    scheduleWhiteNoiseDrift();
+
+    scheduleEvolve();
+    scheduleBells();
+    scheduleWindchimes();
+  }
+
+  function stopAmbient() {
+    if (!isPlaying) return;
+    isPlaying = false;
+    playBtn.textContent = 'Play';
+    playBtn.classList.remove('active');
+
+    Object.keys(voices).forEach(key => stopVoice(key));
+    stopBass();
+
+    whiteNoiseOn = false;
+    whiteNoiseGain.gain.cancelScheduledValues(ctx.currentTime);
+    whiteNoiseGain.gain.setValueAtTime(whiteNoiseGain.gain.value, ctx.currentTime);
+    whiteNoiseGain.gain.linearRampToValueAtTime(0, ctx.currentTime + WHITE_NOISE_RAMP_S);
+
+    if (bellTimer) { clearTimeout(bellTimer); bellTimer = null; }
+    if (windchimeTimer) { clearTimeout(windchimeTimer); windchimeTimer = null; }
+
+    if (whiteNoiseDriftTimer) { clearTimeout(whiteNoiseDriftTimer); whiteNoiseDriftTimer = null; }
+    if (evolveTimer) { clearTimeout(evolveTimer); evolveTimer = null; }
+  }
+
+  const playBtn      = document.getElementById('ambient-play');
+  const volumeSlider = document.getElementById('ambient-volume');
+
+  playBtn.addEventListener('click', () => {
+    if (isPlaying) stopAmbient(); else startAmbient();
   });
 
   volumeSlider.addEventListener('input', () => {
@@ -818,35 +1330,169 @@
     masterGain.gain.setTargetAtTime(parseFloat(volumeSlider.value), ctx.currentTime, 0.01);
   });
 
-  randomizeBtn.addEventListener('click', () => {
-    ensureCtx();
-    const count = 2 + Math.floor(Math.random() * 2); // 2 or 3
-    const pool  = keyButtons.map((_, i) => i);
-    const picked = new Set();
-    while (picked.size < count && pool.length) {
-      picked.add(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
+  /* ── Full-screen wave visualizer ──────────────────────────────────────
+     Flowing horizontal line ribbons, always gently animating on their own
+     (calm sea, even in silence) with live audio pushed in as extra ripple
+     detail + swell once something is playing — reads straight off the
+     analyser tapped into the final output above, so it's genuinely in
+     sync with what's audible, not a guess running on its own clock. ──── */
+  const waveCanvas = document.getElementById('wave-canvas');
+  const wctx = waveCanvas.getContext('2d');
+
+  function resizeCanvas() {
+    const dpr = window.devicePixelRatio || 1;
+    waveCanvas.width  = window.innerWidth  * dpr;
+    waveCanvas.height = window.innerHeight * dpr;
+    waveCanvas.style.width  = window.innerWidth  + 'px';
+    waveCanvas.style.height = window.innerHeight + 'px';
+    wctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+  wctx.fillStyle = '#000000';
+  wctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+
+  const LINE_COUNT = 16;
+  const lineSeeds = Array.from({ length: LINE_COUNT }, () => ({
+    freq:  0.0022 + Math.random() * 0.0032,
+    speed: 0.15 + Math.random() * 0.28,
+    phase: Math.random() * Math.PI * 2,
+    amp:   6 + Math.random() * 10,
+  }));
+
+  // Raindrop ripples, spawned from playBell() (see above) — a couple of
+  // expanding, fading concentric rings per bell strike. Positioned with
+  // fractional coords so they stay correct across resizes, and animated on
+  // real wall-clock time (not the frozen wave clock) since they're tied to
+  // discrete bell events, not the continuous idle motion.
+  const RIPPLE_DURATION_S = 2.2;
+  const RIPPLE_MAX_RADIUS = 90;
+  const RIPPLE_RING_COUNT = 2;
+  const RIPPLE_RING_STAGGER = 0.16;
+  const ripples = [];
+
+  function spawnRipple(xFrac, yFrac) {
+    ripples.push({ xFrac, yFrac, start: performance.now() });
+  }
+
+  // Windchime sparkles — a quick radiating-line burst that grows then
+  // shrinks while fading, much faster than a ripple, for the tinklier/
+  // higher windchime accents.
+  const SPARKLE_DURATION_S = 0.6;
+  const SPARKLE_RAY_COUNT  = 6;
+  const SPARKLE_MAX_LEN    = 14;
+  const sparkles = [];
+
+  function spawnSparkle(xFrac, yFrac) {
+    sparkles.push({ xFrac, yFrac, start: performance.now(), angleOffset: Math.random() * Math.PI * 2 });
+  }
+
+  // Wave-motion clock only advances while playing — lines sit still on load
+  // and freeze in place on stop, rather than animating on their own.
+  let animClock = 0;
+  let lastTick   = performance.now();
+
+  // Extra smoothing on top of the analyser's own smoothingTimeConstant —
+  // belt and suspenders against any residual frame-to-frame jitter, so the
+  // waves swell and settle instead of flickering.
+  let smoothedEnergy = 0;
+
+  function drawWaves() {
+    requestAnimationFrame(drawWaves);
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    const now = performance.now();
+    const dt  = (now - lastTick) / 1000;
+    lastTick  = now;
+    if (isPlaying) animClock += dt;
+    const t = animClock;
+
+    // Soft trailing fade rather than a hard clear — lines leave gentle
+    // echoes as they move, which reads much more like flowing water.
+    wctx.fillStyle = 'rgba(0,0,0,0.13)';
+    wctx.fillRect(0, 0, w, h);
+
+    let rawEnergy = 0;
+    if (analyser && analyserData) {
+      analyser.getByteFrequencyData(analyserData);
+      let sum = 0;
+      for (let i = 0; i < analyserData.length; i++) sum += analyserData[i];
+      rawEnergy = sum / analyserData.length / 255;
     }
-    keyButtons.forEach((btn, idx) => {
-      const shouldBeActive = picked.has(idx);
-      if (btn.classList.contains('active') !== shouldBeActive) btn.click();
-    });
-  });
+    smoothedEnergy += (rawEnergy - smoothedEnergy) * 0.05;
+    const energy = smoothedEnergy;
 
-  stopAllBtn.addEventListener('click', () => {
-    keyButtons.forEach(btn => {
-      if (btn.classList.contains('active')) btn.click();
-    });
-  });
+    const baseY  = h * 0.52;
+    const spread = Math.min(h * 0.68, 520);
+    const step   = 6;
 
-  noiseToggleBtn.addEventListener('click', () => {
-    ensureCtx();
-    whiteNoiseOn = !whiteNoiseOn;
-    noiseToggleBtn.classList.toggle('active', whiteNoiseOn);
-    const target = whiteNoiseOn ? WHITE_NOISE_LEVEL : 0;
-    whiteNoiseGain.gain.cancelScheduledValues(ctx.currentTime);
-    whiteNoiseGain.gain.setValueAtTime(whiteNoiseGain.gain.value, ctx.currentTime);
-    whiteNoiseGain.gain.linearRampToValueAtTime(target, ctx.currentTime + WHITE_NOISE_RAMP_S);
-  });
+    for (let li = 0; li < LINE_COUNT; li++) {
+      const seed  = lineSeeds[li];
+      const depth = li / (LINE_COUNT - 1); // 0 = front, 1 = back
+      const lineBaseY = baseY - spread / 2 + depth * spread;
+      const opacity = 0.05 + (1 - depth) * 0.24 + energy * 0.12;
+
+      wctx.beginPath();
+      for (let x = 0; x <= w; x += step) {
+        const y = lineBaseY
+          + Math.sin(x * seed.freq + seed.phase + t * seed.speed) * seed.amp * (0.75 + energy * 0.8);
+
+        if (x === 0) wctx.moveTo(x, y); else wctx.lineTo(x, y);
+      }
+      wctx.strokeStyle = `rgba(255,255,255,${opacity.toFixed(3)})`;
+      wctx.lineWidth = 1;
+      wctx.stroke();
+    }
+
+    for (let i = ripples.length - 1; i >= 0; i--) {
+      const r = ripples[i];
+      const elapsed  = (now - r.start) / 1000;
+      const progress = elapsed / RIPPLE_DURATION_S;
+      if (progress >= 1) { ripples.splice(i, 1); continue; }
+
+      const cx = r.xFrac * w;
+      const cy = r.yFrac * h;
+
+      for (let ring = 0; ring < RIPPLE_RING_COUNT; ring++) {
+        const ringProgress = progress - ring * RIPPLE_RING_STAGGER;
+        if (ringProgress <= 0 || ringProgress >= 1) continue;
+        const radius  = ringProgress * RIPPLE_MAX_RADIUS;
+        const opacity = (1 - ringProgress) * 0.4;
+        wctx.beginPath();
+        wctx.arc(cx, cy, radius, 0, Math.PI * 2);
+        wctx.strokeStyle = `rgba(255,255,255,${opacity.toFixed(3)})`;
+        wctx.lineWidth = 1;
+        wctx.stroke();
+      }
+    }
+
+    for (let i = sparkles.length - 1; i >= 0; i--) {
+      const s = sparkles[i];
+      const elapsed  = (now - s.start) / 1000;
+      const progress = elapsed / SPARKLE_DURATION_S;
+      if (progress >= 1) { sparkles.splice(i, 1); continue; }
+
+      const cx = s.xFrac * w;
+      const cy = s.yFrac * h;
+      const len     = Math.sin(progress * Math.PI) * SPARKLE_MAX_LEN; // grow then shrink
+      const opacity = (1 - progress) * 0.8;
+
+      wctx.strokeStyle = `rgba(255,255,255,${opacity.toFixed(3)})`;
+      wctx.lineWidth = 1;
+      for (let ray = 0; ray < SPARKLE_RAY_COUNT; ray++) {
+        const angle = s.angleOffset + (ray / SPARKLE_RAY_COUNT) * Math.PI * 2;
+        const x1 = cx + Math.cos(angle) * len * 0.3;
+        const y1 = cy + Math.sin(angle) * len * 0.3;
+        const x2 = cx + Math.cos(angle) * len;
+        const y2 = cy + Math.sin(angle) * len;
+        wctx.beginPath();
+        wctx.moveTo(x1, y1);
+        wctx.lineTo(x2, y2);
+        wctx.stroke();
+      }
+    }
+  }
+  drawWaves();
 
   /* ── Join session / OTP modal ─────────────────────────────────────── */
   const joinModal    = document.getElementById('join-modal');

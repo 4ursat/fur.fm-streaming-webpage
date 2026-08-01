@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fur FM — Contact</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Hind:wght@400;500&family=Yatra+One&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      background: #000000;
+      font-family: 'Yatra One', serif;
+      color: #ffffff;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body::after {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background-image: radial-gradient(circle, rgba(255,255,255,0.045) 1px, transparent 1px);
+      background-size: 26px 26px;
+      pointer-events: none;
+    }
+
+    /* ── Brand ───────────────────────────────────────────────── */
+    #brand {
+      position: fixed;
+      top: 1.4rem; left: 1.5rem;
+      z-index: 30;
+      user-select: none;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.18rem;
+      text-decoration: none;
+    }
+    #brand svg { opacity: 0.9; width: 100%; height: auto; }
+
+    /* ── Site nav ────────────────────────────────────────────── */
+    #site-nav {
+      position: fixed;
+      top: 1.7rem; right: 1.5rem;
+      z-index: 30;
+      display: flex;
+      gap: 1.5rem;
+    }
+    .nav-link {
+      font-family: 'Yatra One', serif;
+      font-size: 0.72rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.55);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+    .nav-link:hover { color: #ffffff; }
+    .nav-link.active { color: #ffffff; }
+
+    @media (max-width: 560px) {
+      #site-nav { gap: 0.9rem; top: 1.5rem; right: 1rem; }
+      .nav-link { font-size: 0.62rem; letter-spacing: 0.08em; }
+      #brand { top: 1.2rem; left: 1rem; }
+    }
+
+    /* ── Contact body ────────────────────────────────────────── */
+    #contact-wrap {
+      position: fixed; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 1.6rem;
+      z-index: 1;
+      padding: 1.5rem;
+    }
+    .heading {
+      font-family: 'Yatra One', serif;
+      font-size: 1.4rem;
+      color: #ffffff;
+    }
+    #contact-email {
+      font-size: 0.85rem;
+      letter-spacing: 0.03em;
+      color: rgba(255,255,255,0.75);
+      text-decoration: none;
+      border-bottom: 1px solid rgba(255,255,255,0.3);
+      padding-bottom: 0.15rem;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    #contact-email:hover { color: #ffffff; border-color: #ffffff; }
+
+    #contact-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1.1rem;
+      width: 100%;
+      max-width: 320px;
+    }
+    .contact-input, .contact-textarea {
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid rgba(255,255,255,0.3);
+      color: #ffffff;
+      font-family: 'Hind', sans-serif;
+      font-size: 0.9rem;
+      padding: 0.4rem 0;
+      outline: none;
+      width: 100%;
+      resize: none;
+    }
+    .contact-input::placeholder, .contact-textarea::placeholder { color: rgba(255,255,255,0.4); }
+    .contact-input:focus, .contact-textarea:focus { border-color: rgba(255,255,255,0.7); }
+
+    #contact-submit {
+      appearance: none;
+      background: transparent;
+      border: 1.5px solid rgba(255,255,255,0.5);
+      border-radius: 999px;
+      color: rgba(255,255,255,0.85);
+      font-family: 'Yatra One', serif;
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0.5rem 1.3rem;
+      cursor: pointer;
+      align-self: flex-start;
+      transition: border-color 0.15s, color 0.15s, background 0.15s;
+    }
+    #contact-submit:hover { border-color: #ffffff; color: #ffffff; background: rgba(255,255,255,0.06); }
+
+    #contact-note {
+      font-size: 0.68rem;
+      letter-spacing: 0.02em;
+      color: #999999;
+    }
+  </style>
+</head>
+<body>
+
+<a id="brand" href="index.html">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 168 64" width="140" height="53" fill="none">
+    <text x="0" y="24"
+      font-family="'Courier New',Courier,monospace"
+      font-size="24" font-weight="700" letter-spacing="1"
+      fill="#ffffff">FursatFM</text>
+    <line x1="1" y1="31" x2="37" y2="31" stroke="rgba(255,255,255,0.4)" stroke-width="1"/>
+    <text x="1" y="50"
+      font-family="'Yatra One', serif"
+      font-size="18"
+      fill="rgba(255,255,255,0.75)">फ़ुर्सत</text>
+  </svg>
+</a>
+
+<nav id="site-nav">
+  <a class="nav-link" href="stream.html">Live</a>
+  <a class="nav-link" href="music.html">Music</a>
+  <a class="nav-link" href="studio.html">Studio</a>
+  <a class="nav-link" href="shop.html">Shop</a>
+  <a class="nav-link" href="cry.html">Cry</a>
+  <a class="nav-link active" href="contact.html">Contact</a>
+</nav>
+
+<div id="contact-wrap">
+  <div class="heading">Contact</div>
+  <a id="contact-email" href="mailto:4ursat@gmail.com">4ursat@gmail.com</a>
+
+  <form id="contact-form">
+    <input class="contact-input" id="contact-name" type="text" placeholder="your name" autocomplete="name" />
+    <input class="contact-input" id="contact-from" type="email" placeholder="your@email.com" autocomplete="email" required />
+    <textarea class="contact-textarea" id="contact-message" rows="4" placeholder="message" required></textarea>
+    <button id="contact-submit" type="submit">Send →</button>
+  </form>
+  <div id="contact-note">opens your email client, addressed to us</div>
+</div>
+
+<script>
+  const form = document.getElementById('contact-form');
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    const name = document.getElementById('contact-name').value.trim();
+    const from = document.getElementById('contact-from').value.trim();
+    const message = document.getElementById('contact-message').value.trim();
+    const subject = encodeURIComponent(`Message from ${name || 'your website'}`);
+    const body = encodeURIComponent(`${message}\n\n— ${name || 'Anonymous'} (${from})`);
+    window.location.href = `mailto:4ursat@gmail.com?subject=${subject}&body=${body}`;
+  });
+</script>
+
+</body>
+</html>
