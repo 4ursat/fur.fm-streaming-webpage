@@ -122,6 +122,12 @@
       font-size: 0.78rem; letter-spacing: 0.05em;
       color: #666666;
     }
+
+    /* Clears the fixed left icon strip — placed after #placeholder so it
+       wins the cascade at this width instead of being overridden by it. */
+    @media (max-width: 560px) {
+      #placeholder { padding-left: 3.4rem; }
+    }
   </style>
 </head>
 <body>

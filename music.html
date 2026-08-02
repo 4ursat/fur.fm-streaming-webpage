@@ -126,6 +126,12 @@
       width: 100%;
       border: none;
     }
+
+    /* Clears the fixed left icon strip — placed after #albums so it wins
+       the cascade at this width instead of being overridden by it. */
+    @media (max-width: 560px) {
+      #albums { padding-left: 3.4rem; }
+    }
   </style>
 </head>
 <body>
