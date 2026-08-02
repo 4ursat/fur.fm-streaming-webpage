@@ -1295,6 +1295,7 @@
   });
 
 
+
   // Wave-motion clock only advances while playing — lines sit still on load
   // and freeze in place on stop, rather than animating on their own.
   let animClock = 0;
@@ -1330,7 +1331,11 @@
     smoothedEnergy += (rawEnergy - smoothedEnergy) * 0.05;
     const energy = smoothedEnergy;
 
-    const bandTop    = h * 0.30;
+    // Distant dune's baseline sits safely above the top edge (well past its
+    // own max wave amplitude) so its pale fill always fully covers y=0 —
+    // the dune band effectively extends off-screen rather than starting
+    // partway down, so there's no gap above it to begin with.
+    const bandTop    = -90;
     const bandBottom = h * 1.02;
     const step       = 6;
     const ampScale   = 0.8 + energy * 0.6;
