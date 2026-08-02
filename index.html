@@ -26,11 +26,14 @@
       -webkit-tap-highlight-color: transparent;
     }
 
+    /* Grain texture — same speckle tile as the visualizer, so every page
+       shares one consistent grainy, textured feel. */
     body::after {
       content: '';
       position: fixed; inset: 0; z-index: 0;
-      background-image: radial-gradient(circle, rgba(0,0,0,0.045) 1px, transparent 1px);
-      background-size: 26px 26px;
+      background-image: url('grain.png');
+      background-repeat: repeat;
+      opacity: 0.2;
       pointer-events: none;
     }
 
@@ -94,10 +97,12 @@
       color: #666666;
     }
     #sc-join {
+      display: inline-block;
       background: transparent; border: none;
       font-family: 'Yatra One', serif;
       font-size: 0.72rem; letter-spacing: 0.05em;
       color: #000000;
+      text-decoration: none;
       cursor: pointer; padding: 0; margin-top: 0.3rem;
       text-align: left; touch-action: manipulation;
       transition: color 0.15s;
@@ -286,73 +291,6 @@
       #brand { top: 1.2rem; left: 1rem; }
     }
 
-    /* ── Join / OTP modal ────────────────────────────────────── */
-    #join-modal {
-      position: fixed; inset: 0; z-index: 50;
-      background: rgba(255,255,255,0.97);
-      display: flex; align-items: center; justify-content: center;
-      opacity: 0; pointer-events: none;
-      transition: opacity 0.28s ease;
-    }
-    #join-modal.open { opacity: 1; pointer-events: auto; }
-
-    #join-panel {
-      position: relative;
-      width: 100%; max-width: 280px;
-      padding: 0 1.5rem;
-      display: flex; flex-direction: column;
-    }
-    #join-close {
-      position: absolute; top: -2.2rem; right: 1.5rem;
-      cursor: pointer; font-size: 1.1rem;
-      color: #666666;
-      background: none; border: none;
-      font-family: inherit; touch-action: manipulation;
-      transition: color 0.15s;
-    }
-    #join-close:hover { color: #000000; }
-
-    .join-heading {
-      font-family: 'Yatra One', serif;
-      font-size: 1rem; letter-spacing: 0.02em;
-      color: #000000;
-      margin-bottom: 0.35rem;
-    }
-    .join-sub {
-      font-size: 0.72rem; color: #666666;
-      margin-bottom: 1.4rem; line-height: 1.55;
-    }
-    .join-input {
-      background: transparent; border: none;
-      border-bottom: 1px solid #666666;
-      color: #000000;
-      font-family: 'Yatra One', serif; font-size: 0.9rem;
-      padding: 0.4rem 0; outline: none; width: 100%;
-      margin-bottom: 1.2rem;
-    }
-    .join-input::placeholder { color: rgba(0,0,0,0.4); }
-    .join-submit {
-      background: transparent; border: none;
-      font-family: 'Yatra One', serif;
-      font-size: 0.8rem; letter-spacing: 0.05em;
-      color: #000000;
-      cursor: pointer; padding: 0; text-align: left;
-      touch-action: manipulation; transition: color 0.15s;
-    }
-    .join-submit:hover { color: #000000; }
-    .join-submit:disabled { color: rgba(0,0,0,0.3); cursor: default; }
-    .join-err {
-      font-size: 0.68rem; color: #000000;
-      margin-top: 0.8rem; min-height: 1rem; line-height: 1.5;
-    }
-    .join-back {
-      font-size: 0.68rem; color: #666666;
-      cursor: pointer; background: none; border: none;
-      font-family: inherit; padding: 0; margin-top: 1.2rem;
-      touch-action: manipulation;
-    }
-    .join-back:hover { color: #000000; }
-
     @keyframes blink {
       0%, 100% { opacity: 1; }
       50%       { opacity: 0.3; }
@@ -410,7 +348,7 @@
 <div id="session-card">
   <div id="sc-title"></div>
   <div id="sc-date"></div>
-  <button id="sc-join">enter room →</button>
+  <a id="sc-join" href="stream.html" target="_blank">enter room →</a>
 </div>
 
 
@@ -424,33 +362,6 @@
   <div id="ambient-volume-wrap">
     <label for="ambient-volume">vol</label>
     <input type="range" id="ambient-volume" min="0" max="1" step="0.01" value="1" />
-  </div>
-</div>
-
-<!-- Join / OTP modal -->
-<div id="join-modal">
-  <div id="join-panel">
-    <button id="join-close">×</button>
-
-    <!-- Step 1: email -->
-    <div id="step-email">
-      <div class="join-heading">join the session</div>
-      <div class="join-sub">we'll send a one-time code to your email</div>
-      <input class="join-input" id="join-email" type="email" placeholder="your@email.com" autocomplete="email" />
-      <button class="join-submit" id="join-send">send code →</button>
-      <div class="join-err" id="join-err1"></div>
-    </div>
-
-    <!-- Step 2: OTP code -->
-    <div id="step-otp" style="display:none">
-      <div class="join-heading">check your email</div>
-      <div class="join-sub" id="otp-sub">enter the 6-digit code we sent</div>
-      <input class="join-input" id="join-otp" type="text" inputmode="numeric" maxlength="6" placeholder="000000" autocomplete="one-time-code" />
-      <button class="join-submit" id="join-verify">verify →</button>
-      <div class="join-err" id="join-err2"></div>
-      <button class="join-back" id="join-back">← use a different email</button>
-    </div>
-
   </div>
 </div>
 
@@ -519,7 +430,6 @@
   const sessionCard   = document.getElementById('session-card');
   const scTitle       = document.getElementById('sc-title');
   const scDate        = document.getElementById('sc-date');
-  const scJoinBtn     = document.getElementById('sc-join');
   let   driftTimer  = null;
 
   function startDrift() {
@@ -562,7 +472,6 @@
       scDate.textContent  = next.date
         ? new Date(next.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric' })
         : '';
-      scJoinBtn.addEventListener('click', () => openJoinModal());
       startDrift();
     }
 
@@ -1265,10 +1174,9 @@
   wctx.fillStyle = '#ffffff';
   wctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
 
-  // Sand-grain texture — a small pre-rendered speckle tile, reused as a
-  // repeating pattern and clipped to each dune's shape. Flat solid fills
-  // alone read as a cute paper-craft illustration; a bit of grain is what
-  // makes it read as sand instead.
+  // Layered meadow — same grainy, calm, full-bleed band structure as the
+  // original dune version — plain layered bands, calm and static apart
+  // from a gentle overall swell with the music's energy.
   const grainCanvas = document.createElement('canvas');
   grainCanvas.width = 220;
   grainCanvas.height = 220;
@@ -1282,11 +1190,8 @@
   grainCtx.putImageData(grainImg, 0, 0);
   const grainPattern = wctx.createPattern(grainCanvas, 'repeat');
 
-  const DUNE_COUNT = 7;
-  // Just 2 octaves — a third/fourth higher-frequency layer read as too
-  // many small curves. The grain texture below now carries the "sand"
-  // feel instead of relying on a busy ridge line.
-  const duneSeeds = Array.from({ length: DUNE_COUNT }, () => {
+  const BAND_COUNT = 6;
+  const bandSeeds = Array.from({ length: BAND_COUNT }, () => {
     const amp1 = 34 + Math.random() * 20;
     return {
       freq1: 0.0014 + Math.random() * 0.0012, phase1: Math.random() * Math.PI * 2, speed1: 0.04 + Math.random() * 0.04, amp1,
@@ -1294,16 +1199,10 @@
     };
   });
 
-
-
-  // Wave-motion clock only advances while playing — lines sit still on load
-  // and freeze in place on stop, rather than animating on their own.
+  // Motion clock only advances while playing — everything sits still on
+  // load and freezes in place on stop, rather than animating on its own.
   let animClock = 0;
   let lastTick   = performance.now();
-
-  // Extra smoothing on top of the analyser's own smoothingTimeConstant —
-  // belt and suspenders against any residual frame-to-frame jitter, so the
-  // waves swell and settle instead of flickering.
   let smoothedEnergy = 0;
 
   function drawWaves() {
@@ -1331,44 +1230,39 @@
     smoothedEnergy += (rawEnergy - smoothedEnergy) * 0.05;
     const energy = smoothedEnergy;
 
-    // Distant dune's baseline sits safely above the top edge (well past its
-    // own max wave amplitude) so its pale fill always fully covers y=0 —
-    // the dune band effectively extends off-screen rather than starting
+    // Distant band's baseline sits safely above the top edge (well past
+    // its own max wave amplitude) so its pale fill always fully covers
+    // y=0 — the band effectively extends off-screen instead of starting
     // partway down, so there's no gap above it to begin with.
     const bandTop    = -90;
     const bandBottom = h * 1.02;
     const step       = 6;
     const ampScale   = 0.8 + energy * 0.6;
 
-    // Drawn back-to-front (li=0 is the most distant dune, li=DUNE_COUNT-1
-    // the nearest) with solid fills, so nearer dunes naturally paint over
-    // the ones behind them — the same trick layered-mountain silhouette
-    // art uses.
-    for (let li = 0; li < DUNE_COUNT; li++) {
-      const seed = duneSeeds[li];
-      const depth = li / (DUNE_COUNT - 1); // 0 = distant/back, 1 = near/front
+    for (let li = 0; li < BAND_COUNT; li++) {
+      const seed = bandSeeds[li];
+      const depth = li / (BAND_COUNT - 1); // 0 = distant/back, 1 = near/front
       const baseline = bandTop + depth * (bandBottom - bandTop);
+
+      const ridgeY = x => baseline
+        + Math.sin(x * seed.freq1 + seed.phase1 + t * seed.speed1) * seed.amp1 * ampScale
+        + Math.sin(x * seed.freq2 + seed.phase2 + t * seed.speed2) * seed.amp2 * ampScale;
 
       wctx.beginPath();
       wctx.moveTo(0, h);
-      for (let x = 0; x <= w; x += step) {
-        const y = baseline
-          + Math.sin(x * seed.freq1 + seed.phase1 + t * seed.speed1) * seed.amp1 * ampScale
-          + Math.sin(x * seed.freq2 + seed.phase2 + t * seed.speed2) * seed.amp2 * ampScale;
-        wctx.lineTo(x, y);
-      }
+      for (let x = 0; x <= w; x += step) wctx.lineTo(x, ridgeY(x));
       wctx.lineTo(w, h);
       wctx.closePath();
 
-      // Distant dunes fade near-white (atmospheric haze), nearest dune is
+      // Distant bands fade near-white (atmospheric haze), nearest band is
       // almost black.
       const gray = Math.round(236 - depth * 216);
       wctx.fillStyle = `rgb(${gray},${gray},${gray})`;
       wctx.fill();
 
-      // Grain texture, clipped to this dune's silhouette only — slowly
-      // drifting (tied to the same play/pause clock as everything else)
-      // for a subtle shimmer, like sand catching light as it shifts.
+      // Grain texture, clipped to this band's silhouette only — slowly
+      // drifting for a subtle shimmer, like light catching a textured
+      // surface as it shifts.
       wctx.save();
       wctx.clip();
       wctx.globalAlpha = 0.5;
@@ -1379,86 +1273,6 @@
     }
   }
   drawWaves();
-
-  /* ── Join session / OTP modal ─────────────────────────────────────── */
-  const joinModal    = document.getElementById('join-modal');
-  const joinClose    = document.getElementById('join-close');
-  const stepEmail    = document.getElementById('step-email');
-  const stepOtp      = document.getElementById('step-otp');
-  const joinEmailEl  = document.getElementById('join-email');
-  const joinSendBtn  = document.getElementById('join-send');
-  const joinOtpEl    = document.getElementById('join-otp');
-  const joinVerifyBtn= document.getElementById('join-verify');
-  const joinErr1     = document.getElementById('join-err1');
-  const joinErr2     = document.getElementById('join-err2');
-  const joinBackBtn  = document.getElementById('join-back');
-  const otpSubEl     = document.getElementById('otp-sub');
-
-  let otpEmail = '';
-
-  function openJoinModal() {
-    stepEmail.style.display = '';
-    stepOtp.style.display   = 'none';
-    joinErr1.textContent    = '';
-    joinEmailEl.value       = '';
-    joinModal.classList.add('open');
-    setTimeout(() => joinEmailEl.focus(), 50);
-  }
-
-  function closeJoinModal() {
-    joinModal.classList.remove('open');
-  }
-
-  joinClose.addEventListener('click', closeJoinModal);
-  joinModal.addEventListener('click', e => { if (e.target === joinModal) closeJoinModal(); });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeJoinModal(); });
-
-  joinBackBtn.addEventListener('click', () => {
-    stepOtp.style.display   = 'none';
-    stepEmail.style.display = '';
-    joinEmailEl.focus();
-  });
-
-  // Step 1 — send OTP email
-  async function sendOtp() {
-    const email = joinEmailEl.value.trim();
-    if (!email || !email.includes('@')) { joinErr1.textContent = 'enter a valid email address'; return; }
-    joinErr1.textContent    = '';
-    joinSendBtn.disabled    = true;
-    joinSendBtn.textContent = 'sending…';
-    const { error } = await db.auth.signInWithOtp({ email, options: { shouldCreateUser: true } });
-    joinSendBtn.disabled    = false;
-    joinSendBtn.textContent = 'send code →';
-    if (error) { joinErr1.textContent = error.message; return; }
-    otpEmail = email;
-    otpSubEl.textContent    = `enter the code we sent to ${email}`;
-    joinErr2.textContent    = '';
-    joinOtpEl.value         = '';
-    stepEmail.style.display = 'none';
-    stepOtp.style.display   = '';
-    setTimeout(() => joinOtpEl.focus(), 50);
-  }
-
-  joinSendBtn.addEventListener('click', sendOtp);
-  joinEmailEl.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); sendOtp(); } });
-
-  // Step 2 — verify OTP
-  async function verifyOtp() {
-    const token = joinOtpEl.value.trim().replace(/\D/g,'');
-    if (token.length < 6) { joinErr2.textContent = 'enter the 6-digit code from your email'; return; }
-    joinErr2.textContent     = '';
-    joinVerifyBtn.disabled   = true;
-    joinVerifyBtn.textContent= 'verifying…';
-    const { data, error } = await db.auth.verifyOtp({ email: otpEmail, token, type: 'email' });
-    joinVerifyBtn.disabled   = false;
-    joinVerifyBtn.textContent= 'verify →';
-    if (error) { joinErr2.textContent = error.message; return; }
-    closeJoinModal();
-    window.location.href = 'stream.html';
-  }
-
-  joinVerifyBtn.addEventListener('click', verifyOtp);
-  joinOtpEl.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); verifyOtp(); } });
 
 })();
 </script>

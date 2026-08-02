@@ -14,19 +14,35 @@
     html, body {
       width: 100%; height: 100%;
       overflow: hidden;
-      background: #ffffff;
+      background: #16140f;
       font-family: 'Courier New', Courier, monospace;
-      color: #000000;
+      color: #f2ede0;
       -webkit-tap-highlight-color: transparent;
     }
 
-    /* Dot-grid texture — matches landing page */
+    /* Grain texture — same speckle tile as every other page. A gentle
+       twinkle (jump-cut, not a slide — real film grain doesn't glide) is
+       the one bit of motion on an otherwise still page. */
     body::after {
       content: '';
       position: fixed; inset: 0; z-index: 0;
-      background-image: radial-gradient(circle, rgba(0,0,0,0.045) 1px, transparent 1px);
-      background-size: 26px 26px;
+      background-image: url('grain.png');
+      background-repeat: repeat;
+      opacity: 0.32;
       pointer-events: none;
+      animation: grain-twinkle 6s steps(6) infinite;
+    }
+    @keyframes grain-twinkle {
+      0%   { background-position: 0 0; }
+      16%  { background-position: -18px 7px; }
+      33%  { background-position: 9px -14px; }
+      50%  { background-position: -7px 17px; }
+      66%  { background-position: 14px 9px; }
+      83%  { background-position: -11px -6px; }
+      100% { background-position: 0 0; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      body::after { animation: none; }
     }
 
     /* ── Stage: full viewport ── */
@@ -50,71 +66,54 @@
       pointer-events: none;
     }
 
-    /* Top-left: Logo only */
-    .ov-tl { top: 2rem; left: 1.8rem; }
-
-    .logo { display: flex; align-items: center; gap: 0.55rem; }
-    .logo-name {
-      font-size: 1.15rem; font-weight: bold; letter-spacing: 0.09em;
-      color: #000000; line-height: 1;
-    }
-
-    /* Live rings — match landing page stroke colours */
-    #ring-inner  { opacity: 0.55; }
-    #ring-mid    { opacity: 0.35; }
-    #ring-outer  { opacity: 0.18; }
-    .logo.is-live #ring-inner { animation: ring-broadcast 2.4s ease-in-out infinite; }
-    .logo.is-live #ring-mid   { animation: ring-broadcast 2.4s ease-in-out 0.5s infinite; }
-    .logo.is-live #ring-outer { animation: ring-broadcast 2.4s ease-in-out 1s infinite; }
-    @keyframes ring-broadcast {
-      0%, 100% { opacity: 0.04; }
-      40%      { opacity: 0.85; }
-    }
-
     /* Top-right: Session info */
     .ov-tr { top: 2rem; right: 1.8rem; text-align: right; max-width: 46%; }
     .session-title {
       font-family: 'Cormorant Garamond', Georgia, serif;
       font-size: 1.1rem; font-weight: 300; font-style: italic;
-      color: #000000;
+      color: #f2ede0;
     }
     .session-timer {
       font-size: 0.88rem; letter-spacing: 0.14em;
-      color: rgba(0,0,0,0.65);
+      color: rgba(242,237,224,0.65);
       margin-top: 0.2rem;
       font-variant-numeric: tabular-nums;
     }
 
-    /* Bottom-left: Listener count + leave */
+    /* Bottom-left: Chat */
     .ov-bl {
       bottom: 1.8rem; left: 1.8rem;
-      display: flex; flex-direction: column; gap: 0.45rem;
-    }
-    .listener-count {
-      font-size: 0.75rem; letter-spacing: 0.05em;
-      color: #666666; font-style: italic;
-    }
-    .nav-leave {
-      background: none; border: none; padding: 0;
-      font-family: 'Courier New', Courier, monospace;
-      font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase;
-      color: rgba(0,0,0,0.35); cursor: pointer;
-      transition: color 0.2s; pointer-events: all; text-align: left;
-    }
-    .nav-leave:hover { color: #000000; }
-
-    /* Bottom-right: Chat */
-    .ov-br {
-      bottom: 1.8rem; right: 1.8rem;
       width: min(250px, calc(44% - 1.8rem));
       pointer-events: all;
       display: flex; flex-direction: column;
     }
+    .chat-name-row {
+      background: rgba(22,20,15,0.65);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      padding: 0.42rem 0.75rem 0.48rem;
+      display: flex; align-items: center; gap: 0.5rem;
+      border-bottom: 1px solid rgba(242,237,224,0.12);
+    }
+    .chat-name-row input {
+      flex: 1; background: transparent; border: none;
+      outline: none; padding: 0.14rem 0;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.8rem; font-style: italic;
+      color: #f2ede0;
+    }
+    .chat-name-row input::placeholder { color: rgba(242,237,224,0.38); }
+    .name-confirm {
+      background: none; border: none; padding: 0; flex-shrink: 0;
+      font-size: 0.9rem; color: #a89f8c; cursor: pointer;
+      transition: color 0.2s; line-height: 1;
+    }
+    .name-confirm:hover { color: #f2ede0; }
     .messages {
       max-height: 180px; overflow-y: auto;
       display: flex; flex-direction: column; gap: 0.55rem;
       padding: 0.65rem 0.75rem 0.55rem;
-      background: rgba(255,255,255,0.52);
+      background: rgba(22,20,15,0.55);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
       scrollbar-width: none;
@@ -123,50 +122,53 @@
     .msg { display: flex; flex-direction: column; gap: 0.04rem; }
     .msg-sender {
       font-size: 0.7rem; letter-spacing: 0.06em;
-      color: #666666;
+      color: #a89f8c;
     }
     .msg-text {
-      font-size: 0.84rem; color: #000000;
+      font-size: 0.84rem; color: #f2ede0;
       line-height: 1.45; word-break: break-word;
     }
-    .msg.system .msg-sender { color: rgba(0,0,0,0.42); }
+    .msg.system .msg-sender { color: rgba(242,237,224,0.42); }
     .msg.system .msg-text {
-      font-style: italic; color: rgba(0,0,0,0.45); font-size: 0.72rem;
+      font-style: italic; color: rgba(242,237,224,0.45); font-size: 0.72rem;
     }
     .chat-input-area {
-      background: rgba(255,255,255,0.62);
+      background: rgba(22,20,15,0.65);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
       padding: 0.42rem 0.75rem 0.48rem;
       display: flex; align-items: center; gap: 0.5rem;
-      border-top: 1px solid rgba(0,0,0,0.1);
+      border-top: 1px solid rgba(242,237,224,0.12);
     }
     .chat-input-area input {
       flex: 1; background: transparent; border: none;
-      border-bottom: 1px solid rgba(0,0,0,0.32);
+      border-bottom: 1px solid rgba(242,237,224,0.32);
       outline: none; padding: 0.14rem 0;
       font-family: 'Courier New', Courier, monospace;
       font-size: 0.8rem; font-style: italic;
-      color: #000000;
+      color: #f2ede0;
     }
-    .chat-input-area input::placeholder { color: rgba(0,0,0,0.38); }
+    .chat-input-area input::placeholder { color: rgba(242,237,224,0.38); }
     .send-btn {
       background: none; border: none; padding: 0; flex-shrink: 0;
-      font-size: 0.9rem; color: #666666; cursor: pointer;
+      font-size: 0.9rem; color: #a89f8c; cursor: pointer;
       transition: color 0.2s; line-height: 1;
     }
-    .send-btn:hover { color: #000000; }
+    .send-btn:hover { color: #f2ede0; }
 
-    /* Fullscreen — subtle, bottom-right below chat would overlap, so top of chat area */
-    .nav-fullscreen {
+    /* Bottom-right: Leave */
+    .ov-br {
+      bottom: 1.8rem; right: 1.8rem;
+      pointer-events: all;
+    }
+    .nav-leave {
       background: none; border: none; padding: 0;
       font-family: 'Courier New', Courier, monospace;
-      font-size: 0.6rem; letter-spacing: 0.08em; text-transform: uppercase;
-      color: rgba(0,0,0,0.3); cursor: pointer; transition: color 0.2s;
-      pointer-events: all; display: block; text-align: right;
-      margin-bottom: 0.35rem;
+      font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase;
+      color: rgba(242,237,224,0.35); cursor: pointer;
+      transition: color 0.2s; pointer-events: all; text-align: left;
     }
-    .nav-fullscreen:hover { color: #000000; }
+    .nav-leave:hover { color: #f2ede0; }
 
     /* ── Now Playing — top-centre, aligned with logo/timer ── */
     .np-bar {
@@ -180,19 +182,19 @@
     .np-bar.visible { display: flex; }
     .np-track-line {
       font-size: 0.95rem; font-weight: bold; letter-spacing: 0.03em;
-      color: #000000;
+      color: #f2ede0;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
       width: 100%;
     }
     .np-meta-line {
       font-size: 0.72rem; letter-spacing: 0.06em;
-      color: #666666;
+      color: #a89f8c;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
       width: 100%;
     }
     .np-translation {
       font-size: 0.72rem; font-style: italic;
-      color: rgba(0,0,0,0.6); line-height: 1.5;
+      color: rgba(242,237,224,0.6); line-height: 1.5;
       display: -webkit-box; -webkit-line-clamp: 2;
       -webkit-box-orient: vertical; overflow: hidden;
       width: 100%;
@@ -203,16 +205,16 @@
     }
     .np-progress-wrap {
       flex: 1; height: 3px;
-      background: rgba(0,0,0,0.18);
+      background: rgba(242,237,224,0.18);
       position: relative; overflow: hidden;
     }
     .np-progress-fill {
       position: absolute; left: 0; top: 0; bottom: 0;
-      background: #000000; width: 0%;
+      background: #f2ede0; width: 0%;
       transition: width 0.8s linear;
     }
     .np-time {
-      font-size: 0.64rem; color: rgba(0,0,0,0.6);
+      font-size: 0.64rem; color: rgba(242,237,224,0.6);
       font-variant-numeric: tabular-nums; letter-spacing: 0.06em;
       white-space: nowrap; flex-shrink: 0;
     }
@@ -225,33 +227,15 @@
     }
     .np-image-bg.show { opacity: 0.28; }
 
-    /* ── Standby screen ── */
-    #standby-screen {
-      position: absolute; inset: 0;
-      display: flex; align-items: center; justify-content: center;
-      background: #ffffff; z-index: 1;
-    }
-    .standby-inner {
-      text-align: center;
-      color: rgba(0,0,0,0.25);
-      letter-spacing: 0.2em;
-    }
-    .standby-inner .s-name {
-      font-size: 1.1rem; font-weight: 700; margin-bottom: 0.55rem;
-    }
-    .standby-inner .s-sub {
-      font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.24em;
-    }
-
     /* ── Join toast ── */
     .join-toast {
       position: fixed; bottom: 2.5rem; left: 50%;
       transform: translateX(-50%) translateY(8px);
       z-index: 50; pointer-events: none;
       font-size: 0.64rem; letter-spacing: 0.1em;
-      color: rgba(0,0,0,0.75);
-      background: rgba(255,255,255,0.82);
-      border: 1px solid rgba(0,0,0,0.18);
+      color: rgba(242,237,224,0.85);
+      background: rgba(22,20,15,0.85);
+      border: 1px solid rgba(242,237,224,0.18);
       padding: 0.32rem 0.85rem;
       opacity: 0; white-space: nowrap;
       transition: opacity 0.35s ease, transform 0.35s ease;
@@ -263,9 +247,9 @@
       position: fixed; bottom: 1.8rem; left: 50%;
       transform: translateX(-50%);
       z-index: 80; display: none; align-items: center; gap: 0.5rem;
-      background: rgba(255,255,255,0.95);
-      border: 1px solid rgba(0,0,0,0.28);
-      color: #000000;
+      background: rgba(22,20,15,0.95);
+      border: 1px solid rgba(242,237,224,0.28);
+      color: #f2ede0;
       font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase;
       padding: 0.5rem 1rem; cursor: pointer;
     }
@@ -275,28 +259,26 @@
     .tap-overlay {
       position: absolute; inset: 0; z-index: 5;
       display: flex; align-items: center; justify-content: center;
-      background: rgba(255,255,255,0.65); cursor: pointer;
+      background: rgba(22,20,15,0.75); cursor: pointer;
       -webkit-tap-highlight-color: transparent;
     }
     .tap-overlay span {
       font-size: 0.76rem; letter-spacing: 0.22em; text-transform: uppercase;
-      color: rgba(0,0,0,0.85);
-      border: 1px solid rgba(0,0,0,0.3);
+      color: rgba(242,237,224,0.9);
+      border: 1px solid rgba(242,237,224,0.3);
       padding: 0.5rem 1.3rem;
     }
 
     /* ── Mobile ── */
     @media (max-width: 600px) {
-      .ov-tl { top: 1.2rem; left: 1rem; }
       .ov-tr { top: 1.2rem; right: 1rem; }
-      .ov-bl { bottom: 1rem; left: 1rem; }
-      .ov-br { bottom: 1rem; right: 1rem; width: min(190px, calc(56% - 1rem)); }
+      .ov-bl { bottom: 1rem; left: 1rem; width: min(190px, calc(56% - 1rem)); }
+      .ov-br { bottom: 1rem; right: 1rem; }
       .messages { max-height: 90px; }
       .np-bar { width: min(260px, 64vw); top: 1.2rem; }
       .np-track-line { font-size: 0.82rem; }
       .session-title { font-size: 0.9rem; }
       .session-timer { font-size: 0.74rem; }
-      .logo-name { font-size: 0.95rem; }
     }
 
     @media (max-height: 480px) and (orientation: landscape) {
@@ -304,81 +286,12 @@
       .ov-bl { bottom: 0.5rem; }
     }
 
-    /* ── Auth / OTP modal ── */
-    #auth-modal {
-      position: fixed; inset: 0; z-index: 100;
-      background: rgba(255,255,255,0.98);
-      display: flex; align-items: center; justify-content: center;
-      opacity: 0; pointer-events: none;
-      transition: opacity 0.28s ease;
-    }
-    #auth-modal.open { opacity: 1; pointer-events: auto; }
-    #auth-panel {
-      position: relative;
-      width: 100%; max-width: 280px;
-      padding: 0 1.5rem;
-      display: flex; flex-direction: column;
-    }
-    .auth-back-link {
-      position: absolute; top: -2.4rem; left: 1.5rem;
-      font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase;
-      color: rgba(0,0,0,0.4); cursor: pointer;
-      background: none; border: none; font-family: inherit;
-      transition: color 0.15s; touch-action: manipulation;
-    }
-    .auth-back-link:hover { color: #000000; }
-    .join-heading {
-      font-family: 'Cormorant Garamond', Georgia, serif;
-      font-size: 1rem; font-weight: 300; font-style: italic;
-      letter-spacing: 0.02em; color: #000000;
-      margin-bottom: 0.35rem;
-    }
-    .join-sub {
-      font-size: 0.72rem; color: #666666;
-      margin-bottom: 1.4rem; line-height: 1.55;
-    }
-    .join-input {
-      background: transparent; border: none;
-      border-bottom: 1px solid #666666;
-      color: #000000;
-      font-family: 'Courier New', Courier, monospace; font-size: 0.9rem;
-      padding: 0.4rem 0; outline: none; width: 100%;
-      margin-bottom: 1.2rem;
-    }
-    .join-input::placeholder { color: rgba(0,0,0,0.4); }
-    .join-submit {
-      background: transparent; border: none;
-      font-family: 'Courier New', Courier, monospace;
-      font-size: 0.8rem; letter-spacing: 0.05em;
-      color: #000000; cursor: pointer; padding: 0; text-align: left;
-      touch-action: manipulation; transition: color 0.15s;
-    }
-    .join-submit:hover { color: #000000; }
-    .join-submit:disabled { color: rgba(0,0,0,0.3); cursor: default; }
-    .join-err {
-      font-size: 0.68rem; color: #000000;
-      margin-top: 0.8rem; min-height: 1rem; line-height: 1.5;
-    }
-    .join-back-step {
-      font-size: 0.68rem; color: #666666;
-      cursor: pointer; background: none; border: none;
-      font-family: inherit; padding: 0; margin-top: 1.2rem;
-      touch-action: manipulation;
-    }
-    .join-back-step:hover { color: #000000; }
   </style>
 </head>
 <body>
 
 <!-- Full-viewport stage -->
 <div class="stage">
-
-  <div id="standby-screen">
-    <div class="standby-inner">
-      <div class="s-name">FUR · FM</div>
-      <div class="s-sub">not currently live</div>
-    </div>
-  </div>
 
   <iframe
     id="obs-player"
@@ -413,41 +326,18 @@
     <div class="np-translation" id="np-translation" style="display:none"></div>
   </div>
 
-  <!-- Top-left: Logo -->
-  <div class="ov ov-tl">
-    <div class="logo" id="live-badge">
-      <svg viewBox="0 0 36 20" width="22" height="13" fill="none">
-        <defs>
-          <clipPath id="ov-rings-clip">
-            <rect x="-500" y="-1000" width="1000" height="1014"/>
-          </clipPath>
-        </defs>
-        <g clip-path="url(#ov-rings-clip)">
-          <circle id="ring-inner" cx="18" cy="11" r="6"  stroke="#000000" stroke-width="1.3"/>
-          <circle id="ring-mid"   cx="18" cy="11" r="11" stroke="#000000" stroke-width="1.0"/>
-          <circle id="ring-outer" cx="18" cy="11" r="16" stroke="#000000" stroke-width="0.75"/>
-        </g>
-        <circle cx="18" cy="11" r="2.2" fill="#000000"/>
-      </svg>
-      <div class="logo-name">FURSATFM</div>
-    </div>
-  </div>
-
   <!-- Top-right: Session info -->
   <div class="ov ov-tr">
     <div class="session-title" id="prog-title">Live Session</div>
     <div class="session-timer" id="session-timer">00:00:00</div>
   </div>
 
-  <!-- Bottom-left: Listener count + leave -->
+  <!-- Bottom-left: Chat -->
   <div class="ov ov-bl">
-    <div class="listener-count" id="listener-count">—</div>
-    <button class="nav-leave">leave quietly</button>
-  </div>
-
-  <!-- Bottom-right: Chat + fullscreen -->
-  <div class="ov ov-br">
-    <button class="nav-fullscreen">⤢ fullscreen</button>
+    <div class="chat-name-row" id="chat-name-row">
+      <input type="text" id="name-input" placeholder="choose a name" maxlength="24" autocomplete="off" />
+      <button class="name-confirm" id="name-confirm">→</button>
+    </div>
     <div class="messages" id="chat-messages" role="log" aria-live="polite"></div>
     <div class="chat-input-area">
       <input type="text" id="chat-input" placeholder="whisper..."
@@ -456,36 +346,15 @@
     </div>
   </div>
 
+  <!-- Bottom-right: Leave -->
+  <div class="ov ov-br">
+    <button class="nav-leave">leave quietly</button>
+  </div>
+
 </div><!-- /.stage -->
 
 <audio id="np-audio" style="display:none" preload="auto"></audio>
 <div class="audio-prompt" id="audio-prompt">tap to enable audio</div>
-
-<!-- Auth / OTP modal — shown when user lands without a session -->
-<div id="auth-modal">
-  <div id="auth-panel">
-    <button class="auth-back-link" id="auth-back-home">← back to home</button>
-
-    <!-- Step 1: email -->
-    <div id="auth-step-email">
-      <div class="join-heading">join the session</div>
-      <div class="join-sub">we'll send a one-time code to your email</div>
-      <input class="join-input" id="auth-email" type="email" placeholder="your@email.com" autocomplete="email" />
-      <button class="join-submit" id="auth-send">send code →</button>
-      <div class="join-err" id="auth-err1"></div>
-    </div>
-
-    <!-- Step 2: OTP code -->
-    <div id="auth-step-otp" style="display:none">
-      <div class="join-heading">check your email</div>
-      <div class="join-sub" id="auth-otp-sub">enter the 6-digit code we sent</div>
-      <input class="join-input" id="auth-otp" type="text" inputmode="numeric" maxlength="6" placeholder="000000" autocomplete="one-time-code" />
-      <button class="join-submit" id="auth-verify">verify →</button>
-      <div class="join-err" id="auth-err2"></div>
-      <button class="join-back-step" id="auth-step-back">← use a different email</button>
-    </div>
-  </div>
-</div>
 
 <script>
 (async () => {
@@ -504,103 +373,32 @@
     });
   }
 
-  /* ── Auth gate ── */
+  /* ── Identity ── anyone can join directly, no login required. Default
+     name uses the same generator and localStorage key as the homepage
+     lounge, so a listener's identity carries over between the two pages;
+     the name field (bottom-right) lets them override it. */
   const isBroadcaster = window.location.hash === '#broadcast';
-  let { data: { session } } = await db.auth.getSession();
 
-  if (!session && !isBroadcaster) {
-    // Show OTP modal inline — resolves once user authenticates
-    session = await new Promise(resolve => {
-      const modal      = document.getElementById('auth-modal');
-      const stepEmail  = document.getElementById('auth-step-email');
-      const stepOtp    = document.getElementById('auth-step-otp');
-      const emailEl    = document.getElementById('auth-email');
-      const sendBtn    = document.getElementById('auth-send');
-      const otpEl      = document.getElementById('auth-otp');
-      const verifyBtn  = document.getElementById('auth-verify');
-      const err1       = document.getElementById('auth-err1');
-      const err2       = document.getElementById('auth-err2');
-      const otpSub     = document.getElementById('auth-otp-sub');
-      const backHome   = document.getElementById('auth-back-home');
-      const stepBack   = document.getElementById('auth-step-back');
-      let   otpEmail   = '';
-
-      modal.classList.add('open');
-      setTimeout(() => emailEl.focus(), 80);
-
-      backHome.addEventListener('click', () => { window.location.replace('index.html'); });
-
-      stepBack.addEventListener('click', () => {
-        stepOtp.style.display   = 'none';
-        stepEmail.style.display = '';
-        emailEl.focus();
-      });
-
-      async function sendOtp() {
-        const email = emailEl.value.trim();
-        if (!email || !email.includes('@')) { err1.textContent = 'enter a valid email address'; return; }
-        err1.textContent  = '';
-        sendBtn.disabled  = true;
-        sendBtn.textContent = 'sending…';
-        const { error } = await db.auth.signInWithOtp({ email, options: { shouldCreateUser: true } });
-        sendBtn.disabled  = false;
-        sendBtn.textContent = 'send code →';
-        if (error) { err1.textContent = error.message; return; }
-        otpEmail = email;
-        otpSub.textContent      = `enter the code we sent to ${email}`;
-        err2.textContent        = '';
-        otpEl.value             = '';
-        stepEmail.style.display = 'none';
-        stepOtp.style.display   = '';
-        setTimeout(() => otpEl.focus(), 50);
-      }
-
-      async function verifyOtp() {
-        const token = otpEl.value.trim().replace(/\D/g, '');
-        if (token.length < 6) { err2.textContent = 'enter the 6-digit code from your email'; return; }
-        err2.textContent       = '';
-        verifyBtn.disabled     = true;
-        verifyBtn.textContent  = 'verifying…';
-        const { data, error } = await db.auth.verifyOtp({ email: otpEmail, token, type: 'email' });
-        verifyBtn.disabled     = false;
-        verifyBtn.textContent  = 'verify →';
-        if (error) { err2.textContent = error.message; return; }
-        modal.classList.remove('open');
-        resolve(data.session);
-      }
-
-      sendBtn.addEventListener('click', sendOtp);
-      emailEl.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); sendOtp(); } });
-      verifyBtn.addEventListener('click', verifyOtp);
-      otpEl.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); verifyOtp(); } });
-    });
-
-    if (!session) return;
+  const ADJS  = ['velvet','amber','silver','crimson','golden','azure','ivory','onyx','jade','cobalt',
+                  'sable','ochre','cedar','coral','ember','frost','dusk','lunar','solar','hollow',
+                  'mossy','burnt','still','muted','copper'];
+  const NOUNS = ['moth','crane','raven','finch','fox','wolf','sparrow','hawk','owl','hare',
+                  'deer','fern','reed','mist','tide','wave','stone','bloom','creek','petal',
+                  'ash','birch','dune','pine','flint'];
+  function genName() {
+    return ADJS[Math.floor(Math.random() * ADJS.length)] + '-' + NOUNS[Math.floor(Math.random() * NOUNS.length)];
   }
 
-  const user = session?.user || null;
-  let userName = user?.user_metadata?.username || user?.email?.split('@')[0] || (isBroadcaster ? 'Broadcaster' : 'Listener');
-
+  let userName = isBroadcaster ? 'Broadcaster' : (localStorage.getItem('fur-fm-name') || genName());
+  if (!isBroadcaster) localStorage.setItem('fur-fm-name', userName);
   let myUserId = null;
-  if (user) {
-    const { data: profile } = await db.from('users').select('id, name').eq('auth_id', user.id).single();
-    if (profile) {
-      myUserId = profile.id;
-      if (profile.name) userName = profile.name;
-    }
-  }
 
   const sessionId = new Date().toISOString().slice(0, 10);
-  const countEl   = document.getElementById('listener-count');
   let dbSessionId  = null;
 
   /* ── User interaction gate for audio autoplay ── */
   let userHasInteracted = false;
   document.addEventListener('click', () => { userHasInteracted = true; }, { once: true, capture: true });
-
-  /* ── Live badge ── */
-  const liveBadge = document.getElementById('live-badge');
-  function setLive(isLive) { liveBadge.classList.toggle('is-live', isLive); }
 
   /* Track whether vdo.ninja already wrote stream_started_at this session
      to prevent repeated reconnect events from resetting the timer */
@@ -610,36 +408,43 @@
     const msg = e.data; if (!msg) return;
     const action = msg.action || msg.type || '';
     if (/view|join|connect|stream/i.test(action)) {
-      setLive(true);
       if (dbSessionId && !timerInterval && !_vdoDidStartTimer) {
         _vdoDidStartTimer = true;
         db.from('sessions').update({ stream_started_at: new Date().toISOString() })
           .eq('id', dbSessionId).is('stream_started_at', null).then(() => {});
       }
     }
-    if (/hangup|disconnect|leave/i.test(action)) {
-      setLive(false);
-    }
   });
 
   /* ── Leave quietly ── */
-  document.querySelector('.nav-leave').addEventListener('click', async () => {
-    await db.auth.signOut();
+  document.querySelector('.nav-leave').addEventListener('click', () => {
     window.location.href = 'index.html';
   });
 
-  /* ── Fullscreen ── */
-  const fsBtn = document.querySelector('.nav-fullscreen');
-  fsBtn.addEventListener('click', () => {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch(() => {});
-    } else {
-      document.exitFullscreen().catch(() => {});
+  /* ── Choose a name — shown once, as part of the chat panel. Confirming
+     (arrow or Enter, even with no change) picks it, hides the row for
+     good, and re-tracks presence under that name so it shows up correctly
+     for other listeners immediately. ── */
+  const nameRow     = document.getElementById('chat-name-row');
+  const nameInput   = document.getElementById('name-input');
+  const nameConfirm = document.getElementById('name-confirm');
+  const nameChosen  = localStorage.getItem('fur-fm-name-confirmed') === '1';
+
+  if (nameChosen || isBroadcaster) {
+    nameRow.remove();
+  } else {
+    nameInput.value = userName;
+    function chooseName() {
+      const v = nameInput.value.trim();
+      userName = v || userName;
+      localStorage.setItem('fur-fm-name', userName);
+      localStorage.setItem('fur-fm-name-confirmed', '1');
+      presenceChannel.track({ username: userName });
+      nameRow.remove();
     }
-  });
-  document.addEventListener('fullscreenchange', () => {
-    fsBtn.textContent = document.fullscreenElement ? '↙ exit fullscreen' : '⤢ fullscreen';
-  });
+    nameConfirm.addEventListener('click', chooseName);
+    nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); chooseName(); } });
+  }
 
   /* ── Chat ── */
   function esc(s) {
@@ -718,7 +523,6 @@
 
   function startTimerFrom(ts) {
     if (timerInterval) clearInterval(timerInterval);
-    setLive(true);
     const startMs = new Date(ts).getTime();
     function tick() {
       const s = Math.max(0, Math.floor((Date.now() - startMs) / 1000));
@@ -734,7 +538,6 @@
 
   function stopTimer() {
     if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
-    setLive(false);
     timerEl.textContent = '00:00:00';
   }
 
@@ -766,7 +569,7 @@
     timerEl.parentElement.style.pointerEvents = 'all';
     timerEl.style.pointerEvents = 'all';
     timerEl.style.cursor = 'pointer';
-    timerEl.style.outline = '1px solid rgba(0,0,0,0.3)';
+    timerEl.style.outline = '1px solid rgba(242,237,224,0.3)';
     timerEl.style.padding = '0.1rem 0.3rem';
     timerEl.title = 'click to start / stop';
     timerEl.addEventListener('click', async () => {
@@ -855,7 +658,6 @@
   /* ── Scene renderer (incremental — never destroys live iframes) ── */
   const sceneLayer    = document.getElementById('scene-layer');
   const obsPlayer     = document.getElementById('obs-player');
-  const standbyScreen = document.getElementById('standby-screen');
   const _sceneEls     = new Map(); // moduleId → DOM element
 
   function buildModuleEl(m) {
@@ -868,7 +670,7 @@
     } else if (m.type === 'screen') {
       el.innerHTML = `<iframe src="https://vdo.ninja/?view=xYuuWBysc&cleanoutput&autoplay" style="width:100%;height:100%;border:none;display:block" allow="autoplay" allowfullscreen></iframe>`;
     } else if (m.type === 'text') {
-      el.style.cssText += `color:#000000;white-space:pre-wrap;word-break:break-word;font-size:${m.config?.fontSize||16}px;padding:0.5em;font-family:'Hind',sans-serif;`;
+      el.style.cssText += `color:#f2ede0;white-space:pre-wrap;word-break:break-word;font-size:${m.config?.fontSize||16}px;padding:0.5em;font-family:'Hind',sans-serif;`;
       el.textContent = m.config?.content || '';
     } else if (m.type === 'image') {
       el.innerHTML = `<img src="${esc(m.config?.url||'')}" style="width:100%;height:100%;object-fit:contain;display:block;" alt=""/>`;
@@ -881,13 +683,11 @@
 
     if (!mods.length) {
       sceneLayer.style.display = 'none';
-      if (standbyScreen) standbyScreen.style.display = '';
       _sceneEls.forEach(el => el.remove());
       _sceneEls.clear();
       return;
     }
 
-    if (standbyScreen) standbyScreen.style.display = 'none';
     sceneLayer.style.display = 'block';
 
     const incoming = new Set(mods.map(m => m.id));
@@ -976,10 +776,6 @@
 
   const presenceChannel = db.channel('fur-fm:room');
   presenceChannel
-    .on('presence', { event: 'sync' }, () => {
-      const count = Object.keys(presenceChannel.presenceState()).length;
-      countEl.textContent = count === 1 ? '1 listening' : `${count} listening`;
-    })
     .on('presence', { event: 'join' }, ({ newPresences }) => {
       newPresences.forEach(p => {
         if (p.username && p.username !== userName) showJoinToast(p.username);

@@ -18,11 +18,14 @@
       -webkit-tap-highlight-color: transparent;
     }
 
+    /* Grain texture — same speckle tile as the visualizer, so every page
+       shares one consistent grainy, textured feel. */
     body::after {
       content: '';
       position: fixed; inset: 0; z-index: 0;
-      background-image: radial-gradient(circle, rgba(0,0,0,0.045) 1px, transparent 1px);
-      background-size: 26px 26px;
+      background-image: url('grain.png');
+      background-repeat: repeat;
+      opacity: 0.2;
       pointer-events: none;
     }
 

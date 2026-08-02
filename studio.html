@@ -18,11 +18,14 @@
       -webkit-tap-highlight-color: transparent;
     }
 
+    /* Grain texture — same speckle tile as the visualizer, so every page
+       shares one consistent grainy, textured feel. */
     body::after {
       content: '';
       position: fixed; inset: 0; z-index: 0;
-      background-image: radial-gradient(circle, rgba(0,0,0,0.045) 1px, transparent 1px);
-      background-size: 26px 26px;
+      background-image: url('grain.png');
+      background-repeat: repeat;
+      opacity: 0.2;
       pointer-events: none;
     }
 
@@ -195,10 +198,14 @@
       display: block;
     }
 
-    /* Clears the fixed left icon strip — placed after #studio-layout so it
-       wins the cascade at this width instead of being overridden by it. */
+    /* Clears the fixed left icon strip, and stretches studio-content to
+       full width — placed after #studio-layout so it wins the cascade at
+       this width. Without the align-items override, #studio-layout keeps
+       its desktop align-items:flex-start once stacked into a column,
+       which shrink-wraps #studio-content (and the film/track embeds
+       inside it) to their intrinsic size instead of filling the row. */
     @media (max-width: 620px) {
-      #studio-layout { padding-left: 3.4rem; }
+      #studio-layout { padding-left: 3.4rem; align-items: stretch; }
     }
   </style>
 </head>
