@@ -73,13 +73,6 @@
       font-size: 1.1rem; font-weight: 300; font-style: italic;
       color: #f2ede0;
     }
-    .session-timer {
-      font-size: 0.88rem; letter-spacing: 0.14em;
-      color: rgba(242,237,224,0.65);
-      margin-top: 0.2rem;
-      font-variant-numeric: tabular-nums;
-    }
-
     /* Bottom-left: Chat */
     .ov-bl {
       bottom: 1.8rem; left: 1.8rem;
@@ -163,61 +156,13 @@
     }
     .nav-leave {
       background: none; border: none; padding: 0;
-      font-family: 'Courier New', Courier, monospace;
-      font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase;
+      width: 1.3rem; height: 1.3rem;
+      display: flex; align-items: center; justify-content: center;
       color: rgba(242,237,224,0.35); cursor: pointer;
-      transition: color 0.2s; pointer-events: all; text-align: left;
+      transition: color 0.2s; pointer-events: all;
     }
+    .nav-leave svg { width: 100%; height: 100%; display: block; }
     .nav-leave:hover { color: #f2ede0; }
-
-    /* ── Now Playing — top-centre, aligned with logo/timer ── */
-    .np-bar {
-      position: absolute;
-      top: 2rem; left: 50%; transform: translateX(-50%);
-      z-index: 9; pointer-events: none;
-      display: none; flex-direction: column; align-items: center;
-      gap: 0.2rem; text-align: center;
-      width: min(380px, 42vw);
-    }
-    .np-bar.visible { display: flex; }
-    .np-track-line {
-      font-size: 0.95rem; font-weight: bold; letter-spacing: 0.03em;
-      color: #f2ede0;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-      width: 100%;
-    }
-    .np-meta-line {
-      font-size: 0.72rem; letter-spacing: 0.06em;
-      color: #a89f8c;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-      width: 100%;
-    }
-    .np-translation {
-      font-size: 0.72rem; font-style: italic;
-      color: rgba(242,237,224,0.6); line-height: 1.5;
-      display: -webkit-box; -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical; overflow: hidden;
-      width: 100%;
-    }
-    .np-player-row {
-      display: flex; align-items: center; gap: 0.65rem;
-      margin-top: 0.2rem; width: 100%;
-    }
-    .np-progress-wrap {
-      flex: 1; height: 3px;
-      background: rgba(242,237,224,0.18);
-      position: relative; overflow: hidden;
-    }
-    .np-progress-fill {
-      position: absolute; left: 0; top: 0; bottom: 0;
-      background: #f2ede0; width: 0%;
-      transition: width 0.8s linear;
-    }
-    .np-time {
-      font-size: 0.64rem; color: rgba(242,237,224,0.6);
-      font-variant-numeric: tabular-nums; letter-spacing: 0.06em;
-      white-space: nowrap; flex-shrink: 0;
-    }
 
     /* Archive image bg */
     .np-image-bg {
@@ -227,20 +172,20 @@
     }
     .np-image-bg.show { opacity: 0.28; }
 
-    /* ── Join toast ── */
-    .join-toast {
-      position: fixed; bottom: 2.5rem; left: 50%;
-      transform: translateX(-50%) translateY(8px);
-      z-index: 50; pointer-events: none;
-      font-size: 0.64rem; letter-spacing: 0.1em;
-      color: rgba(242,237,224,0.85);
-      background: rgba(22,20,15,0.85);
-      border: 1px solid rgba(242,237,224,0.18);
-      padding: 0.32rem 0.85rem;
-      opacity: 0; white-space: nowrap;
-      transition: opacity 0.35s ease, transform 0.35s ease;
+    /* ── Scene modules (broadcaster-placed video/screen/text/image) ──
+       Physics-driven: each one drops in under gravity and settles (heavier
+       types thud, lighter ones bounce a little), then hangs and sways like
+       it's on a string once at rest. Grab and fling one and it drifts with
+       real momentum before easing back home. No CSS transition here on
+       purpose — the transform is set fresh every animation frame by the
+       physics loop below, and a transition would fight that. */
+    .scene-module {
+      pointer-events: auto;
+      border-radius: 4px;
+      cursor: grab;
+      touch-action: none;
     }
-    .join-toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .scene-module.dragging { cursor: grabbing; }
 
     /* ── Audio unlock prompt ── */
     .audio-prompt {
@@ -271,14 +216,11 @@
 
     /* ── Mobile ── */
     @media (max-width: 600px) {
-      .ov-tr { top: 1.2rem; right: 1rem; }
+      .ov-tr { top: 1.2rem; right: 1rem; max-width: 55%; }
       .ov-bl { bottom: 1rem; left: 1rem; width: min(190px, calc(56% - 1rem)); }
       .ov-br { bottom: 1rem; right: 1rem; }
       .messages { max-height: 90px; }
-      .np-bar { width: min(260px, 64vw); top: 1.2rem; }
-      .np-track-line { font-size: 0.82rem; }
       .session-title { font-size: 0.9rem; }
-      .session-timer { font-size: 0.74rem; }
     }
 
     @media (max-height: 480px) and (orientation: landscape) {
@@ -313,23 +255,9 @@
   <!-- Archive image background -->
   <div class="np-image-bg" id="np-image-bg"></div>
 
-  <!-- Now Playing bar (bottom gradient overlay) -->
-  <div class="np-bar" id="np-bar">
-    <div class="np-track-line" id="np-track-line"></div>
-    <div class="np-meta-line" id="np-meta-line"></div>
-    <div class="np-player-row" id="np-player-row" style="display:none">
-      <div class="np-progress-wrap">
-        <div class="np-progress-fill" id="np-progress-fill"></div>
-      </div>
-      <span class="np-time" id="np-time">0:00 / 0:00</span>
-    </div>
-    <div class="np-translation" id="np-translation" style="display:none"></div>
-  </div>
-
-  <!-- Top-right: Session info -->
+  <!-- Top-right: Session name -->
   <div class="ov ov-tr">
     <div class="session-title" id="prog-title">Live Session</div>
-    <div class="session-timer" id="session-timer">00:00:00</div>
   </div>
 
   <!-- Bottom-left: Chat -->
@@ -348,7 +276,9 @@
 
   <!-- Bottom-right: Leave -->
   <div class="ov ov-br">
-    <button class="nav-leave">leave quietly</button>
+    <button class="nav-leave" title="leave quietly" aria-label="leave quietly">
+      <svg viewBox="0 0 20 20" fill="none"><path d="M8 3.5H5a1.2 1.2 0 0 0-1.2 1.2v10.6A1.2 1.2 0 0 0 5 16.5h3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.5 10h8m0 0-2.8-2.8M16.5 10l-2.8 2.8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
   </div>
 
 </div><!-- /.stage -->
@@ -401,14 +331,14 @@
   document.addEventListener('click', () => { userHasInteracted = true; }, { once: true, capture: true });
 
   /* Track whether vdo.ninja already wrote stream_started_at this session
-     to prevent repeated reconnect events from resetting the timer */
+     to prevent repeated reconnect events from resetting it */
   let _vdoDidStartTimer = false;
   window.addEventListener('message', e => {
     if (!String(e.origin).includes('vdo.ninja')) return;
     const msg = e.data; if (!msg) return;
     const action = msg.action || msg.type || '';
     if (/view|join|connect|stream/i.test(action)) {
-      if (dbSessionId && !timerInterval && !_vdoDidStartTimer) {
+      if (dbSessionId && !sessionIsLive && !_vdoDidStartTimer) {
         _vdoDidStartTimer = true;
         db.from('sessions').update({ stream_started_at: new Date().toISOString() })
           .eq('id', dbSessionId).is('stream_started_at', null).then(() => {});
@@ -516,30 +446,15 @@
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
   });
 
-  /* ── Programme info + global timer ── */
-  const timerEl     = document.getElementById('session-timer');
-  const titleEl     = document.getElementById('prog-title');
-  let timerInterval = null;
+  /* ── Programme info ── no visible timer, just the session name; we still
+     track whether a session is "live" internally (sessionIsLive) since the
+     vdo.ninja listener above and the broadcaster toggle below both need to
+     know that without a clock to read it off of. */
+  const titleEl = document.getElementById('prog-title');
+  let sessionIsLive = false;
 
-  function startTimerFrom(ts) {
-    if (timerInterval) clearInterval(timerInterval);
-    const startMs = new Date(ts).getTime();
-    function tick() {
-      const s = Math.max(0, Math.floor((Date.now() - startMs) / 1000));
-      timerEl.textContent = [
-        Math.floor(s / 3600),
-        Math.floor((s % 3600) / 60),
-        s % 60,
-      ].map(n => String(n).padStart(2, '0')).join(':');
-    }
-    tick();
-    timerInterval = setInterval(tick, 1000);
-  }
-
-  function stopTimer() {
-    if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
-    timerEl.textContent = '00:00:00';
-  }
+  function markSessionLive()   { sessionIsLive = true; }
+  function markSessionStopped(){ sessionIsLive = false; }
 
   /* Load current session */
   try {
@@ -552,33 +467,31 @@
     if (sessionRow) {
       dbSessionId = sessionRow.id;
       if (sessionRow.title) titleEl.textContent = sessionRow.title;
-      if (sessionRow.stream_started_at) startTimerFrom(sessionRow.stream_started_at);
+      if (sessionRow.stream_started_at) markSessionLive();
     }
   } catch (_) {}
 
-  /* Realtime: sync timer across all viewers */
+  /* Realtime: sync "is live" state across all viewers */
   db.channel('sessions-timer')
     .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'sessions' }, payload => {
       if (!dbSessionId || payload.new.id !== dbSessionId) return;
-      if (payload.new.stream_started_at) startTimerFrom(payload.new.stream_started_at);
-      else stopTimer();
+      if (payload.new.stream_started_at) markSessionLive(); else markSessionStopped();
     }).subscribe();
 
-  /* Click the timer to start/stop — only works with #broadcast in URL */
+  /* Click the session name to start/stop — only works with #broadcast in URL */
   if (window.location.hash === '#broadcast') {
-    timerEl.parentElement.style.pointerEvents = 'all';
-    timerEl.style.pointerEvents = 'all';
-    timerEl.style.cursor = 'pointer';
-    timerEl.style.outline = '1px solid rgba(242,237,224,0.3)';
-    timerEl.style.padding = '0.1rem 0.3rem';
-    timerEl.title = 'click to start / stop';
-    timerEl.addEventListener('click', async () => {
+    titleEl.parentElement.style.pointerEvents = 'all';
+    titleEl.style.pointerEvents = 'all';
+    titleEl.style.cursor = 'pointer';
+    titleEl.style.outline = '1px solid rgba(242,237,224,0.3)';
+    titleEl.style.padding = '0.1rem 0.3rem';
+    titleEl.title = 'click to start / stop';
+    titleEl.addEventListener('click', async () => {
       if (!dbSessionId) {
-        if (timerInterval) stopTimer();
-        else startTimerFrom(new Date().toISOString());
+        if (sessionIsLive) markSessionStopped(); else markSessionLive();
         return;
       }
-      if (timerInterval) {
+      if (sessionIsLive) {
         await db.from('sessions').update({ stream_started_at: null }).eq('id', dbSessionId);
       } else {
         await db.from('sessions').update({ stream_started_at: new Date().toISOString() }).eq('id', dbSessionId);
@@ -587,28 +500,9 @@
   }
 
   /* ── Archival now-playing ── */
-  const npBar          = document.getElementById('np-bar');
-  const npTrackLine    = document.getElementById('np-track-line');
-  const npMetaLine     = document.getElementById('np-meta-line');
-  const npTranslation  = document.getElementById('np-translation');
-  const npImageBg      = document.getElementById('np-image-bg');
-  const npAudio        = document.getElementById('np-audio');
-  const audioPrompt    = document.getElementById('audio-prompt');
-  const npPlayerRow    = document.getElementById('np-player-row');
-  const npProgressFill = document.getElementById('np-progress-fill');
-  const npTimeEl       = document.getElementById('np-time');
-
-  function fmtDur(s) {
-    if (!s || isNaN(s)) return '0:00';
-    const m = Math.floor(s / 60), sec = Math.floor(s % 60);
-    return `${m}:${String(sec).padStart(2, '0')}`;
-  }
-
-  npAudio.addEventListener('timeupdate', () => {
-    if (!npAudio.duration) return;
-    npProgressFill.style.width = (npAudio.currentTime / npAudio.duration * 100) + '%';
-    npTimeEl.textContent = `${fmtDur(npAudio.currentTime)} / ${fmtDur(npAudio.duration)}`;
-  });
+  const npImageBg   = document.getElementById('np-image-bg');
+  const npAudio     = document.getElementById('np-audio');
+  const audioPrompt = document.getElementById('audio-prompt');
 
   /* ── Synced audio playback (archival tracks) ── */
   let wantPlaying = false;
@@ -660,8 +554,160 @@
   const obsPlayer     = document.getElementById('obs-player');
   const _sceneEls     = new Map(); // moduleId → DOM element
 
+  /* ── Module physics ──────────────────────────────────────────────────
+     Every module is a mass on an invisible spring anchored to its
+     broadcaster-set position ("home" = transform: translate(0,0)).
+
+       enter  — spawns above home and drops under a mass-scaled spring;
+                heavy modules (video) are over-damped and thud straight
+                down, light ones (text) are under-damped and bounce a
+                little before settling. This is "weight".
+       idle   — once settled, sways like it's hanging on a string: a
+                lightly-damped pendulum that never fully stops, nudged
+                back to life by tiny random impulses now and then.
+       drag   — grabbing a module (mouse or touch) follows the pointer
+                directly; releasing it hands its recent velocity to...
+       settle — ...the same spring as `enter`, so a flung module drifts
+                with real momentum and eases back home on an elastic
+                tether, then drops back into `idle` once it's calm.
+     One shared requestAnimationFrame loop steps every module each frame;
+     dragging modules are skipped since the pointer already owns them. */
+  const _phys = new Map(); // moduleId → physics state
+  let _physRAF = null, _physLastTs = null;
+
+  function massFor(m) {
+    const area = Math.max(4, (m.w || 10) * (m.h || 10));
+    const typeMul = (m.type === 'video' || m.type === 'screen') ? 1.6
+                  : (m.type === 'image') ? 1.1 : 0.55; // text is lightest
+    return Math.max(0.4, (area / 300) * typeMul);
+  }
+
+  function physicsStep(dt, now) {
+    _phys.forEach(s => {
+      if (s.phase === 'drag') return;
+
+      if (s.phase === 'enter' || s.phase === 'settle') {
+        const k     = 46;
+        const zeta  = (s.phase === 'enter' ? 0.3 : 0.45) + s.mass * 0.55; // heavier = less bounce
+        const c     = 2 * Math.sqrt(k * s.mass) * zeta;
+        const ax    = (-k * s.ox - c * s.vx) / s.mass;
+        const ay    = (-k * s.oy - c * s.vy) / s.mass;
+        s.vx += ax * dt; s.vy += ay * dt;
+        s.ox += s.vx * dt; s.oy += s.vy * dt;
+
+        if (Math.abs(s.ox) < 0.4 && Math.abs(s.oy) < 0.4 && Math.abs(s.vx) < 4 && Math.abs(s.vy) < 4) {
+          s.ox = s.oy = s.vx = s.vy = 0;
+          s.phase = 'idle';
+        }
+      } else if (s.phase === 'idle') {
+        const omega0  = 0.9 / Math.sqrt(s.mass);   // heavier → slower sway
+        const damping = 0.12 * Math.sqrt(s.mass);  // heavier → more damped
+        const accel   = -omega0 * omega0 * s.theta - 2 * damping * omega0 * s.omega;
+        s.omega += accel * dt;
+        s.theta += s.omega * dt;
+
+        if (now > s.nextImpulseAt) {
+          s.omega += (Math.random() * 2 - 1) * 0.06;
+          s.nextImpulseAt = now + 3500 + Math.random() * 4500;
+        }
+
+        const L = 9 + s.mass * 3;
+        s.ox = L * Math.sin(s.theta);
+        s.oy = L * (1 - Math.cos(s.theta)) * 0.5;
+      }
+
+      s.el.style.transform = `translate(${s.ox.toFixed(1)}px, ${s.oy.toFixed(1)}px)`;
+    });
+  }
+
+  function physicsLoop(ts) {
+    _physRAF = requestAnimationFrame(physicsLoop);
+    if (_physLastTs == null) _physLastTs = ts;
+    const dt = Math.min((ts - _physLastTs) / 1000, 0.05); // clamp tab-switch jumps
+    _physLastTs = ts;
+    physicsStep(dt, performance.now());
+  }
+
+  function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+  function attachDragHandlers(el, id) {
+    let dragging = false, moved = false;
+    let startX, startY, startOx, startOy, lastX, lastY, lastT, velX, velY;
+
+    function down(x, y) {
+      const s = _phys.get(id);
+      if (!s) return;
+      dragging = true; moved = false;
+      s.phase = 'drag';
+      el.classList.add('dragging');
+      startX = x; startY = y; startOx = s.ox; startOy = s.oy;
+      lastX = x; lastY = y; lastT = performance.now();
+      velX = 0; velY = 0;
+    }
+    function move(x, y) {
+      if (!dragging) return;
+      const s = _phys.get(id);
+      if (!s) return;
+      const dx = x - startX, dy = y - startY;
+      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) moved = true;
+      s.ox = startOx + dx; s.oy = startOy + dy;
+      el.style.transform = `translate(${s.ox.toFixed(1)}px, ${s.oy.toFixed(1)}px)`;
+      const now = performance.now();
+      const dt = Math.max(1, now - lastT);
+      velX = (x - lastX) / dt * 1000;
+      velY = (y - lastY) / dt * 1000;
+      lastX = x; lastY = y; lastT = now;
+    }
+    function up() {
+      if (!dragging) return;
+      dragging = false;
+      el.classList.remove('dragging');
+      const s = _phys.get(id);
+      if (!s) return;
+      if (moved) {
+        s.vx = clamp(velX, -900, 900);
+        s.vy = clamp(velY, -900, 900);
+      } else {
+        // Tap-to-nudge: a light poke in a random direction when the
+        // module is clicked/tapped rather than dragged.
+        const ang = Math.random() * Math.PI * 2;
+        const mag = 70 + Math.random() * 60;
+        s.vx = Math.cos(ang) * mag;
+        s.vy = Math.sin(ang) * mag * 0.6;
+      }
+      s.phase = 'settle';
+    }
+
+    el.addEventListener('mousedown', e => {
+      e.preventDefault();
+      down(e.clientX, e.clientY);
+      const mm = e2 => move(e2.clientX, e2.clientY);
+      const mu = () => { up(); window.removeEventListener('mousemove', mm); window.removeEventListener('mouseup', mu); };
+      window.addEventListener('mousemove', mm);
+      window.addEventListener('mouseup', mu);
+    });
+    el.addEventListener('touchstart', e => { const t = e.touches[0]; down(t.clientX, t.clientY); }, { passive: true });
+    el.addEventListener('touchmove',  e => { const t = e.touches[0]; move(t.clientX, t.clientY); }, { passive: true });
+    el.addEventListener('touchend',   () => up(), { passive: true });
+  }
+
+  function initPhysics(el, m) {
+    const mass = massFor(m);
+    _phys.set(m.id, {
+      el, mass,
+      ox: 0, oy: -220 - Math.random() * 60,
+      vx: 0, vy: 0,
+      theta: (Math.random() * 2 - 1) * 0.15, omega: 0,
+      nextImpulseAt: performance.now() + 3000 + Math.random() * 4000,
+      phase: 'enter',
+    });
+    attachDragHandlers(el, m.id);
+    if (_physRAF == null) _physRAF = requestAnimationFrame(physicsLoop);
+  }
+
   function buildModuleEl(m) {
     const el = document.createElement('div');
+    el.className = 'scene-module';
     el.dataset.modId   = m.id;
     el.dataset.modType = m.type;
     el.style.cssText   = `position:absolute;left:${m.x}%;top:${m.y}%;width:${m.w}%;height:${m.h}%;overflow:hidden;`;
@@ -683,6 +729,7 @@
 
     if (!mods.length) {
       sceneLayer.style.display = 'none';
+      _sceneEls.forEach((el, id) => _phys.delete(id));
       _sceneEls.forEach(el => el.remove());
       _sceneEls.clear();
       return;
@@ -694,7 +741,7 @@
 
     /* Remove elements no longer in scene */
     _sceneEls.forEach((el, id) => {
-      if (!incoming.has(id)) { el.remove(); _sceneEls.delete(id); }
+      if (!incoming.has(id)) { _phys.delete(id); el.remove(); _sceneEls.delete(id); }
     });
 
     /* Add or update each module */
@@ -703,10 +750,11 @@
 
       if (!el || el.dataset.modType !== m.type) {
         /* New or type-changed module — create fresh */
-        if (el) el.remove();
+        if (el) { _phys.delete(m.id); el.remove(); }
         el = buildModuleEl(m);
         sceneLayer.appendChild(el);
         _sceneEls.set(m.id, el);
+        initPhysics(el, m);
       } else {
         /* Existing module — update position/size only, never touch iframes */
         el.style.left   = m.x + '%';
@@ -727,30 +775,12 @@
     if ('scene' in d) renderScene(d.scene);
     syncAudio(d);
 
-    const hasContent = d.track_title || d.artist;
-    npBar.classList.toggle('visible', !!hasContent);
-
-    const track = [d.track_title, d.artist].filter(Boolean).join(' — ');
-    npTrackLine.textContent = track || '';
-
-    const meta = [d.archive_source].filter(Boolean).join(' · ');
-    npMetaLine.textContent = meta || '';
-
-    if (d.translation) {
-      npTranslation.textContent = d.translation;
-      npTranslation.style.display = '';
-    } else {
-      npTranslation.style.display = 'none';
-    }
-
     if (d.image_url) {
       npImageBg.style.backgroundImage = `url("${d.image_url.replace(/"/g,'%22')}")`;
       npImageBg.classList.add('show');
     } else {
       npImageBg.classList.remove('show');
     }
-
-    npPlayerRow.style.display = (d.is_playing && d.audio_url) ? '' : 'none';
   }
 
   (async () => {
@@ -765,22 +795,8 @@
     .subscribe();
 
   /* ── Presence ── */
-  function showJoinToast(name) {
-    const el = document.createElement('div');
-    el.className = 'join-toast';
-    el.textContent = `→ ${name} found their way in`;
-    document.body.appendChild(el);
-    requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('visible')));
-    setTimeout(() => { el.classList.remove('visible'); setTimeout(() => el.remove(), 400); }, 3200);
-  }
-
   const presenceChannel = db.channel('fur-fm:room');
   presenceChannel
-    .on('presence', { event: 'join' }, ({ newPresences }) => {
-      newPresences.forEach(p => {
-        if (p.username && p.username !== userName) showJoinToast(p.username);
-      });
-    })
     .subscribe(async status => {
       if (status === 'SUBSCRIBED') await presenceChannel.track({ username: userName });
     });
