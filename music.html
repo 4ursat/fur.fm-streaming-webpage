@@ -12,16 +12,16 @@
     html, body {
       width: 100%;
       min-height: 100%;
-      background: #000000;
+      background: #ffffff;
       font-family: 'Yatra One', serif;
-      color: #ffffff;
+      color: #000000;
       -webkit-tap-highlight-color: transparent;
     }
 
     body::after {
       content: '';
       position: fixed; inset: 0; z-index: 0;
-      background-image: radial-gradient(circle, rgba(255,255,255,0.045) 1px, transparent 1px);
+      background-image: radial-gradient(circle, rgba(0,0,0,0.045) 1px, transparent 1px);
       background-size: 26px 26px;
       pointer-events: none;
     }
@@ -53,16 +53,41 @@
       font-size: 0.72rem;
       letter-spacing: 0.12em;
       text-transform: uppercase;
-      color: rgba(255,255,255,0.55);
+      color: rgba(0,0,0,0.55);
       text-decoration: none;
       transition: color 0.15s;
+      display: flex;
+      align-items: center;
     }
-    .nav-link:hover { color: #ffffff; }
-    .nav-link.active { color: #ffffff; }
+    .nav-link:hover { color: #000000; }
+    .nav-link.active { color: #000000; }
+
+    .nav-live {
+      background: rgba(255, 59, 48, 0.05);
+      color: #ff3b30;
+      padding: 0.32rem 0.85rem;
+      border-radius: 999px;
+      font-weight: 700;
+      animation: live-halo-pulse 2.8s ease-in-out infinite;
+      transition: background 0.15s, color 0.15s;
+    }
+    .nav-live:hover { background: rgba(255, 59, 48, 0.1); color: #e0271d; }
+    @keyframes live-halo-pulse {
+      0%, 100% { box-shadow: 0 0 8px 1px rgba(255, 59, 48, 0.2); }
+      50%      { box-shadow: 0 0 16px 4px rgba(255, 59, 48, 0.4); }
+    }
+
+    .nav-icon {
+      width: 1.3rem;
+      height: 1.3rem;
+      justify-content: center;
+    }
+    .nav-icon svg { width: 100%; height: 100%; display: block; }
 
     @media (max-width: 560px) {
       #site-nav { gap: 0.9rem; top: 1.5rem; right: 1rem; }
       .nav-link { font-size: 0.62rem; letter-spacing: 0.08em; }
+      .nav-icon { width: 1.1rem; height: 1.1rem; }
       #brand { top: 1.2rem; left: 1rem; }
     }
 
@@ -97,22 +122,32 @@
     <text x="0" y="24"
       font-family="'Courier New',Courier,monospace"
       font-size="24" font-weight="700" letter-spacing="1"
-      fill="#ffffff">FursatFM</text>
-    <line x1="1" y1="31" x2="37" y2="31" stroke="rgba(255,255,255,0.4)" stroke-width="1"/>
+      fill="#000000">Fursat FM</text>
+    <line x1="1" y1="31" x2="37" y2="31" stroke="rgba(0,0,0,0.4)" stroke-width="1"/>
     <text x="1" y="50"
       font-family="'Yatra One', serif"
       font-size="18"
-      fill="rgba(255,255,255,0.75)">फ़ुर्सत</text>
+      fill="rgba(0,0,0,0.75)">फ़ुर्सत</text>
   </svg>
 </a>
 
 <nav id="site-nav">
-  <a class="nav-link" href="stream.html">Live</a>
-  <a class="nav-link active" href="music.html">Music</a>
-  <a class="nav-link" href="studio.html">Studio</a>
-  <a class="nav-link" href="shop.html">Shop</a>
-  <a class="nav-link" href="cry.html">Cry</a>
-  <a class="nav-link" href="contact.html">Contact</a>
+  <a class="nav-link nav-live" href="stream.html">Live</a>
+  <a class="nav-link nav-icon active" href="music.html" aria-label="Music" title="Music">
+    <svg viewBox="0 0 20 20" fill="none"><path d="M7.5 15.2a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" stroke="currentColor" stroke-width="1.4"/><path d="M9.5 13.2V4l6.5-1.4v7.9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M14.5 12.1a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" stroke="currentColor" stroke-width="1.4"/></svg>
+  </a>
+  <a class="nav-link nav-icon" href="studio.html" aria-label="Studio" title="Studio">
+    <svg viewBox="0 0 20 20" fill="none"><path d="M3.5 10v0M6.5 6v8M10 3v14M13.5 6v8M16.5 10v0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+  </a>
+  <a class="nav-link nav-icon" href="cry.html" aria-label="Cry" title="Cry">
+    <svg viewBox="0 0 20 20" fill="none"><path d="M10 2.2c2.8 4.3 4.8 7.1 4.8 9.6a4.8 4.8 0 0 1-9.6 0c0-2.5 2-5.3 4.8-9.6Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
+  </a>
+  <a class="nav-link nav-icon" href="shop.html" aria-label="Shop" title="Shop">
+    <svg viewBox="0 0 20 20" fill="none"><path d="M5 7h10l-.8 9.2a1 1 0 0 1-1 .8H6.8a1 1 0 0 1-1-.8L5 7Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M7.5 7V5.5a2.5 2.5 0 0 1 5 0V7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+  </a>
+  <a class="nav-link nav-icon" href="contact.html" aria-label="Contact" title="Contact">
+    <svg viewBox="0 0 20 20" fill="none"><rect x="2.5" y="4.5" width="15" height="11" rx="1.2" stroke="currentColor" stroke-width="1.4"/><path d="M3 5.5l7 5.5 7-5.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </a>
 </nav>
 
 <div id="albums">
