@@ -48,6 +48,18 @@
       display: flex;
       gap: 1.5rem;
     }
+
+    /* Page icons live on their own, away from Live and the brand mark. */
+    #page-nav {
+      position: fixed;
+      left: 1.5rem;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 30;
+      display: flex;
+      flex-direction: column;
+      gap: 1.4rem;
+    }
     .nav-link {
       font-family: 'Yatra One', serif;
       font-size: 0.72rem;
@@ -63,18 +75,18 @@
     .nav-link.active { color: #000000; }
 
     .nav-live {
-      background: rgba(255, 59, 48, 0.05);
-      color: #ff3b30;
+      background: rgba(210, 110, 120, 0.08);
+      color: #b8505f;
       padding: 0.32rem 0.85rem;
       border-radius: 999px;
       font-weight: 700;
       animation: live-halo-pulse 2.8s ease-in-out infinite;
       transition: background 0.15s, color 0.15s;
     }
-    .nav-live:hover { background: rgba(255, 59, 48, 0.1); color: #e0271d; }
+    .nav-live:hover { background: rgba(210, 110, 120, 0.14); color: #9c3f4d; }
     @keyframes live-halo-pulse {
-      0%, 100% { box-shadow: 0 0 8px 1px rgba(255, 59, 48, 0.2); }
-      50%      { box-shadow: 0 0 16px 4px rgba(255, 59, 48, 0.4); }
+      0%, 100% { box-shadow: 0 0 8px 1px rgba(210, 110, 120, 0.18); }
+      50%      { box-shadow: 0 0 16px 4px rgba(210, 110, 120, 0.35); }
     }
 
     .nav-icon {
@@ -88,6 +100,7 @@
       #site-nav { gap: 0.9rem; top: 1.5rem; right: 1rem; }
       .nav-link { font-size: 0.62rem; letter-spacing: 0.08em; }
       .nav-icon { width: 1.1rem; height: 1.1rem; }
+      #page-nav { left: 1rem; gap: 1.1rem; }
       #brand { top: 1.2rem; left: 1rem; }
     }
 
@@ -129,6 +142,9 @@
 
 <nav id="site-nav">
   <a class="nav-link nav-live" href="stream.html">Live</a>
+</nav>
+
+<nav id="page-nav">
   <a class="nav-link nav-icon" href="music.html" aria-label="Music" title="Music">
     <svg viewBox="0 0 20 20" fill="none"><path d="M7.5 15.2a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" stroke="currentColor" stroke-width="1.4"/><path d="M9.5 13.2V4l6.5-1.4v7.9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M14.5 12.1a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" stroke="currentColor" stroke-width="1.4"/></svg>
   </a>
