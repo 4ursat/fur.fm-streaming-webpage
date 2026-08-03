@@ -219,6 +219,8 @@
       transition: height 0.09s ease;
     }
 
+    #scene-layer { z-index: 3; }
+
     /* ── Scene modules (broadcaster-placed video/screen/text/image) ──
        Physics-driven: each one drops in under gravity and settles (heavier
        types thud, lighter ones bounce a little), then hangs and sways like
@@ -257,9 +259,15 @@
        a bottom drawer so it doesn't have to dominate the screen by
        default. */
     @media (max-width: 600px) {
+      /* Modules render translucently ABOVE the audio player instead of
+         blurred underneath it — the hero keeps a clean, unobstructed
+         reading of its own text, and the modules stay legible (just
+         see-through) rather than smeared into an indistinct haze. */
       #obs-player, #scene-layer {
-        filter: blur(2px) brightness(0.78);
+        opacity: 0.5;
       }
+      #scene-layer { z-index: 8; }
+      .np-track { z-index: 4; }
       .scene-module {
         pointer-events: none; /* ambient only — no drag competing with the drawer/touch UI */
       }
@@ -344,7 +352,7 @@
   </div>
 
   <!-- Scene layer -->
-  <div id="scene-layer" style="display:none; position:absolute; inset:0; z-index:3; pointer-events:none; overflow:hidden;"></div>
+  <div id="scene-layer" style="display:none; position:absolute; inset:0; pointer-events:none; overflow:hidden;"></div>
 
   <!-- Archive image background -->
   <div class="np-image-bg" id="np-image-bg"></div>
