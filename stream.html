@@ -248,22 +248,78 @@
       padding: 0.5rem 1.3rem;
     }
 
-    /* ── Mobile ──
-       Now-playing (centered) and session info (top-right) can both have
-       real content at once, so stack them instead of risking the overlap
-       that happened here before. */
+    /* ── Mobile — "Now Playing hero" ──
+       On a phone, the music is the point and video/image/text are just
+       context for it, so the layout flips: the now-playing block becomes
+       a large fixed centerpiece instead of a small drifting label, the
+       scene modules become a soft blurred backdrop behind it instead of
+       draggable objects competing for touch input, and chat collapses to
+       a bottom drawer so it doesn't have to dominate the screen by
+       default. */
     @media (max-width: 600px) {
-      .np-track { top: 1.1rem; max-width: 60%; }
-      .np-track-text { font-size: 0.76rem; }
-      .ov-tr { top: 3.1rem; right: 1rem; max-width: 55%; }
-      .ov-bl { top: 4.6rem; bottom: 1rem; left: 1rem; width: min(230px, 62%); }
-      .ov-br { bottom: 1rem; right: 1rem; }
+      #obs-player, #scene-layer {
+        filter: blur(9px) brightness(0.55);
+      }
+      .scene-module {
+        pointer-events: none; /* ambient only — no drag competing with the drawer/touch UI */
+      }
+
+      .np-track {
+        position: fixed;
+        top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        flex-direction: column;
+        align-items: center;
+        gap: 1.1rem;
+        max-width: 82vw;
+        text-align: center;
+      }
+      .np-track-text {
+        font-size: 1.25rem;
+        white-space: normal; overflow: visible; text-overflow: clip;
+        line-height: 1.35;
+      }
+      .np-eq { height: 30px; gap: 5px; }
+      .np-eq i { width: 4px; }
+
+      .ov-tr { top: 1.2rem; right: 1rem; max-width: 55%; }
       .session-title { font-size: 0.9rem; }
+
+      /* Leave moves to the top-left (empty since the logo was dropped) —
+         bottom-right now belongs entirely to the chat drawer. */
+      .ov-br { top: 1.2rem; left: 1rem; right: auto; bottom: auto; }
+
+      /* Chat: collapses to just its header by default, tap to expand into
+         a tall sheet. Video/music stay visible either way since the
+         drawer never covers more than ~70% of the height. */
+      .ov-bl {
+        top: auto; bottom: 0; left: 0; right: 0;
+        width: 100%; height: 3.4rem;
+        border-radius: 12px 12px 0 0;
+        border-left: none; border-right: none; border-bottom: none;
+        transition: height 0.35s ease;
+        overflow: hidden;
+      }
+      /* height, not max-height — with few/no messages yet, max-height
+         would only cap the natural (tiny) content size instead of
+         reliably opening to a consistent sheet height. */
+      .ov-bl.drawer-open { height: 68vh; }
+      .chatbox-header { cursor: pointer; }
+      .chatbox-badge {
+        margin-left: auto;
+        display: none;
+        min-width: 16px; height: 16px; padding: 0 4px;
+        border-radius: 8px;
+        background: #b8505f; color: #f2ede0;
+        font-size: 0.6rem; line-height: 16px; text-align: center;
+        font-family: 'Courier New', Courier, monospace;
+        flex-shrink: 0;
+      }
+      .chatbox-badge.show { display: inline-block; }
     }
 
     @media (max-height: 480px) and (orientation: landscape) {
-      .ov-br { bottom: 0.5rem; }
-      .ov-bl { bottom: 0.5rem; }
+      .ov-bl.drawer-open { height: 80vh; }
     }
 
   </style>
@@ -305,10 +361,11 @@
   </div>
 
   <!-- Bottom-left: Chat -->
-  <div class="ov ov-bl">
-    <div class="chatbox-header">
+  <div class="ov ov-bl" id="chat-panel">
+    <div class="chatbox-header" id="chatbox-header">
       <span class="chatbox-led"></span>
       <span class="chatbox-label">chat</span>
+      <span class="chatbox-badge" id="chatbox-badge"></span>
     </div>
     <div class="chat-name-row" id="chat-name-row">
       <input type="text" id="name-input" placeholder="choose a name" maxlength="24" autocomplete="off" />
@@ -337,6 +394,11 @@
 (async () => {
   const { createClient } = window.supabase;
   const db = createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+
+  // "Now Playing hero" layout kicks in below this width — see the mobile
+  // media query. Same threshold, checked live rather than cached once,
+  // since a phone can rotate/resize into or out of it.
+  const isMobile = () => window.matchMedia('(max-width: 600px)').matches;
 
   /* ── iOS tap-to-watch ── */
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
@@ -430,7 +492,32 @@
   const input = document.getElementById('chat-input');
   const btn   = document.getElementById('send-btn');
 
-  function appendMessage(sender, text, type = 'user') {
+  /* ── Chat drawer (phone only — see mobile media query) ──
+     Collapsed by default so it doesn't cover the Now Playing hero; tap
+     the header to expand. Unread badge only tracks messages that arrive
+     while it's collapsed, and clears the moment it's opened. */
+  const chatPanel   = document.getElementById('chat-panel');
+  const chatHeader  = document.getElementById('chatbox-header');
+  const chatBadgeEl = document.getElementById('chatbox-badge');
+  let chatUnread = 0;
+
+  chatHeader.addEventListener('click', () => {
+    chatPanel.classList.toggle('drawer-open');
+    if (chatPanel.classList.contains('drawer-open')) {
+      chatUnread = 0;
+      chatBadgeEl.classList.remove('show');
+    }
+  });
+
+  function bumpUnread() {
+    if (!isMobile() || chatPanel.classList.contains('drawer-open')) return;
+    chatUnread++;
+    chatBadgeEl.textContent = chatUnread > 9 ? '9+' : String(chatUnread);
+    chatBadgeEl.classList.add('show');
+  }
+
+  function appendMessage(sender, text, type = 'user', countUnread = true) {
+    if (countUnread) bumpUnread();
     const msg = document.createElement('div');
     msg.className = `msg${type === 'system' ? ' system' : ''}`;
     msg.innerHTML = `<span class="msg-sender">${esc(sender)}</span><span class="msg-text">${esc(text)}</span>`;
@@ -449,7 +536,8 @@
 
   if (history && history.length > 0) {
     log.innerHTML = '';
-    history.forEach(m => appendMessage(m.username || 'Listener', m.content));
+    // false = don't count the initial history replay as "unread"
+    history.forEach(m => appendMessage(m.username || 'Listener', m.content, 'user', false));
   }
 
   /* Track IDs of messages we sent locally so we don't echo them
@@ -724,6 +812,11 @@
   function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
 
   function attachDragHandlers(el, id) {
+    // On the phone "Now Playing hero" layout, scene modules are ambient
+    // backdrop only — no drag/tap-nudge to compete with the chat drawer
+    // and other touch UI. Physics (entrance + idle sway) still runs.
+    if (isMobile()) return;
+
     let dragging = false, moved = false;
     let startX, startY, startOx, startOy, lastX, lastY, lastT, velX, velY;
 
@@ -891,8 +984,10 @@
     npTrackEl.classList.toggle('visible', !!track);
     // Same physics as the video/image/text modules, triggered the moment
     // it actually has something to show — drops in and settles like any
-    // other module joining the scene, rather than a special case.
-    if (track && !npWasVisible) {
+    // other module joining the scene, rather than a special case. Not on
+    // mobile: there it's a large fixed hero (see the mobile media query),
+    // positioned by CSS alone, so JS should never touch its transform.
+    if (track && !npWasVisible && !isMobile()) {
       enterOrReplay(npTrackEl, { id: 'np-track', type: 'text', w: 30, h: 8 });
     }
 
