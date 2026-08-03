@@ -20,9 +20,8 @@
       -webkit-tap-highlight-color: transparent;
     }
 
-    /* Grain texture — same speckle tile as every other page. A gentle
-       twinkle (jump-cut, not a slide — real film grain doesn't glide) is
-       the one bit of motion on an otherwise still page. */
+    /* Grain texture — same speckle tile as every other page. Static here;
+       the motion budget on this page now belongs to the scene modules. */
     body::after {
       content: '';
       position: fixed; inset: 0; z-index: 0;
@@ -30,19 +29,6 @@
       background-repeat: repeat;
       opacity: 0.32;
       pointer-events: none;
-      animation: grain-twinkle 6s steps(6) infinite;
-    }
-    @keyframes grain-twinkle {
-      0%   { background-position: 0 0; }
-      16%  { background-position: -18px 7px; }
-      33%  { background-position: 9px -14px; }
-      50%  { background-position: -7px 17px; }
-      66%  { background-position: 14px 9px; }
-      83%  { background-position: -11px -6px; }
-      100% { background-position: 0 0; }
-    }
-    @media (prefers-reduced-motion: reduce) {
-      body::after { animation: none; }
     }
 
     /* ── Stage: full viewport ── */
@@ -73,20 +59,48 @@
       font-size: 1.1rem; font-weight: 300; font-style: italic;
       color: #f2ede0;
     }
-    /* Bottom-left: Chat */
+    /* Bottom-left: Chat — a proper full-height panel now, styled like an
+       old radio/receiver unit rather than a floating pill: bordered frame,
+       a small blinking indicator up top, faint scanlines behind the
+       messages, monospace throughout. */
     .ov-bl {
-      bottom: 1.8rem; left: 1.8rem;
-      width: min(250px, calc(44% - 1.8rem));
+      top: 1.8rem; bottom: 1.8rem; left: 1.8rem;
+      width: min(300px, 30vw);
       pointer-events: all;
       display: flex; flex-direction: column;
+      background: rgba(18,16,12,0.55);
+      border: 1px solid rgba(242,237,224,0.2);
+      border-radius: 6px;
+      overflow: hidden;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+    .chatbox-header {
+      display: flex; align-items: center; gap: 0.5rem;
+      padding: 0.6rem 0.8rem;
+      border-bottom: 1px solid rgba(242,237,224,0.15);
+      flex-shrink: 0;
+    }
+    .chatbox-led {
+      width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+      background: #b8505f;
+      box-shadow: 0 0 6px 1px rgba(184,80,95,0.7);
+      animation: chatbox-blink 2.2s ease-in-out infinite;
+    }
+    @keyframes chatbox-blink {
+      0%, 100% { opacity: 1; }
+      50%      { opacity: 0.25; }
+    }
+    .chatbox-label {
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.62rem; letter-spacing: 0.18em; text-transform: uppercase;
+      color: rgba(242,237,224,0.55);
     }
     .chat-name-row {
-      background: rgba(22,20,15,0.65);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      padding: 0.42rem 0.75rem 0.48rem;
+      padding: 0.5rem 0.8rem;
       display: flex; align-items: center; gap: 0.5rem;
       border-bottom: 1px solid rgba(242,237,224,0.12);
+      flex-shrink: 0;
     }
     .chat-name-row input {
       flex: 1; background: transparent; border: none;
@@ -103,21 +117,23 @@
     }
     .name-confirm:hover { color: #f2ede0; }
     .messages {
-      max-height: 180px; overflow-y: auto;
+      flex: 1; overflow-y: auto;
       display: flex; flex-direction: column; gap: 0.55rem;
-      padding: 0.65rem 0.75rem 0.55rem;
-      background: rgba(22,20,15,0.55);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+      padding: 0.75rem 0.8rem;
+      background-image: repeating-linear-gradient(to bottom,
+        rgba(255,255,255,0.025) 0px, rgba(255,255,255,0.025) 1px,
+        transparent 1px, transparent 3px);
       scrollbar-width: none;
     }
     .messages::-webkit-scrollbar { display: none; }
     .msg { display: flex; flex-direction: column; gap: 0.04rem; }
     .msg-sender {
+      font-family: 'Courier New', Courier, monospace;
       font-size: 0.7rem; letter-spacing: 0.06em;
       color: #a89f8c;
     }
     .msg-text {
+      font-family: 'Courier New', Courier, monospace;
       font-size: 0.84rem; color: #f2ede0;
       line-height: 1.45; word-break: break-word;
     }
@@ -126,19 +142,17 @@
       font-style: italic; color: rgba(242,237,224,0.45); font-size: 0.72rem;
     }
     .chat-input-area {
-      background: rgba(22,20,15,0.65);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      padding: 0.42rem 0.75rem 0.48rem;
+      padding: 0.55rem 0.8rem;
       display: flex; align-items: center; gap: 0.5rem;
-      border-top: 1px solid rgba(242,237,224,0.12);
+      border-top: 1px solid rgba(242,237,224,0.15);
+      flex-shrink: 0;
     }
     .chat-input-area input {
       flex: 1; background: transparent; border: none;
       border-bottom: 1px solid rgba(242,237,224,0.32);
       outline: none; padding: 0.14rem 0;
       font-family: 'Courier New', Courier, monospace;
-      font-size: 0.8rem; font-style: italic;
+      font-size: 0.8rem;
       color: #f2ede0;
     }
     .chat-input-area input::placeholder { color: rgba(242,237,224,0.38); }
@@ -172,6 +186,39 @@
     }
     .np-image-bg.show { opacity: 0.28; }
 
+    /* Now playing — just "track — artist", quiet, no progress/timer.
+       Carries the same physics as the scene modules below (added via the
+       shared .scene-module class) — drops in, sways, drags with momentum —
+       so it's not a special case, just another thing floating on the page. */
+    .np-track {
+      position: absolute;
+      top: 2rem; left: 50%;
+      z-index: 9;
+      display: none;
+      align-items: center;
+      gap: 0.5rem;
+      max-width: 50%;
+    }
+    .np-track.visible { display: flex; }
+    .np-track-text {
+      min-width: 0;
+      font-size: 0.85rem; letter-spacing: 0.03em;
+      color: rgba(242,237,224,0.75);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    /* Live equalizer — reads the actual audio signal (see ensureAnalyser),
+       so the bars genuinely move with the sound instead of just miming it. */
+    .np-eq {
+      display: flex; align-items: flex-end; gap: 2px;
+      height: 13px; flex-shrink: 0;
+    }
+    .np-eq i {
+      display: block; width: 2px; border-radius: 1px;
+      background: #b8505f;
+      height: 3px;
+      transition: height 0.09s ease;
+    }
+
     /* ── Scene modules (broadcaster-placed video/screen/text/image) ──
        Physics-driven: each one drops in under gravity and settles (heavier
        types thud, lighter ones bounce a little), then hangs and sways like
@@ -187,19 +234,6 @@
     }
     .scene-module.dragging { cursor: grabbing; }
 
-    /* ── Audio unlock prompt ── */
-    .audio-prompt {
-      position: fixed; bottom: 1.8rem; left: 50%;
-      transform: translateX(-50%);
-      z-index: 80; display: none; align-items: center; gap: 0.5rem;
-      background: rgba(22,20,15,0.95);
-      border: 1px solid rgba(242,237,224,0.28);
-      color: #f2ede0;
-      font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase;
-      padding: 0.5rem 1rem; cursor: pointer;
-    }
-    .audio-prompt.visible { display: flex; }
-
     /* ── iOS tap-to-watch ── */
     .tap-overlay {
       position: absolute; inset: 0; z-index: 5;
@@ -214,12 +248,16 @@
       padding: 0.5rem 1.3rem;
     }
 
-    /* ── Mobile ── */
+    /* ── Mobile ──
+       Now-playing (centered) and session info (top-right) can both have
+       real content at once, so stack them instead of risking the overlap
+       that happened here before. */
     @media (max-width: 600px) {
-      .ov-tr { top: 1.2rem; right: 1rem; max-width: 55%; }
-      .ov-bl { bottom: 1rem; left: 1rem; width: min(190px, calc(56% - 1rem)); }
+      .np-track { top: 1.1rem; max-width: 60%; }
+      .np-track-text { font-size: 0.76rem; }
+      .ov-tr { top: 3.1rem; right: 1rem; max-width: 55%; }
+      .ov-bl { top: 4.6rem; bottom: 1rem; left: 1rem; width: min(230px, 62%); }
       .ov-br { bottom: 1rem; right: 1rem; }
-      .messages { max-height: 90px; }
       .session-title { font-size: 0.9rem; }
     }
 
@@ -255,6 +293,12 @@
   <!-- Archive image background -->
   <div class="np-image-bg" id="np-image-bg"></div>
 
+  <!-- Now playing: track — artist, nothing else -->
+  <div class="np-track scene-module" id="np-track">
+    <span class="np-track-text" id="np-track-text"></span>
+    <span class="np-eq" id="np-eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+  </div>
+
   <!-- Top-right: Session name -->
   <div class="ov ov-tr">
     <div class="session-title" id="prog-title">Live Session</div>
@@ -262,13 +306,17 @@
 
   <!-- Bottom-left: Chat -->
   <div class="ov ov-bl">
+    <div class="chatbox-header">
+      <span class="chatbox-led"></span>
+      <span class="chatbox-label">chat</span>
+    </div>
     <div class="chat-name-row" id="chat-name-row">
       <input type="text" id="name-input" placeholder="choose a name" maxlength="24" autocomplete="off" />
       <button class="name-confirm" id="name-confirm">→</button>
     </div>
     <div class="messages" id="chat-messages" role="log" aria-live="polite"></div>
     <div class="chat-input-area">
-      <input type="text" id="chat-input" placeholder="whisper..."
+      <input type="text" id="chat-input" placeholder="say something"
              maxlength="200" autocomplete="off" />
       <button class="send-btn" id="send-btn">→</button>
     </div>
@@ -283,8 +331,7 @@
 
 </div><!-- /.stage -->
 
-<audio id="np-audio" style="display:none" preload="auto"></audio>
-<div class="audio-prompt" id="audio-prompt">tap to enable audio</div>
+<audio id="np-audio" style="display:none" preload="auto" crossorigin="anonymous"></audio>
 
 <script>
 (async () => {
@@ -325,10 +372,6 @@
 
   const sessionId = new Date().toISOString().slice(0, 10);
   let dbSessionId  = null;
-
-  /* ── User interaction gate for audio autoplay ── */
-  let userHasInteracted = false;
-  document.addEventListener('click', () => { userHasInteracted = true; }, { once: true, capture: true });
 
   /* Track whether vdo.ninja already wrote stream_started_at this session
      to prevent repeated reconnect events from resetting it */
@@ -500,19 +543,66 @@
   }
 
   /* ── Archival now-playing ── */
-  const npImageBg   = document.getElementById('np-image-bg');
-  const npAudio     = document.getElementById('np-audio');
-  const audioPrompt = document.getElementById('audio-prompt');
+  const npImageBg    = document.getElementById('np-image-bg');
+  const npTrackEl    = document.getElementById('np-track');
+  const npTrackTextEl= document.getElementById('np-track-text');
+  const npEqEl       = document.getElementById('np-eq');
+  const npAudio      = document.getElementById('np-audio');
+
+  /* Live equalizer — a MediaElementSource + AnalyserNode tapped off the
+     actual <audio> element, so the bars are reading the real signal, not
+     a canned animation. createMediaElementSource can only be called once
+     per element, hence the guard. Built lazily (first play attempt)
+     rather than at load, since AudioContext wants a user gesture nearby.
+
+     Important: the moment createMediaElementSource() is called, npAudio's
+     output is rerouted through this graph instead of playing directly —
+     it ONLY reaches the speakers if audioCtx is actually running. Browsers
+     often create a new AudioContext in a *suspended* state even during a
+     user gesture, so without an explicit resume() here audio goes
+     completely silent despite play() reporting success. */
+  let analyser = null, analyserData = null, audioCtx = null;
+  function ensureAnalyser() {
+    if (analyser) return;
+    try {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const src = audioCtx.createMediaElementSource(npAudio);
+      analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 32;
+      analyser.smoothingTimeConstant = 0.7;
+      analyserData = new Uint8Array(analyser.frequencyBinCount);
+      src.connect(analyser);
+      analyser.connect(audioCtx.destination);
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+    } catch (_) { /* analyser is a nice-to-have; keep playback working without it */ }
+  }
+
+  (function drawEq() {
+    requestAnimationFrame(drawEq);
+    const bars = npEqEl.children;
+    if (analyser && !npAudio.paused) {
+      analyser.getByteFrequencyData(analyserData);
+      for (let i = 0; i < bars.length; i++) {
+        const idx = Math.floor((i / bars.length) * analyserData.length * 0.6);
+        const level = analyserData[idx] / 255;
+        bars[i].style.height = (3 + level * 11).toFixed(1) + 'px';
+      }
+    } else {
+      for (let i = 0; i < bars.length; i++) bars[i].style.height = '3px';
+    }
+  })();
 
   /* ── Synced audio playback (archival tracks) ── */
   let wantPlaying = false;
   let wantUrl     = null;
 
   function attemptPlay() {
-    npAudio.play().then(() => {
-      audioPrompt.classList.remove('visible');
-    }).catch(() => {
-      audioPrompt.classList.add('visible');
+    ensureAnalyser();
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    npAudio.play().catch(() => {
+      // Browser blocked autoplay with no prior gesture on this page — no
+      // visible prompt for this; it just quietly tries again on whatever
+      // the visitor does next (see the document click listener below).
     });
   }
 
@@ -533,21 +623,21 @@
       npAudio.currentTime = d.playhead_pos;
     }
 
+    // Play by default whenever the broadcaster has it playing — no gate,
+    // no "tap to enable audio" button. A brand-new page load with zero
+    // prior interaction may still get blocked by the browser's autoplay
+    // policy (nothing any site can override), in which case the click
+    // listener below retries silently on the visitor's next interaction.
     if (wantPlaying && url) {
-      // Only auto-play after a user gesture — prevents audio starting
-      // mid-session because the DB still has is_playing=true from a
-      // previous broadcast that wasn't cleanly stopped.
-      if (npAudio.paused && userHasInteracted) attemptPlay();
+      if (npAudio.paused) attemptPlay();
     } else {
       npAudio.pause();
     }
   }
 
   document.addEventListener('click', () => {
-    userHasInteracted = true;
     if (wantPlaying && npAudio.paused) attemptPlay();
   }, true);
-  audioPrompt.addEventListener('click', () => attemptPlay());
 
   /* ── Scene renderer (incremental — never destroys live iframes) ── */
   const sceneLayer    = document.getElementById('scene-layer');
@@ -587,8 +677,11 @@
       if (s.phase === 'drag') return;
 
       if (s.phase === 'enter' || s.phase === 'settle') {
-        const k     = 46;
-        const zeta  = (s.phase === 'enter' ? 0.3 : 0.45) + s.mass * 0.55; // heavier = less bounce
+        // Entering (drop-in) stays snappy; settling (the return-home after
+        // a drag or tap-nudge) is deliberately much lazier — a slow drift
+        // back rather than a snap — via a far softer spring.
+        const k     = s.phase === 'enter' ? 46 : 1.3;
+        const zeta  = s.phase === 'enter' ? (0.3 + s.mass * 0.55) : (0.9 + s.mass * 0.3);
         const c     = 2 * Math.sqrt(k * s.mass) * zeta;
         const ax    = (-k * s.ox - c * s.vx) / s.mass;
         const ay    = (-k * s.oy - c * s.vy) / s.mass;
@@ -705,6 +798,23 @@
     if (_physRAF == null) _physRAF = requestAnimationFrame(physicsLoop);
   }
 
+  // np-track is a persistent element (unlike scene modules, which are
+  // always freshly created), so re-entering it shouldn't call initPhysics
+  // again — that would stack a duplicate set of drag listeners on the same
+  // element every time a track re-appears after being hidden. Once it's
+  // registered, just reset its physics state to replay the drop-in.
+  function enterOrReplay(el, m) {
+    if (_phys.has(m.id)) {
+      const s = _phys.get(m.id);
+      s.ox = 0; s.oy = -220 - Math.random() * 60;
+      s.vx = 0; s.vy = 0;
+      s.theta = (Math.random() * 2 - 1) * 0.15; s.omega = 0;
+      s.phase = 'enter';
+    } else {
+      initPhysics(el, m);
+    }
+  }
+
   function buildModuleEl(m) {
     const el = document.createElement('div');
     el.className = 'scene-module';
@@ -774,6 +884,17 @@
     if (!d) return;
     if ('scene' in d) renderScene(d.scene);
     syncAudio(d);
+
+    const track = [d.track_title, d.artist].filter(Boolean).join(' — ');
+    const npWasVisible = npTrackEl.classList.contains('visible');
+    npTrackTextEl.textContent = track;
+    npTrackEl.classList.toggle('visible', !!track);
+    // Same physics as the video/image/text modules, triggered the moment
+    // it actually has something to show — drops in and settles like any
+    // other module joining the scene, rather than a special case.
+    if (track && !npWasVisible) {
+      enterOrReplay(npTrackEl, { id: 'np-track', type: 'text', w: 30, h: 8 });
+    }
 
     if (d.image_url) {
       npImageBg.style.backgroundImage = `url("${d.image_url.replace(/"/g,'%22')}")`;
