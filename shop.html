@@ -115,7 +115,9 @@
       pointer-events: none;
       transition: opacity 0.15s ease;
     }
-    .nav-icon:hover::after { opacity: 1; }
+    @media (hover: hover) {
+      .nav-icon:hover::after { opacity: 1; }
+    }
 
     @media (max-width: 560px) {
       #site-nav { gap: 0.9rem; top: 1.5rem; right: 1rem; }
