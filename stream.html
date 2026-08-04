@@ -193,7 +193,7 @@
     .np-track {
       position: absolute;
       top: 2rem; left: 50%;
-      z-index: 9;
+      z-index: 4;
       display: none;
       align-items: center;
       gap: 0.5rem;
@@ -206,20 +206,12 @@
       color: rgba(242,237,224,0.75);
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
-    /* Live equalizer — reads the actual audio signal (see ensureAnalyser),
-       so the bars genuinely move with the sound instead of just miming it. */
-    .np-eq {
-      display: flex; align-items: flex-end; gap: 2px;
-      height: 13px; flex-shrink: 0;
-    }
-    .np-eq i {
-      display: block; width: 2px; border-radius: 1px;
-      background: #b8505f;
-      height: 3px;
-      transition: height 0.09s ease;
-    }
-
-    #scene-layer { z-index: 3; }
+    /* Modules render translucently above the audio player instead of
+       fully opaque, so wherever the now-playing text happens to be it
+       stays legible rather than getting fully covered. Applies on every
+       viewport now, not just mobile. */
+    #scene-layer, #obs-player { opacity: 0.5; }
+    #scene-layer { z-index: 8; }
 
     /* ── Scene modules (broadcaster-placed video/screen/text/image) ──
        Physics-driven: each one drops in under gravity and settles (heavier
@@ -259,15 +251,6 @@
        a bottom drawer so it doesn't have to dominate the screen by
        default. */
     @media (max-width: 600px) {
-      /* Modules render translucently ABOVE the audio player instead of
-         blurred underneath it — the hero keeps a clean, unobstructed
-         reading of its own text, and the modules stay legible (just
-         see-through) rather than smeared into an indistinct haze. */
-      #obs-player, #scene-layer {
-        opacity: 0.5;
-      }
-      #scene-layer { z-index: 8; }
-      .np-track { z-index: 4; }
       .scene-module {
         pointer-events: none; /* ambient only — no drag competing with the drawer/touch UI */
       }
@@ -287,8 +270,6 @@
         white-space: normal; overflow: visible; text-overflow: clip;
         line-height: 1.35;
       }
-      .np-eq { height: 30px; gap: 5px; }
-      .np-eq i { width: 4px; }
 
       .ov-tr { top: 1.2rem; right: 1rem; max-width: 55%; }
       .session-title { font-size: 0.9rem; }
@@ -360,7 +341,6 @@
   <!-- Now playing: track — artist, nothing else -->
   <div class="np-track scene-module" id="np-track">
     <span class="np-track-text" id="np-track-text"></span>
-    <span class="np-eq" id="np-eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
   </div>
 
   <!-- Top-right: Session name -->
@@ -396,7 +376,7 @@
 
 </div><!-- /.stage -->
 
-<audio id="np-audio" style="display:none" preload="auto" crossorigin="anonymous"></audio>
+<audio id="np-audio" style="display:none" preload="auto"></audio>
 
 <script>
 (async () => {
@@ -642,59 +622,13 @@
   const npImageBg    = document.getElementById('np-image-bg');
   const npTrackEl    = document.getElementById('np-track');
   const npTrackTextEl= document.getElementById('np-track-text');
-  const npEqEl       = document.getElementById('np-eq');
   const npAudio      = document.getElementById('np-audio');
-
-  /* Live equalizer — a MediaElementSource + AnalyserNode tapped off the
-     actual <audio> element, so the bars are reading the real signal, not
-     a canned animation. createMediaElementSource can only be called once
-     per element, hence the guard. Built lazily (first play attempt)
-     rather than at load, since AudioContext wants a user gesture nearby.
-
-     Important: the moment createMediaElementSource() is called, npAudio's
-     output is rerouted through this graph instead of playing directly —
-     it ONLY reaches the speakers if audioCtx is actually running. Browsers
-     often create a new AudioContext in a *suspended* state even during a
-     user gesture, so without an explicit resume() here audio goes
-     completely silent despite play() reporting success. */
-  let analyser = null, analyserData = null, audioCtx = null;
-  function ensureAnalyser() {
-    if (analyser) return;
-    try {
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      const src = audioCtx.createMediaElementSource(npAudio);
-      analyser = audioCtx.createAnalyser();
-      analyser.fftSize = 32;
-      analyser.smoothingTimeConstant = 0.7;
-      analyserData = new Uint8Array(analyser.frequencyBinCount);
-      src.connect(analyser);
-      analyser.connect(audioCtx.destination);
-      if (audioCtx.state === 'suspended') audioCtx.resume();
-    } catch (_) { /* analyser is a nice-to-have; keep playback working without it */ }
-  }
-
-  (function drawEq() {
-    requestAnimationFrame(drawEq);
-    const bars = npEqEl.children;
-    if (analyser && !npAudio.paused) {
-      analyser.getByteFrequencyData(analyserData);
-      for (let i = 0; i < bars.length; i++) {
-        const idx = Math.floor((i / bars.length) * analyserData.length * 0.6);
-        const level = analyserData[idx] / 255;
-        bars[i].style.height = (3 + level * 11).toFixed(1) + 'px';
-      }
-    } else {
-      for (let i = 0; i < bars.length; i++) bars[i].style.height = '3px';
-    }
-  })();
 
   /* ── Synced audio playback (archival tracks) ── */
   let wantPlaying = false;
   let wantUrl     = null;
 
   function attemptPlay() {
-    ensureAnalyser();
-    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
     npAudio.play().catch(() => {
       // Browser blocked autoplay with no prior gesture on this page — no
       // visible prompt for this; it just quietly tries again on whatever

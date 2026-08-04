@@ -260,19 +260,6 @@
       color: #555;
     }
 
-    .timer-row {
-      display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
-      padding: 0.8rem 1.2rem;
-      border: 1px solid rgba(0,0,0,0.08);
-    }
-    .timer-label {
-      font-size: 0.76rem; letter-spacing: 0.16em;
-      text-transform: uppercase; color: #333;
-    }
-    .timer-display {
-      font-size: 1.15rem; letter-spacing: 0.18em;
-      font-variant-numeric: tabular-nums; flex: 1; color: #111;
-    }
     .bc-session-name {
       font-size: 0.84rem; color: #444;
       font-style: italic; white-space: nowrap;
@@ -458,7 +445,7 @@
     #sb-canvas-wrap {
       flex: 1; position: relative;
       padding-top: calc((9/16) * (100% - 260px)); /* 16:9: subtract right-panel(260) only */
-      background: #0d1c15; border: 1px solid rgba(0,0,0,0.28);
+      background: #16140f; border: 1px solid rgba(0,0,0,0.28);
       min-width: 0;
     }
     /* Panel hidden: canvas fills full width */
@@ -507,7 +494,7 @@
     .sb-module.selected .sb-mod-body iframe { pointer-events: auto; }
     .sb-mod-body .sb-text-preview {
       width: 100%; height: 100%; padding: 0.3rem 0.4rem;
-      font-size: 0.72rem; color: #f0e0a8;
+      font-size: 0.72rem; color: #f2ede0;
       white-space: pre-wrap; word-break: break-word; overflow: auto;
       pointer-events: none;
     }
@@ -571,7 +558,7 @@
     }
     .sb-audio-progress-fill {
       position: absolute; left: 0; top: 0; bottom: 0;
-      background: #e07828; width: 0%; transition: width 0.8s linear;
+      background: #b8505f; width: 0%; transition: width 0.8s linear;
     }
 
     #sb-config-panel {
@@ -594,83 +581,109 @@
       font-size: 0.78rem; color: #444; letter-spacing: 0.04em;
     }
 
-    /* ── Canvas monitor dot-grid (as bg so it doesn't cover modules) ── */
+    /* ── Canvas monitor background — same grain texture as the real page.
+       background-blend-mode (not a separate pseudo-element) so it can't
+       end up stacking wrong relative to the module tiles. ── */
     #sb-canvas {
-      background-image: radial-gradient(circle, rgba(200,144,32,0.04) 1px, transparent 1px);
-      background-size: 22px 22px;
+      background-color: #16140f;
+      background-image: url('grain.png');
+      background-repeat: repeat;
+      background-blend-mode: screen;
     }
 
-    /* ── Canvas overlay elements (mirroring stream.html) ── */
+    /* ── Canvas overlay elements — mirrors stream.html exactly, so
+       positioning decisions made here match what viewers actually see.
+       No logo (dropped from the real page), no timer, no listener count,
+       no meta line/progress bar on now-playing — real stream.html doesn't
+       have any of those anymore. ── */
     .bc-ov {
       position: absolute; z-index: 20; pointer-events: none;
       font-family: 'Courier New', Courier, monospace;
     }
-    .bc-ov-tl { top: 5%; left: 3%; }
     .bc-ov-tr { top: 5%; right: 3%; text-align: right; }
-    .bc-ov-bl { bottom: 5%; left: 3%; display: flex; flex-direction: column; gap: 0.2rem; }
     .bc-ov-br {
-      position: absolute; bottom: 5%; right: 3%;
-      width: 34%; z-index: 20; pointer-events: all;
+      position: absolute; top: 5%; bottom: 5%; left: 3%;
+      width: 30%; z-index: 20; pointer-events: all;
       display: flex; flex-direction: column;
       font-family: 'Courier New', Courier, monospace;
+      background: rgba(18,16,12,0.55);
+      border: 1px solid rgba(242,237,224,0.2);
+      border-radius: 6px;
+      overflow: hidden;
+      backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
     }
-    .bc-logo { display: flex; align-items: center; gap: 0.35rem; }
-    .bc-logo-name { font-size: 0.75rem; font-weight: bold; color: #f0e0a8; letter-spacing: 0.09em; }
-    .bc-logo-dot { display: inline-block; width: 3px; height: 3px; background: #e07828; border-radius: 50%; vertical-align: middle; }
-    .bc-session-title { font-size: 0.68rem; color: #f0e0a8; }
-    .bc-session-timer { font-size: 0.58rem; letter-spacing: 0.14em; color: rgba(200,144,32,0.65); font-variant-numeric: tabular-nums; margin-top: 0.1rem; }
-    .bc-listener-count { font-size: 0.62rem; color: #c89020; font-style: italic; }
+    .bc-session-title { font-size: 0.68rem; font-style: italic; color: #f2ede0; }
 
-    /* Canvas NP bar */
+    /* Now playing — just "track — artist", same as the real page */
     .bc-np-bar {
       position: absolute; top: 5%; left: 50%; transform: translateX(-50%);
-      z-index: 19; pointer-events: none;
-      display: none; flex-direction: column; align-items: center;
-      text-align: center; width: 42%; gap: 0.1rem;
+      z-index: 4; pointer-events: none;
+      display: none; text-align: center; max-width: 46%;
     }
-    .bc-np-bar.visible { display: flex; }
-    .bc-np-track { font-size: 0.72rem; font-weight: bold; color: #f0e0a8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
-    .bc-np-meta  { font-size: 0.58rem; color: #c89020; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
-    .bc-np-player-row { display: flex; align-items: center; gap: 0.45rem; margin-top: 0.1rem; width: 100%; }
-    .bc-np-progress-wrap { flex: 1; height: 2px; background: rgba(200,144,32,0.18); position: relative; overflow: hidden; }
-    .bc-np-progress-fill { position: absolute; left: 0; top: 0; bottom: 0; background: #e07828; width: 0%; transition: width 0.8s linear; }
-    .bc-np-time { font-size: 0.5rem; color: rgba(200,144,32,0.6); font-variant-numeric: tabular-nums; white-space: nowrap; flex-shrink: 0; }
+    .bc-np-bar.visible { display: block; }
+    .bc-np-track {
+      font-size: 0.72rem; color: rgba(242,237,224,0.75);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;
+    }
 
-    /* Canvas chat */
+    /* Canvas chat — same analog-panel look as the real page */
+    .bc-chatbox-header {
+      display: flex; align-items: center; gap: 0.4rem;
+      padding: 0.32rem 0.5rem;
+      border-bottom: 1px solid rgba(242,237,224,0.15);
+      flex-shrink: 0;
+    }
+    .bc-chatbox-led {
+      width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0;
+      background: #b8505f;
+      box-shadow: 0 0 5px 1px rgba(184,80,95,0.7);
+    }
+    .bc-chatbox-label {
+      font-size: 0.56rem; letter-spacing: 0.16em; text-transform: uppercase;
+      color: rgba(242,237,224,0.55);
+    }
     .bc-chat-messages {
-      max-height: 95px; overflow-y: auto;
-      display: flex; flex-direction: column; gap: 0.28rem;
-      padding: 0.38rem 0.45rem;
-      background: rgba(13,28,21,0.52);
-      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      flex: 1; min-height: 0; overflow-y: auto;
+      display: flex; flex-direction: column; gap: 0.24rem;
+      padding: 0.32rem 0.45rem;
+      background-image: repeating-linear-gradient(to bottom,
+        rgba(255,255,255,0.025) 0px, rgba(255,255,255,0.025) 1px,
+        transparent 1px, transparent 3px);
       scrollbar-width: none;
     }
     .bc-chat-messages::-webkit-scrollbar { display: none; }
     .bc-msg { display: flex; flex-direction: column; gap: 0.02rem; }
-    .bc-msg-sender { font-size: 0.64rem; color: #c89020; }
-    .bc-msg-text   { font-size: 0.72rem; color: #f0e0a8; line-height: 1.4; word-break: break-word; }
-    .bc-msg.bc-sys .bc-msg-sender { color: rgba(200,144,32,0.55); }
-    .bc-msg.bc-sys .bc-msg-text   { font-style: italic; color: rgba(240,224,168,0.58); font-size: 0.68rem; }
+    .bc-msg-sender { font-size: 0.62rem; color: #a89f8c; }
+    .bc-msg-text   { font-size: 0.7rem; color: #f2ede0; line-height: 1.4; word-break: break-word; }
+    .bc-msg.bc-sys .bc-msg-sender { color: rgba(242,237,224,0.42); }
+    .bc-msg.bc-sys .bc-msg-text   { font-style: italic; color: rgba(242,237,224,0.45); font-size: 0.66rem; }
     .bc-chat-input-area {
-      background: rgba(13,28,21,0.65);
-      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-      padding: 0.28rem 0.45rem;
+      padding: 0.26rem 0.45rem;
       display: flex; align-items: center; gap: 0.3rem;
-      border-top: 1px solid rgba(200,144,32,0.18);
+      border-top: 1px solid rgba(242,237,224,0.15);
+      flex-shrink: 0;
     }
     .bc-chat-input-area input {
       flex: 1; background: transparent; border: none;
-      border-bottom: 1px solid rgba(200,144,32,0.42);
+      border-bottom: 1px solid rgba(242,237,224,0.32);
       outline: none; padding: 0.06rem 0;
       font-family: 'Courier New', Courier, monospace;
-      font-size: 0.74rem; font-style: italic; color: #f0e0a8;
+      font-size: 0.72rem; color: #f2ede0;
     }
-    .bc-chat-input-area input::placeholder { color: rgba(200,144,32,0.55); }
+    .bc-chat-input-area input::placeholder { color: rgba(242,237,224,0.38); }
     .bc-send-btn {
       background: none; border: none; padding: 0; flex-shrink: 0;
-      font-size: 0.82rem; color: #c89020; cursor: pointer; line-height: 1;
+      font-size: 0.8rem; color: #a89f8c; cursor: pointer; line-height: 1;
     }
-    .bc-send-btn:hover { color: #f0e0a8; }
+    .bc-send-btn:hover { color: #f2ede0; }
+
+    /* Modules render translucently above the now-playing text, same
+       relationship as the real page — the frame/handle stay crisp so
+       selecting and dragging isn't hampered, only the content preview
+       is see-through. */
+    .sb-module { z-index: 8; }
+    .sb-mod-body { opacity: 0.5; }
+    .sb-module.selected .sb-mod-body { opacity: 0.8; }
 
     /* ── Broadcast Right Panel ── */
     #sb-right-panel {
@@ -1015,19 +1028,13 @@
           </div>
         </div>
 
-        <!-- Session picker — scopes timer + archive below -->
+        <!-- Session picker — scopes archive below -->
         <div class="arc-header-row">
           <span class="form-label" style="flex-shrink:0;min-width:max-content">Session</span>
           <select class="form-select" id="bc-session-select">
             <option value="">Loading sessions…</option>
           </select>
-        </div>
-
-        <!-- Session timer -->
-        <div class="timer-row">
-          <div class="timer-label">Session Timer</div>
-          <div class="timer-display" id="bc-timer">00:00:00</div>
-          <div class="bc-session-name" id="bc-sess-name">—</div>
+          <span class="bc-session-name" id="bc-sess-name" style="margin-left:0.6rem">—</span>
         </div>
 
         <!-- ── Scene Builder ── -->
@@ -1044,44 +1051,23 @@
             <div id="sb-canvas-wrap">
               <div id="sb-canvas">
 
-                <!-- Canvas monitor overlays — mirror of stream.html -->
+                <!-- Canvas monitor overlays — mirror of stream.html exactly -->
                 <div class="bc-np-bar" id="bc-np-bar">
                   <div class="bc-np-track" id="bc-np-track"></div>
-                  <div class="bc-np-meta"  id="bc-np-meta"></div>
-                  <div class="bc-np-player-row" id="bc-np-player-row" style="display:none">
-                    <div class="bc-np-progress-wrap"><div class="bc-np-progress-fill" id="bc-np-progress-fill"></div></div>
-                    <span class="bc-np-time" id="bc-np-time">0:00 / 0:00</span>
-                  </div>
-                </div>
-
-                <div class="bc-ov bc-ov-tl">
-                  <div class="bc-logo">
-                    <svg viewBox="0 0 36 20" width="15" height="9" fill="none">
-                      <defs><clipPath id="bc-rings-clip"><rect x="-500" y="-1000" width="1000" height="1014"/></clipPath></defs>
-                      <g clip-path="url(#bc-rings-clip)">
-                        <circle cx="18" cy="11" r="6"  stroke="#f0e0a8" stroke-width="1.3" opacity="0.55"/>
-                        <circle cx="18" cy="11" r="11" stroke="#f0e0a8" stroke-width="1.0" opacity="0.35"/>
-                        <circle cx="18" cy="11" r="16" stroke="#f0e0a8" stroke-width="0.75" opacity="0.18"/>
-                      </g>
-                      <circle cx="18" cy="11" r="2.2" fill="#e07828"/>
-                    </svg>
-                    <div class="bc-logo-name">FUR<span class="bc-logo-dot"></span>FM</div>
-                  </div>
                 </div>
 
                 <div class="bc-ov bc-ov-tr">
                   <div class="bc-session-title" id="bc-canvas-title">Live Session</div>
-                  <div class="bc-session-timer" id="bc-canvas-timer">00:00:00</div>
-                </div>
-
-                <div class="bc-ov bc-ov-bl">
-                  <div class="bc-listener-count" id="bc-canvas-count">— listening</div>
                 </div>
 
                 <div class="bc-ov-br">
+                  <div class="bc-chatbox-header">
+                    <span class="bc-chatbox-led"></span>
+                    <span class="bc-chatbox-label">chat</span>
+                  </div>
                   <div class="bc-chat-messages" id="bc-chat-log"></div>
                   <div class="bc-chat-input-area">
-                    <input type="text" id="bc-chat-input" placeholder="send a message…" maxlength="200" autocomplete="off"/>
+                    <input type="text" id="bc-chat-input" placeholder="say something" maxlength="200" autocomplete="off"/>
                     <button class="bc-send-btn" id="bc-send-btn">→</button>
                   </div>
                 </div>
@@ -1104,7 +1090,7 @@
                 <div class="sbr-signal-row">
                   <div class="sbr-onair">
                     <div class="live-dot" id="sbr-dot"></div>
-                    <span id="sbr-timer">00:00:00</span>
+                    <span id="sbr-onair-label">Off Air</span>
                   </div>
                 </div>
                 <div class="sbr-btn-row" style="margin-top:0.4rem">
@@ -1930,13 +1916,12 @@
     ═════════════════════════════════════════════════════ */
     let bcInited   = false;
     let bcLive     = false;
-    let bcInterval = null;
     let bcSessionId = null;
 
     async function initBroadcast() {
       if (bcInited) return;
       bcInited = true;
-      setupBcTimer();
+      setupBcLiveSync();
       setupArcAudio();
       setupArcMeta();
       setupArcUploads();
@@ -1961,8 +1946,6 @@
       }
     }
 
-    /* Broadcast timer (mirrors stream.html timer logic) */
-    const bcTimerEl = document.getElementById('bc-timer');
     const bcSessNm  = document.getElementById('bc-sess-name');
 
     let bcSessions = [];
@@ -2015,8 +1998,7 @@
       bcSessNm.textContent = s.title || 'Untitled session';
       const canvasTitle = document.getElementById('bc-canvas-title');
       if (canvasTitle) canvasTitle.textContent = s.title || 'Live Session';
-      if (s.stream_started_at) startBcTimer(s.stream_started_at);
-      else stopBcTimer();
+      setBcLiveStatus(!!s.stream_started_at);
 
       const isLive = s.type === 'live';
       if (typeof populateCanvas === 'function') populateCanvas(s.scene_config || { modules: [] });
@@ -2043,39 +2025,21 @@
       selectSession(e.target.value);
     });
 
-    function startBcTimer(ts) {
-      if (bcInterval) clearInterval(bcInterval);
-      const startMs = new Date(ts).getTime();
-      function tick() {
-        const s = Math.max(0, Math.floor((Date.now() - startMs) / 1000));
-        const fmt = [Math.floor(s/3600), Math.floor((s%3600)/60), s%60]
-          .map(n => String(n).padStart(2,'0')).join(':');
-        bcTimerEl.textContent = fmt;
-        const sbrTimer = document.getElementById('sbr-timer');
-        if (sbrTimer) sbrTimer.textContent = fmt;
-        const canvasTimer = document.getElementById('bc-canvas-timer');
-        if (canvasTimer) canvasTimer.textContent = fmt;
-      }
-      tick();
-      bcInterval = setInterval(tick, 1000);
+    /* Red light denoting whether the selected session is actually live
+       (stream_started_at set via Go Live), not just camera/audio activity. */
+    function setBcLiveStatus(isLive) {
+      document.getElementById('bc-dot').classList.toggle('on', isLive);
+      document.getElementById('bc-status-label').textContent = isLive ? 'Live' : 'Offline';
+      document.getElementById('sbr-dot').classList.toggle('on', isLive);
+      const onairLabel = document.getElementById('sbr-onair-label');
+      if (onairLabel) onairLabel.textContent = isLive ? 'On Air' : 'Off Air';
     }
 
-    function stopBcTimer() {
-      if (bcInterval) { clearInterval(bcInterval); bcInterval = null; }
-      bcTimerEl.textContent = '00:00:00';
-      const sbrTimer = document.getElementById('sbr-timer');
-      if (sbrTimer) sbrTimer.textContent = '00:00:00';
-      const canvasTimer = document.getElementById('bc-canvas-timer');
-      if (canvasTimer) canvasTimer.textContent = '00:00:00';
-    }
-
-
-    function setupBcTimer() {
+    function setupBcLiveSync() {
       db.channel('admin-sessions-timer')
         .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'sessions' }, payload => {
           if (!bcSessionId || payload.new.id !== bcSessionId) return;
-          if (payload.new.stream_started_at) startBcTimer(payload.new.stream_started_at);
-          else stopBcTimer();
+          setBcLiveStatus(!!payload.new.stream_started_at);
         }).subscribe();
     }
 
@@ -2113,20 +2077,15 @@
     function getModuleEl(id)   { return sbCanvas.querySelector(`.sb-module[data-id="${CSS.escape(id)}"]`); }
 
     function updateBcNpBar() {
-      const bcNpBar       = document.getElementById('bc-np-bar');
-      const bcNpTrack     = document.getElementById('bc-np-track');
-      const bcNpMeta      = document.getElementById('bc-np-meta');
-      const bcNpPlayerRow = document.getElementById('bc-np-player-row');
+      const bcNpBar   = document.getElementById('bc-np-bar');
+      const bcNpTrack = document.getElementById('bc-np-track');
       if (!bcNpBar) return;
       const hasAudio   = sbModules.some(m => m.type === 'audio');
       const trackName  = document.getElementById('arc-now-track')?.textContent || '';
       const hasContent = hasAudio && trackName && trackName !== 'No track selected' && trackName !== '—';
+      const artist     = document.getElementById('meta-artist')?.value || '';
       bcNpBar.classList.toggle('visible', !!hasContent);
-      if (bcNpTrack) bcNpTrack.textContent = hasContent ? trackName : '';
-      if (bcNpMeta)  bcNpMeta.textContent  = document.getElementById('meta-artist')?.value || '';
-      if (bcNpPlayerRow) {
-        bcNpPlayerRow.style.display = arcPlaying ? '' : 'none';
-      }
+      if (bcNpTrack) bcNpTrack.textContent = hasContent ? [trackName, artist].filter(Boolean).join(' — ') : '';
     }
 
     function scheduleSave() {
@@ -2454,9 +2413,6 @@
         camStart.style.display = 'none';
         camStop.style.display  = '';
         bcLive = true;
-        document.getElementById('bc-dot').classList.add('on');
-        document.getElementById('bc-status-label').textContent = 'Live';
-        document.getElementById('sbr-dot').classList.add('on');
       });
 
       /* Camera stop (also called by End Stream) */
@@ -2467,9 +2423,6 @@
         camStart.style.display = '';
         camStop.style.display  = 'none';
         bcLive = false;
-        document.getElementById('bc-dot').classList.remove('on');
-        document.getElementById('bc-status-label').textContent = 'Offline';
-        document.getElementById('sbr-dot').classList.remove('on');
       }
       camStop.addEventListener('click', stopCamera);
 
@@ -2533,7 +2486,7 @@
         sbrMsg(error ? '✕ save failed' : '✓ draft saved');
       });
 
-      /* Go Live — push scene to listeners + start session timer */
+      /* Go Live — push scene to listeners, mark session live */
       document.getElementById('sbr-go-live').addEventListener('click', async () => {
         if (!bcSessionId) { sbrMsg('✕ no session'); return; }
         sbrMsg('pushing…', 0);
@@ -2543,14 +2496,14 @@
         if (npErr) { sbrMsg('✕ push failed'); return; }
         const ts = new Date().toISOString();
         await db.from('sessions').update({ stream_started_at: ts }).eq('id', bcSessionId);
-        startBcTimer(ts);
+        setBcLiveStatus(true);
         bcStreamLive = true;
         document.getElementById('sbr-go-live').style.display = 'none';
         document.getElementById('sbr-end-stream').style.display = '';
         sbrMsg('✓ live');
       });
 
-      /* End Stream — stop camera/screen, clear listener scene, stop timer */
+      /* End Stream — stop camera/screen, clear listener scene, mark offline */
       document.getElementById('sbr-end-stream').addEventListener('click', async () => {
         if (!bcSessionId) { sbrMsg('✕ no session'); return; }
         sbrMsg('ending…', 0);
@@ -2562,8 +2515,7 @@
         const { error } = await db.from('sessions').update({ stream_started_at: null }).eq('id', bcSessionId);
         if (error) { sbrMsg('✕ db error'); return; }
         bcStreamLive = false;
-        stopBcTimer();
-        document.getElementById('sbr-dot').classList.remove('on');
+        setBcLiveStatus(false);
         document.getElementById('sbr-go-live').style.display = '';
         document.getElementById('sbr-end-stream').style.display = 'none';
         sbrMsg('✓ stream ended');
@@ -2581,7 +2533,6 @@
           document.getElementById('arc-dot').classList.remove('on');
           document.getElementById('arc-status-text').textContent = 'Idle';
           document.getElementById('sbr-arc-play').textContent = '▶ Play';
-          document.getElementById('sbr-dot').classList.remove('on');
         }
         syncEmptyHint();
         renderRightPanel();
@@ -2611,7 +2562,6 @@
           document.getElementById('admin-cassette').classList.remove('playing');
           document.getElementById('arc-dot').classList.remove('on');
           document.getElementById('arc-status-text').textContent = 'Paused';
-          document.getElementById('sbr-dot').classList.remove('on');
           updateBcNpBar();
         } else {
           try { await arcAudio.play(); } catch (_) { return; }
@@ -2621,7 +2571,6 @@
           document.getElementById('admin-cassette').classList.add('playing');
           document.getElementById('arc-dot').classList.add('on');
           document.getElementById('arc-status-text').textContent = 'Broadcasting';
-          document.getElementById('sbr-dot').classList.add('on');
           writeNP({ is_playing: true, playhead_pos: arcAudio.currentTime });
           arcPHTimer = setInterval(() => writeNP({ is_playing: true, playhead_pos: arcAudio.currentTime }), 2000);
           updateBcNpBar();
@@ -2636,7 +2585,6 @@
         document.getElementById('admin-cassette').classList.remove('playing');
         document.getElementById('arc-dot').classList.remove('on');
         document.getElementById('arc-status-text').textContent = 'Idle';
-        document.getElementById('sbr-dot').classList.remove('on');
         writeNP({ is_playing: false, playhead_pos: 0 });
         updateBcNpBar();
       });
@@ -2664,13 +2612,8 @@
           /* also update the canvas audio module tile */
           const canvasFill = sbCanvas.querySelector('.sb-audio-progress-fill');
           if (canvasFill) canvasFill.style.width = pct;
-          /* update canvas NP bar progress */
-          const bcFill = document.getElementById('bc-np-progress-fill');
-          if (bcFill) bcFill.style.width = pct;
         }
         sbrArcTime.textContent = `${fmtDur(arcAudio.currentTime)} / ${fmtDur(arcAudio.duration)}`;
-        const bcTime = document.getElementById('bc-np-time');
-        if (bcTime) bcTime.textContent = `${fmtDur(arcAudio.currentTime)} / ${fmtDur(arcAudio.duration)}`;
       });
 
       /* Track name: watch #arc-now-track for changes */
@@ -2686,16 +2629,6 @@
       if (metaArtistEl) {
         metaArtistEl.addEventListener('input', () => updateBcNpBar());
       }
-
-      /* ── Canvas listener count via Supabase Realtime presence ── */
-      const bcCountEl = document.getElementById('bc-canvas-count');
-      const bcPresence = db.channel('fur-fm:room');
-      bcPresence
-        .on('presence', { event: 'sync' }, () => {
-          const n = Object.keys(bcPresence.presenceState()).length;
-          if (bcCountEl) bcCountEl.textContent = n === 1 ? '1 listening' : `${n} listening`;
-        })
-        .subscribe();
 
       /* ── Canvas chat: subscribe + send ── */
       const bcChatLog   = document.getElementById('bc-chat-log');
@@ -3047,8 +2980,6 @@
         lblEl.textContent = playing ? 'Broadcasting' : (arcAudio.currentTime > 0 ? 'Paused' : 'Idle');
         const sbrPlay = document.getElementById('sbr-arc-play');
         if (sbrPlay) sbrPlay.textContent = playing ? '⏸ Pause' : '▶ Play';
-        const sbrDot = document.getElementById('sbr-dot');
-        if (sbrDot) sbrDot.classList.toggle('on', playing);
         updateBcNpBar();
       }
 
