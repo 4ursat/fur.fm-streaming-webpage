@@ -307,13 +307,6 @@
       .nav-icon { width: 1.1rem; height: 1.1rem; }
       #page-nav { left: 1rem; gap: 1.1rem; }
       #brand { top: 1.2rem; left: 1rem; }
-      /* No real hover on touch — show the label permanently instead of
-         gating it behind a gesture mobile can't reliably trigger. */
-      .nav-icon::after {
-        opacity: 1;
-        left: calc(100% + 0.5rem);
-        font-size: 0.58rem;
-      }
     }
 
     @keyframes blink {
